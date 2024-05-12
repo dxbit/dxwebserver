@@ -1,0 +1,32 @@
+body {
+    background-color: #F5F5DC;
+}
+
+.data {
+    width: 100%;
+    overflow-y: auto;
+}
+
+.data table {
+    border-collapse: collapse;
+}
+
+.data td {
+    border: 1px solid #777;
+    padding: 0.3rem 0.2rem;
+}
+
+.data th {
+    border: 1px solid #777;
+    padding: 0.3rem 0.2rem;
+    font: inherit;
+    background-color: #c7c78d;
+}
+
+.data th span {
+    cursor: pointer;
+}
+
+.data tr:nth-child(even) {
+    background-color: #e5e5b3;
+}

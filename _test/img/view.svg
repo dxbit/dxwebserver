@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="48"
+   height="48"
+   viewBox="0 0 12.7 12.7"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   sodipodi:docname="глаз.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="16.771208"
+     inkscape:cx="16.456775"
+     inkscape:cy="24.595724"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     units="px" />
+  <defs
+     id="defs2">
+    <filter
+       id="mask-powermask-path-effect3742_inverse"
+       inkscape:label="filtermask-powermask-path-effect3742"
+       style="color-interpolation-filters:sRGB"
+       height="100"
+       width="100"
+       x="-50"
+       y="-50">
+      <feColorMatrix
+         id="mask-powermask-path-effect3742_primitive1"
+         values="1"
+         type="saturate"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         id="mask-powermask-path-effect3742_primitive2"
+         values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0 "
+         in="fbSourceGraphic" />
+    </filter>
+  </defs>
+  <g
+     inkscape:label="Слой 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path365"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.52916667;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 11.953586,6.386503 C 11.610171,7.093425 8.6932697,9.423581 6.2335776,9.423581 3.773886,9.423581 0.98576446,7.157816 0.66381317,6.386503 1.0930823,5.550801 3.7738864,3.0704007 6.2335776,3.0704007 c 2.4596915,0 5.4409834,2.5233263 5.7200084,3.3161023 z"
+       sodipodi:nodetypes="cscsc" />
+    <circle
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.52916667;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path3123"
+       cx="6.222846"
+       cy="6.2469912"
+       r="3.1336634" />
+    <path
+       id="path3289"
+       style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.0601266"
+       d="M 23.681641 15.984375 A 7.7065605 7.7065605 0 0 0 20.582031 16.640625 A 3.123185 3.123185 0 0 1 22.302734 19.433594 A 3.123185 3.123185 0 0 1 19.179688 22.556641 A 3.123185 3.123185 0 0 1 16.470703 20.986328 A 7.7065605 7.7065605 0 0 0 15.974609 23.691406 A 7.7065605 7.7065605 0 0 0 23.681641 31.398438 A 7.7065605 7.7065605 0 0 0 31.388672 23.691406 A 7.7065605 7.7065605 0 0 0 23.681641 15.984375 z "
+       transform="scale(0.26458333)" />
+  </g>
+</svg>

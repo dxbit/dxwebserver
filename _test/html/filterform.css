@@ -1,0 +1,145 @@
+body {
+    background-color: #F5F5DC;
+}
+
+.filter {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+input[type=checkbox] {
+    vertical-align: middle;
+}
+
+.fltbn {
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border-width: 0px;
+    vertical-align: middle;
+    padding: 0px;
+    cursor: pointer;
+}
+
+.fltbn img {
+    width: 90%;
+    height: 90%;
+    vertical-align: middle;
+}
+
+.field span:nth-child(2) {
+    font-weight: bold;
+    margin: 0rem 0.5rem;
+}
+
+.field span {
+    margin: 0rem 0.2rem;
+    vertical-align: middle;
+}
+
+@media (pointer:fine) {
+    .value {
+        width: 400px;
+    }
+}
+
+.value {
+    margin-left: 2rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.2rem;
+    display: grid;
+    grid-template-columns: auto 2rem 2rem;
+    grid-gap: 0.5rem;
+    align-items: center;
+}
+
+input[type=text],
+select {
+    padding: 4px;
+    border: 1px solid silver;
+    font: inherit;
+}
+
+input[type=text] {
+    height: 2rem;
+}
+
+.single {
+    width: 100%;
+}
+
+.one {
+    width: calc(50% - 4px);
+}
+
+.two {
+    width: calc(50% - 4px);
+    margin-left: 8px;
+}
+
+.onebn {
+    width: calc(50% - 1.8rem - 4px);
+    vertical-align: middle;
+}
+
+.twobn {
+    width: calc(50% - 1.8rem - 4px);
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.cbx {
+    width: calc(100% - 18px);
+}
+
+.cbxbn {
+    background: transparent;
+    border: 0px;
+    width: 18px;
+    height: 2rem;
+    padding: 0px;
+}
+
+.cbxbn:hover {
+    background: #e5e5b3;
+}
+
+.cbxbn:active {
+    background: #c7c78d;
+}
+
+.cbxbn i {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    margin-bottom: 1px;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(45deg);
+}
+
+.inpbn {
+    width: 1.8rem;
+    height: 2rem;
+    padding: 0px;
+    background: transparent;
+    border: 0px;
+    vertical-align: middle;
+}
+
+.inpbn:hover {
+    background: #e5e5b3;
+}
+
+.inpbn:active {
+    background: #c7c78d;
+}
+
+.inpbn img {
+    width: 90%;
+    height: 90%;
+    vertical-align: middle;
+}
+
+.newfield {
+    margin-left: 0.5rem;
+}

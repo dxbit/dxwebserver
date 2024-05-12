@@ -1,0 +1,16 @@
+*.bak
+*.dbg
+*.exe
+*.old
+*.log
+*.trc
+readme.txt
+dxwebsrv
+dxwebsrv.cfg
+DEMO_DB.FDB
+lib
+backup
+cache
+/_dist
+
+

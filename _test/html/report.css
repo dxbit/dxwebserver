@@ -1,0 +1,245 @@
+body {
+    background-color: #F5F5DC;
+}
+
+/* Параметры отчета */
+.filter {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+input[type=checkbox] {
+    vertical-align: middle;
+}
+
+.fltbn {
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border-width: 0px;
+    vertical-align: middle;
+    padding: 0px;
+    cursor: pointer;
+}
+
+.fltbn img {
+    width: 90%;
+    height: 90%;
+    vertical-align: middle;
+}
+
+.field span:nth-child(1) {
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.field span {
+    margin: 0rem 0.2rem;
+    vertical-align: middle;
+}
+
+@media (pointer:fine) {
+    .value {
+        width: 400px;
+    }
+}
+
+.value {
+    margin-left: 2rem;
+    margin-bottom: 0.2rem;
+    display: grid;
+    grid-template-columns: auto 2rem 2rem;
+    grid-gap: 0.5rem;
+    align-items: center;
+}
+
+input[type=text],
+select {
+    padding: 4px;
+    border: 1px solid silver;
+    font: inherit;
+}
+
+input[type=text] {
+    height: 2rem;
+}
+
+.single {
+    width: 100%;
+}
+
+.one {
+    width: calc(50% - 4px);
+}
+
+.two {
+    width: calc(50% - 4px);
+    margin-left: 8px;
+}
+
+.onebn {
+    width: calc(50% - 1.9rem - 4px);
+    vertical-align: middle;
+}
+
+.twobn {
+    width: calc(50% - 1.9rem - 4px);
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.cbx {
+    width: calc(100% - 18px);
+    vertical-align: middle;
+}
+
+.cbxbn {
+    background: transparent;
+    border: 0px;
+    width: 18px;
+    height: 2rem;
+    padding: 0px;
+    vertical-align: middle;
+}
+
+.cbxbn:hover {
+    background: #e5e5b3;
+}
+
+.cbxbn:active {
+    background: #c7c78d;
+}
+
+.cbxbn i {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    margin-bottom: 1px;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(45deg);
+}
+
+.inpbn {
+    width: 1.8rem;
+    height: 2rem;
+    padding: 0px;
+    background: transparent;
+    border: 0px;
+    vertical-align: middle;
+}
+
+.inpbn:hover {
+    background: #e5e5b3;
+}
+
+.inpbn:active {
+    background: #c7c78d;
+}
+
+.inpbn img {
+    width: 90%;
+    height: 90%;
+    vertical-align: middle;
+}
+
+/* Область данных */
+.grid {
+    margin-top: 8px;
+}
+
+.grid table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    font: 1rem verdana;
+}
+
+.grid td {
+    border: 1px solid gray;
+    padding: 4px 2px;
+}
+
+.grid th {
+    border: 1px solid gray;
+    padding: 4px 2px;
+    font: inherit;
+    background-color: #c7c78d;
+}
+
+.grid th span {
+    cursor: pointer;
+}
+
+.grid th span.sort {
+    font: inherit;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+.grid th span.sort img {
+    vertical-align: middle;
+    width: 8px;
+    height: 8px;
+    margin: 0px 2px;
+}
+
+.grid tr:nth-child(even) {
+    background-color: #e5e5b3;
+}
+
+.grid tr td:first-child {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.grid tr td:first-child img {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin: 0px 0.8rem;
+    cursor: pointer;
+}
+
+/* в случае когда грид нередактируемый */
+.gridro tr:not(.gridbns) th:first-child {
+    display: none;
+}
+
+.gridro tr:not(.gridbns) td:first-child {
+    display: none;
+}
+
+/* кнопки внизу таблицы */
+.grid tr.gridbns button {
+    padding: 0.5rem 1rem;
+}
+
+.sort {
+    font: inherit;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+.sort img {
+    vertical-align: middle;
+}
+
+/* Область итогов */
+.totals {
+    font: 1rem verdana;
+    margin-top: 0.8rem;
+}
+
+.totals td {
+    font-weight: normal;
+}
+
+.totals td:nth-child(1) {
+    font-weight: bold;
+}
+
+/* Периоды: день, неделя, месяц, ... */
+#prd {
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}

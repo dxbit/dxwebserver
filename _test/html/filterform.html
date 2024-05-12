@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<link href="/html/main.css" rel="stylesheet" type="text/css">
+<link href="/html/filterform.css" rel="stylesheet" type="text/css">
+<script type="text/javascript">
+[javascript]
+</script>
+<script type="text/javascript" src="/html/strconsts.[lng].js"></script>
+<script type="text/javascript" src="/html/main.js"></script>
+<script type="text/javascript" src="/html/filterform.js"></script>
+<title>[title]</title>
+</head>
+<body onload="bodyLoad()">
+<div id=ctrls style="display: none;">[controls]</div>
+<div id=sidebar class=sidebar><div class=user>[user]</div>[sidebar]</div>
+<div class=main>
+	<div class=tabs>[tabs]</div>
+	<form name=myform method=post action="" onsubmit="formSubmit(this); return false;">
+		<div class=btns>[buttons]</div>
+		<div id=filter class=filter>[content]</div>
+		<select class=newfield onchange="addField(this)">
+			<option></option>
+			[fields]
+		</select>
+	</form>
+</body>
+</html>

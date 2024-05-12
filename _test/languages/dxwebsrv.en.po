@@ -1,0 +1,909 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: myfpsqlparser.serrasteriskonlyincount
+msgid "* allowed only in COUNT aggregate"
+msgstr ""
+
+#: myfpsqlparser.serrcannotaltergenerator
+msgid "Alter generator statement unknown"
+msgstr ""
+
+#: myfpsqlparser.serrcommaorbraceexpected
+msgid "Expected , or )."
+msgstr ""
+
+#: myfpsqlparser.serrdomainnotallowed
+msgid "Domain name not allowed in type definition."
+msgstr ""
+
+#: myfpsqlparser.serrexpectedchar
+#, object-pascal-format
+msgid "Expected CHAR or CHARACTER, got \"%s\""
+msgstr ""
+
+#: myfpsqlparser.serrexpecteddbobject
+#, object-pascal-format
+msgid "Expected database object type. Got: '%s'"
+msgstr ""
+
+#: myfpsqlparser.serrhavingwithoutgroupby
+msgid "HAVING without GROUP BY clause not allowed"
+msgstr ""
+
+#: myfpsqlparser.serrintegerexpected
+msgid "Integer expression expected"
+msgstr ""
+
+#: myfpsqlparser.serrinvalidextract
+#, object-pascal-format
+msgid "Invalid element for extract: %s"
+msgstr ""
+
+#: myfpsqlparser.serrinvalidliteral
+#, object-pascal-format
+msgid "Invalid literal: \"%s\""
+msgstr ""
+
+#: myfpsqlparser.serrinvaliduseofcollate
+msgid "Invalid use of COLLATE"
+msgstr ""
+
+#: myfpsqlparser.serrnoaggregateallowed
+msgid "Aggregate function not allowed."
+msgstr ""
+
+#: myfpsqlparser.serrnoasteriskinsingleton
+msgid "* not allowed in singleton select"
+msgstr ""
+
+#: myfpsqlparser.serrouterwithout
+msgid "OUTER without preceding LEFT, RIGHT or FULL"
+msgstr ""
+
+#: myfpsqlparser.serrtokenmismatch
+#, object-pascal-format
+msgid "Unexpected token: '%s', expected: '%s'"
+msgstr ""
+
+#: myfpsqlparser.serrunexpectedtoken
+#, object-pascal-format
+msgid "Unexpected token: %s"
+msgstr ""
+
+#: myfpsqlparser.serrunexpectedtokenof
+#, object-pascal-format
+msgid "Unexpected token: %s, expected one of %s"
+msgstr ""
+
+#: myfpsqlparser.serrunionfieldcountmatch
+#, object-pascal-format
+msgid "Field count mismatch in select union : %d <> %d"
+msgstr ""
+
+#: myfpsqlparser.serrunknownbooleanop
+msgid "Unknown boolean operation"
+msgstr ""
+
+#: myfpsqlparser.serrunknowncomparison
+msgid "unknown Comparison operation"
+msgstr ""
+
+#: myfpsqlparser.serrunmatchedbrace
+msgid "Expected )."
+msgstr ""
+
+#: myfpsqlparser.serrupperoneargument
+msgid "Only one argument for UPPER allowed"
+msgstr ""
+
+#: myfpsqlparser.serrvaryingnotallowed
+msgid "VARYING not allowed at this point."
+msgstr ""
+
+#: myfpsqlscanner.sbarexpected
+msgid "| character expected"
+msgstr ""
+
+#: myfpsqlscanner.serrifxxxnestinglimitreached
+msgid "Nesting of $IFxxx too deep"
+msgstr ""
+
+#: myfpsqlscanner.serrincludefilenotfound
+#, object-pascal-format
+msgid "Could not find include file '%s'"
+msgstr ""
+
+#: myfpsqlscanner.serrinvalidcharacter
+#, object-pascal-format
+msgid "Invalid character '%s'"
+msgstr ""
+
+#: myfpsqlscanner.serrinvalidnonequal
+msgid "SyntaxError: != or !== expected"
+msgstr ""
+
+#: myfpsqlscanner.serrinvalidppelse
+msgid "$ELSE without matching $IFxxx"
+msgstr ""
+
+#: myfpsqlscanner.serrinvalidppendif
+msgid "$ENDIF without matching $IFxxx"
+msgstr ""
+
+#: myfpsqlscanner.serropenstring
+msgid "string exceeds end of line"
+msgstr ""
+
+#: myfpsqlscanner.serrunknowntoken
+#, object-pascal-format
+msgid "Unknown token: %s"
+msgstr ""
+
+#: myfpsqlscanner.sinvalidhexadecimalnumber
+msgid "Invalid hexadecimal number"
+msgstr ""
+
+#: sqldblib.serrconnnected
+msgid "This operation is not allowed while the datatabase is loaded"
+msgstr ""
+
+#: sqldblib.serrinvalidconnectiontype
+#, object-pascal-format
+msgid "Invalid connection type : \"%s\""
+msgstr ""
+
+#: strconsts.rsabouttext
+#, object-pascal-format
+msgid "DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2024 Pavel Duborkin<br><br><a href=\"https://mydataexpress.ru\">Project Website</a> | <a href=\"https://forum.mydataexpress.ru\">Forum</a> | <a href=\"https://wiki.mydataexpress.ru\">Wiki</a>"
+msgstr ""
+
+#: strconsts.rsabouttextconsole
+#, object-pascal-format
+msgid ""
+"DataExpress Web Server is working...\n"
+"Version: %s\n"
+"Copyright (c) 2016-2024 Pavel Duborkin"
+msgstr ""
+
+#: strconsts.rsaccessdenied
+msgid "Your rights to view this form/report have been restricted by the database administrator."
+msgstr ""
+
+#: strconsts.rsactionexecerror
+#, object-pascal-format
+msgid "An error occurred while executing action [%s].%s"
+msgstr ""
+
+#: strconsts.rsanotherrecordediting
+msgid "Another record is editing"
+msgstr ""
+
+#: strconsts.rsanyformnotfound
+msgid "Form not found"
+msgstr ""
+
+#: strconsts.rsanyformnotfoundmsg
+msgid "It looks like you made a typo in the address, or this form no longer exists."
+msgstr ""
+
+#: strconsts.rsanyrpnotfound
+msgid "Report not found"
+msgstr ""
+
+#: strconsts.rsanyrpnotfoundmsg
+msgid "It looks like you made a typo in the address, or this report no longer exists."
+msgstr ""
+
+#: strconsts.rsappend
+msgid "Append"
+msgstr ""
+
+#: strconsts.rsargexpected
+msgid "Argument expected"
+msgstr ""
+
+#: strconsts.rsboolean
+msgid "Boolean"
+msgstr ""
+
+#: strconsts.rsbuttonnotfound
+msgid "Button not found."
+msgstr ""
+
+#: strconsts.rscallfunction
+msgid "Call function"
+msgstr ""
+
+#: strconsts.rscannotchangerec
+msgid "Can not change the record. The record has already been saved or the changes have been canceled. Possible reasons: You are editing the records of one table at the same time in several tabs. You can only edit one table record at a time. Refresh your browser page to edit the record again."
+msgstr ""
+
+#: strconsts.rscantapplyfiltermsg
+msgid "Can not apply filter, form not found. It looks like you made a typo in the address, or this form no longer exists."
+msgstr ""
+
+#: strconsts.rscantcopyfiletostoragefolder
+#, object-pascal-format
+msgid "Can not copy file from %s to %s."
+msgstr ""
+
+#: strconsts.rscantshowfiltermsg
+msgid "Can not show filter, form not found. It looks like you made a typo in the address, or this form no longer exists."
+msgstr ""
+
+#: strconsts.rscharlbrexpext
+msgid "Character { expected"
+msgstr ""
+
+#: strconsts.rscharrbrexpect
+msgid "Character } expected"
+msgstr ""
+
+#: strconsts.rsclearallfilters
+msgid "Clear all filters"
+msgstr ""
+
+#: strconsts.rsclearfields
+msgid "Clear fields"
+msgstr ""
+
+#: strconsts.rscommaexpected
+msgid "Comma expected"
+msgstr ""
+
+#: strconsts.rscompileerror
+msgid "Compile error"
+msgstr ""
+
+#: strconsts.rscomponentwithfieldnamenotfound
+#, object-pascal-format
+msgid "Component with the specified field name [%s] not found."
+msgstr ""
+
+#: strconsts.rsconnecting
+msgid "Connecting..."
+msgstr ""
+
+#: strconsts.rsconnectioninprogress
+msgid "A connection to the database is in progress. Please wait..."
+msgstr ""
+
+#: strconsts.rsconnectionnotfound
+#, object-pascal-format
+msgid "Connection %s not found."
+msgstr ""
+
+#: strconsts.rsconnecttime
+msgid "Connect time"
+msgstr ""
+
+#: strconsts.rsconnecttodb
+msgid "Connect to database"
+msgstr ""
+
+#: strconsts.rscouldnotcreatefolder
+#, object-pascal-format
+msgid "Could not create folder: %s"
+msgstr ""
+
+#: strconsts.rscouldnotopenformdataset
+#, object-pascal-format
+msgid "Could not open form dataset [%s]."
+msgstr ""
+
+#: strconsts.rscouldnotopenquerydataset
+#, object-pascal-format
+msgid "Could not open query dataset [%s]."
+msgstr ""
+
+#: strconsts.rsdata
+msgid "Data"
+msgstr ""
+
+#: strconsts.rsdate
+msgid "Date"
+msgstr ""
+
+#: strconsts.rsdatedetail
+msgid "Day Week Month Quarter Half-Year Year"
+msgstr ""
+
+#: strconsts.rsdbsumfieldnotnumeric
+#, object-pascal-format
+msgid "Field [%s] is incompatible with the function. The function works only with fields of the \"Number\" type."
+msgstr ""
+
+#: strconsts.rsdeletereclimited
+msgid "Unable to delete a record because access to subordinate data is restricted."
+msgstr ""
+
+#: strconsts.rsdeleterecmsg
+msgid "The record will be deleted permanently. Continue?"
+msgstr ""
+
+#: strconsts.rsdesktop
+msgid "Desktop"
+msgstr ""
+
+#: strconsts.rsdivzero
+msgid "Division by zero"
+msgstr ""
+
+#: strconsts.rsduplicaterecordwascreated
+msgid "A duplicate record was created."
+msgstr ""
+
+#: strconsts.rseditrecnotfinished
+msgid "You have not finished editing this record yet. You were automatically redirected to the edited record."
+msgstr ""
+
+#: strconsts.rselapsedtime
+msgid "Elapsed time"
+msgstr ""
+
+#: strconsts.rselapsedtimestr
+#, object-pascal-format
+msgid "%d h %d m"
+msgstr ""
+
+#: strconsts.rsempty
+msgid "Empty"
+msgstr ""
+
+#: strconsts.rsemptysquarebracketsdetected
+msgid "Empty square brackets detected"
+msgstr ""
+
+#: strconsts.rsendlineexpected
+msgid "End of line expected"
+msgstr ""
+
+#: strconsts.rsendwthbegin
+msgid "End tag without begin tag."
+msgstr ""
+
+#: strconsts.rserror
+msgid "Error"
+msgstr ""
+
+#: strconsts.rsexceptionmsg
+#, object-pascal-format
+msgid "%sException class: %s"
+msgstr ""
+
+#: strconsts.rsexecactionfailedmsg
+#, object-pascal-format
+msgid "Execute action %s failed in the extension module %s. Try to find and remove the module that causes the error."
+msgstr ""
+
+#: strconsts.rsexit
+msgid "Exit"
+msgstr ""
+
+#: strconsts.rsexpectedclosingbracketorop
+msgid "Expected closing bracket or operation."
+msgstr ""
+
+#: strconsts.rsexprempty
+msgid "Expression is empty"
+msgstr ""
+
+#: strconsts.rsextension
+msgid "Extension"
+msgstr ""
+
+#: strconsts.rsextmodulefailedmsg
+#, object-pascal-format
+msgid "Call function %s failed in the extension module %s. Try to find and remove the module that causes the error."
+msgstr ""
+
+#: strconsts.rsfieldnameempty
+msgid "Field name is empty"
+msgstr ""
+
+#: strconsts.rsfieldnotdate
+#, object-pascal-format
+msgid "Field [%s] not date"
+msgstr ""
+
+#: strconsts.rsfieldnotfound
+#, object-pascal-format
+msgid "Field not found: %s"
+msgstr ""
+
+#: strconsts.rsfieldnotobject
+#, object-pascal-format
+msgid "Field [%s] not is objects."
+msgstr ""
+
+#: strconsts.rsfieldwithoutclosingbracket
+#, object-pascal-format
+msgid "Field [%s without a closing bracket ]."
+msgstr ""
+
+#: strconsts.rsfiltererror
+msgid "Filter error"
+msgstr ""
+
+#: strconsts.rsfmtdatemonth
+msgctxt "strconsts.rsfmtdatemonth"
+msgid "January February March April May June July August September October November December"
+msgstr ""
+
+#: strconsts.rsform
+msgid "Form"
+msgstr ""
+
+#: strconsts.rsformnotavail
+msgid "In this expression forms is not available"
+msgstr ""
+
+#: strconsts.rsformnotfound
+#, object-pascal-format
+msgid "Form [%s] not found"
+msgstr ""
+
+#: strconsts.rsformnotsel
+msgid "Form not selected"
+msgstr ""
+
+#: strconsts.rsformqrynotfound
+#, object-pascal-format
+msgid "Form or query not found: %s"
+msgstr ""
+
+#: strconsts.rsfpboolopexpect
+msgid "Boolean operation expected"
+msgstr ""
+
+#: strconsts.rsfpcmpopexpect
+msgid "Comparsion operation expected"
+msgstr ""
+
+#: strconsts.rsfpexprnotparsed
+msgid "Expression not parsed"
+msgstr ""
+
+#: strconsts.rsfpsrcfldexcept
+msgid "Source field expected"
+msgstr ""
+
+#: strconsts.rsfpsrcfldnotfound
+#, object-pascal-format
+msgid "Source field [%s] not found"
+msgstr ""
+
+#: strconsts.rsfuncnotfound
+msgid "Function not found"
+msgstr ""
+
+#: strconsts.rsfuncnotfound2
+#, object-pascal-format
+msgid "Function not found: %s"
+msgstr ""
+
+#: strconsts.rsgotoform
+msgid "Go to form"
+msgstr ""
+
+#: strconsts.rsiifnulldetect
+msgid " A null is detected. Verify that all operands of the logical expression have a specific values (not empty). To ensure a certain value, use function NZ or an additional null check. See also function NULL."
+msgstr ""
+
+#: strconsts.rsiifparamnotlogic
+msgid "The type of the result of evaluating a logical expression is not a logical type (true or false)."
+msgstr ""
+
+#: strconsts.rsillegalboolop
+msgid "Illegal boolean operation"
+msgstr ""
+
+#: strconsts.rsillegaldateop
+msgid "Illegal date/time operation"
+msgstr ""
+
+#: strconsts.rsillegalnumop
+msgid "Illegal numeric operation"
+msgstr ""
+
+#: strconsts.rsillegalstrop
+msgid "Illegal string operation"
+msgstr ""
+
+#: strconsts.rsincompatiblearg
+msgid "Incompatible argument"
+msgstr ""
+
+#: strconsts.rsincompatibleargoffunc
+#, object-pascal-format
+msgid "Incompatible argument #%d of function %s. Got %s expected %s."
+msgstr ""
+
+#: strconsts.rsincompatibletypessrcfieldandexpr
+#, object-pascal-format
+msgid "The result of the expression is not compatible with the source field. Got %s, expected %s."
+msgstr ""
+
+#: strconsts.rsincompatiblevalueforfield
+msgid "The result of evaluating the expression is incompatible with the field. For example, you can not write text into a numeric field."
+msgstr ""
+
+#: strconsts.rsincorrectuserorpwd
+msgid "Incorrect user or password"
+msgstr ""
+
+#: strconsts.rsinvalidcmpop
+msgid "Invalid comparison operation"
+msgstr ""
+
+#: strconsts.rsinvalidconnectionname
+#, object-pascal-format
+msgid "%s - invalid connection name. The name can only include the following characters: a-z, 0-9, _"
+msgstr ""
+
+#: strconsts.rsinvalidfreshvalue
+msgid "Invalid fresh value."
+msgstr ""
+
+#: strconsts.rsinvalidfreshvaluemsg
+msgctxt "strconsts.rsinvalidfreshvaluemsg"
+msgid "It looks like the web page contains stale data. For example this is possible if you are working with the same record in multiple tabs. The page will be updated."
+msgstr ""
+
+#: strconsts.rsinvalidmethotcall
+#, object-pascal-format
+msgid "Invalid method call child form: %s"
+msgstr ""
+
+#: strconsts.rsinvalidnumber
+msgid "Invalid number"
+msgstr ""
+
+#: strconsts.rsinvalidnumberargsfunc
+#, object-pascal-format
+msgid "Invalid number arguments of function %s. Got %d expected %d."
+msgstr ""
+
+#: strconsts.rsinvalidopfortype
+#, object-pascal-format
+msgid "Operation %s is not valid for %s type."
+msgstr ""
+
+#: strconsts.rsinvalidopfortypeexpected
+#, object-pascal-format
+msgid "Operation %s is not valid for %s type. Expected %s."
+msgstr ""
+
+#: strconsts.rsinvalidusetagform
+#, object-pascal-format
+msgid "Tags {form|%s} and {form|%s} are in the same paragraph. Using more than one tag \"form\" in the same paragraph is invalid. "
+msgstr ""
+
+#: strconsts.rsinvalidusetaggrid
+#, object-pascal-format
+msgid "Tags {grid|%s} and {grid|%s} are in the same table row. Using more than one tag \"grid\" in the same table row is invalid."
+msgstr ""
+
+#: strconsts.rsinvalidusinggrouptag
+msgid "Using more than one tag \"group\" in the same paragraph or the same row of the table is invalid."
+msgstr ""
+
+#: strconsts.rsip
+msgid "IP"
+msgstr ""
+
+#: strconsts.rsloaddataerrormsg
+#, object-pascal-format
+msgid "Could not load script code.%sError message: %sModule name: %sModule kind: %s"
+msgstr ""
+
+#: strconsts.rslogin
+msgctxt "strconsts.rslogin"
+msgid "Login"
+msgstr ""
+
+#: strconsts.rslogintitle
+msgctxt "strconsts.rslogintitle"
+msgid "Login"
+msgstr ""
+
+#: strconsts.rsloopdetectedcalc
+#, object-pascal-format
+msgid "A loop was detected while modifying the field or label [%s]."
+msgstr ""
+
+#: strconsts.rsmasscalc
+msgid "Mass calculation"
+msgstr ""
+
+#: strconsts.rsmenu
+msgid "Menu"
+msgstr ""
+
+#: strconsts.rsmonthnames
+msgctxt "strconsts.rsmonthnames"
+msgid "January February March April May June July August September October November December"
+msgstr ""
+
+#: strconsts.rsmonthnamesbrief
+msgid "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec"
+msgstr ""
+
+#: strconsts.rsmore
+msgid "More"
+msgstr ""
+
+#: strconsts.rsno
+msgid "No"
+msgstr ""
+
+#: strconsts.rsnoconnectionname
+msgid "The connection name was not specified."
+msgstr ""
+
+#: strconsts.rsnoformindb
+msgid "There are no forms in the database."
+msgstr ""
+
+#: strconsts.rsnolinkform
+msgctxt "strconsts.rsnolinkform"
+msgid "The record cannot be edited. The action could not be completed. Possible cause: You opened the same record in several browser tabs at the same time and saved/discarded changes in one of the tabs. Refresh your browser page to continue editing the record again"
+msgstr ""
+
+#: strconsts.rsnolinkformmsg
+msgctxt "strconsts.rsnolinkformmsg"
+msgid "<p>The record cannot be edited. The action could not be completed.</p><p>Possible cause: You opened the same record in several browser tabs at the same time and saved/discarded changes in one of the tabs. Go back to the previous page to continue editing the record again.</p>"
+msgstr ""
+
+#: strconsts.rsnonameuser
+#, object-pascal-format
+msgid "Noname user %d"
+msgstr ""
+
+#: strconsts.rsnot
+msgid "Not"
+msgstr ""
+
+#: strconsts.rsnotobjfield
+msgid "Field is not object"
+msgstr ""
+
+#: strconsts.rsnumber
+msgid "Number"
+msgstr ""
+
+#: strconsts.rsnumberortext
+msgid "Number or Text"
+msgstr ""
+
+#: strconsts.rsobjectfieldnotfound
+#, object-pascal-format
+msgid "Object field not found: %s"
+msgstr ""
+
+#: strconsts.rsobjectnothavelinkform
+#, object-pascal-format
+msgid "The object [%s] does not have an linked form."
+msgstr ""
+
+#: strconsts.rsobjfieldnotusedbunique
+#, object-pascal-format
+msgid "You cannot use the field of object [%s]."
+msgstr ""
+
+#: strconsts.rsopenreport
+msgid "Open report"
+msgstr ""
+
+#: strconsts.rsoperandexpected
+msgid "Operand expected"
+msgstr ""
+
+#: strconsts.rsopnotvalidfordifoperands
+#, object-pascal-format
+msgid "Operation %s is not valid for operands of different types: %s and %s. Operands must be of the same type."
+msgstr ""
+
+#: strconsts.rsoutput
+msgid "Output"
+msgstr ""
+
+#: strconsts.rspassword
+msgid "Password"
+msgstr ""
+
+#: strconsts.rspivotgridnotfound
+#, object-pascal-format
+msgid "Pivot grid not found: %s"
+msgstr ""
+
+#: strconsts.rsprint
+msgid "Print"
+msgstr ""
+
+#: strconsts.rsprintaborted
+msgid "Print aborted."
+msgstr ""
+
+#: strconsts.rsprinterrmsg
+#, object-pascal-format
+msgid "An error occurred during printing: %s"
+msgstr ""
+
+#: strconsts.rsquerynotfound
+#, object-pascal-format
+msgid "Query not found: %s"
+msgstr ""
+
+#: strconsts.rsrecordmodified
+msgid "Record modified"
+msgstr ""
+
+#: strconsts.rsrecordnotactive
+msgid "<p>The action could not be completed.</p><p>Possible reasons: You are editing the records of one table at the same time in several tabs. You can only edit one table record at a time.</p>"
+msgstr ""
+
+#: strconsts.rsrecordnotfound
+msgid "Record not found"
+msgstr ""
+
+#: strconsts.rsrecordnotfoundmsg
+msgid "Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li></ol>"
+msgstr ""
+
+#: strconsts.rsrecordused
+msgid "Cannot delete the record because it is in use."
+msgstr ""
+
+#: strconsts.rsreportnotfound
+#, object-pascal-format
+msgid "Report [%s] not found"
+msgstr ""
+
+#: strconsts.rsreports
+msgid "Reports"
+msgstr ""
+
+#: strconsts.rsreportwindow
+msgid "Report window"
+msgstr ""
+
+#: strconsts.rsrequiredmsg
+#, object-pascal-format
+msgid "%s: value is required"
+msgstr ""
+
+#: strconsts.rsrpunderdevelopment
+msgid "Report under development - no data sources specified."
+msgstr ""
+
+#: strconsts.rsruntimeerror
+msgid "Runtime error"
+msgstr ""
+
+#: strconsts.rssavechanges
+msgid "Save changes"
+msgstr ""
+
+#: strconsts.rsscripterrormsg
+#, object-pascal-format
+msgid "%sException class: %sModule name: %sModule kind: %sProcedure name: %s"
+msgstr ""
+
+#: strconsts.rsselcond
+msgid "Selection condition"
+msgstr ""
+
+#: strconsts.rsselectanyform
+msgid "Select any form."
+msgstr ""
+
+#: strconsts.rsservererror
+msgid "Server error"
+msgstr ""
+
+#: strconsts.rsserveritself
+msgid "Server itself"
+msgstr ""
+
+#: strconsts.rsshowmessage
+msgid "Show message"
+msgstr ""
+
+#: strconsts.rssqbrexpected
+msgid "Square bracket expected"
+msgstr ""
+
+#: strconsts.rssubformrecnotfound
+msgid "No subform record was found, and you were redirected to a main form record."
+msgstr ""
+
+#: strconsts.rstagwithoutclosingbracket
+#, object-pascal-format
+msgid "Tag {%s without a closing bracket }."
+msgstr ""
+
+#: strconsts.rstemplatenotfound
+#, object-pascal-format
+msgid "Template [%s] not found."
+msgstr ""
+
+#: strconsts.rstext
+msgid "Text"
+msgstr ""
+
+#: strconsts.rstime
+msgid "Time"
+msgstr ""
+
+#: strconsts.rstype
+msgid "Type"
+msgstr ""
+
+#: strconsts.rsunexpectedtoken
+#, object-pascal-format
+msgid "Unexpected token %s"
+msgstr ""
+
+#: strconsts.rsunknown
+msgid "Unknown"
+msgstr ""
+
+#: strconsts.rsunknownfbversion
+msgid "Unknown Firebird version specified."
+msgstr ""
+
+#: strconsts.rsunknownrequest
+msgid "Unknown request"
+msgstr ""
+
+#: strconsts.rsunknownrequestmsg
+msgid "The server cannot process your request. Make sure the URL is entered correctly."
+msgstr ""
+
+#: strconsts.rsunknowntag
+#, object-pascal-format
+msgid "Unknown tag: %s"
+msgstr ""
+
+#: strconsts.rsuser
+msgid "User"
+msgstr ""
+
+#: strconsts.rsusermonitor
+msgid "User monitor"
+msgstr ""
+
+#: strconsts.rsusername
+msgid "Username"
+msgstr ""
+
+#: strconsts.rsweb
+msgid "Web"
+msgstr ""
+
+#: strconsts.rswebexpression
+msgid "Web expression"
+msgstr ""
+
+#: strconsts.rswebform
+msgid "Web form"
+msgstr ""
+
+#: strconsts.rsweeknames
+msgid "Monday Tuesday Wednesday Thursday Friday Saturday Sunday"
+msgstr ""
+
+#: strconsts.rsweeknamesbrief
+msgid "Mon Tue Wed Thu Fri Sat Sun"
+msgstr ""
+
+#: strconsts.rswelcome
+msgid "Welcome!"
+msgstr ""
+
+#: strconsts.rsyes
+msgid "Yes"
+msgstr ""
+

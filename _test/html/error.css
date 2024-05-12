@@ -1,0 +1,31 @@
+body {
+    background-color: #F5F5DC;
+}
+
+.err-img {
+    float: left;
+    width: calc(128px + 1rem);
+}
+
+.err-img img {
+    width: 128px;
+    height: 128px;
+}
+
+.err-body {
+    float: right;
+    width: calc(100% - 128px - 1rem);
+}
+
+@media (pointer:coarse) {
+    .err-img img {
+        margin: 0.5rem;
+    }
+}
+
+.err-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: gray;
+    margin-bottom: 0.5rem;
+}

@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <Title Value="dxwebsrv"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <i18n>
+      <EnableI18N Value="True"/>
+      <OutDir Value="_test\languages"/>
+    </i18n>
+    <VersionInfo>
+      <UseVersionInfo Value="True"/>
+      <MajorVersionNr Value="24"/>
+      <MinorVersionNr Value="3"/>
+      <RevisionNr Value="30"/>
+      <Language Value="0419"/>
+      <StringTable CompanyName="Pavel Duborkin" FileDescription="DataExpress Web Server" LegalCopyright="Copyright © 2016-2024 Pavel Duborkin" OriginalFilename="dxwebsrv.exe" ProductName="DataExpress Web Server" ProductVersion="24.3.30"/>
+    </VersionInfo>
+    <BuildModes Count="4">
+      <Item1 Name="Linux64" Default="True"/>
+      <Item2 Name="Linux64 HeapTrc">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="_test\dxwebsrv"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="linux"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <IgnoredMessages idx6058="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-dUseCThreads
+-dHeapTrc"/>
+            <OtherDefines Count="2">
+              <Define0 Value="UseCThreads"/>
+              <Define1 Value="HeapTrc"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Win32">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="_test\dxwebsrv"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <TargetCPU Value="i386"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <IgnoredMessages idx6058="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-dUseCThreads"/>
+            <OtherDefines Count="2">
+              <Define0 Value="UseCThreads"/>
+              <Define1 Value="HeapTrc"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item3>
+      <Item4 Name="Win32 HeapTrc">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="_test\dxwebsrv"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <TargetCPU Value="i386"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <IgnoredMessages idx6058="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-dUseCThreads
+-dHeapTrc"/>
+            <OtherDefines Count="2">
+              <Define0 Value="UseCThreads"/>
+              <Define1 Value="HeapTrc"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item4>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+    <RunParams>
+      <FormatVersion Value="2"/>
+    </RunParams>
+    <RequiredPackages Count="3">
+      <Item1>
+        <PackageName Value="PascalScriptFCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="BGRABitmapPack4NoGUI"/>
+      </Item3>
+    </RequiredPackages>
+    <Units Count="45">
+      <Unit0>
+        <Filename Value="dxwebsrv.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="appsettings.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="AppSettings"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="apputils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="AppUtils"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="dbengine.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DBEngine"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="dxctrls.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DXCtrls"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="dxreports.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DXReports"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="dxtypes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DxTypes"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="dxusers.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DXUsers"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="expressions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Expressions"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="exprfuncs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ExprFuncs"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="filterparsers.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="FilterParsers"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="formmanager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="FormManager"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="htmlshow.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="HtmlShow"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="lfmparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LfmParser"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="mainserver.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MainServer"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="padeg.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="reportmanager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ReportManager"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="saxbasereader.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SAXBaseReader"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="sqlgen.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SqlGen"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="strconsts.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="StrConsts"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="towordsfuncs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToWordsFuncs"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="xmlreport.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="XmlReport"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="qsort.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="QSort"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="typeswrapper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TypesWrapper"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="maindaemon.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MainDaemon"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="pivotgrid.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="PivotGrid"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="dxactions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DxActions"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="dxmains.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DXMains"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="sqldb.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SQLDB"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="ibconnection.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="IBConnection"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="sqldblib.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SQLDBLib"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="scriptmanager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ScriptManager"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="compilerdecls.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CompilerDecls"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="mytypes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MyTypes"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="rundecls.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RunDecls"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="httpclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="HttpClient"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="scriptfuncs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ScriptFuncs"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="csvfiles.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CSVFiles"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="dxsqlquery.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DxSQLQuery"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="myfpsqlparser.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit39>
+      <Unit40>
+        <Filename Value="myfpsqltree.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="myfpsqlscanner.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="webtemplates.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="WebTemplates"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="readme.txt"/>
+        <IsPartOfProject Value="True"/>
+      </Unit43>
+      <Unit44>
+        <Filename Value="mylogger.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MyLogger"/>
+      </Unit44>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="_test\dxwebsrv"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <CodeGeneration>
+      <TargetCPU Value="x86_64"/>
+      <TargetOS Value="linux"/>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <UseExternalDbgSyms Value="True"/>
+      </Debugging>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <IgnoredMessages idx6058="True"/>
+      </CompilerMessages>
+      <CustomOptions Value="-dUseCThreads"/>
+    </Other>
+  </CompilerOptions>
+</CONFIG>

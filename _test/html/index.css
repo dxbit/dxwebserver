@@ -1,0 +1,61 @@
+@keyframes animateHeart {
+
+    /* https://learnwithparam.com/blog/hearbeat-animation-using-css/ */
+    0% {
+        transform: scale(0.8);
+    }
+
+    5% {
+        transform: scale(0.9);
+    }
+
+    10% {
+        transform: scale(0.8);
+    }
+
+    15% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.8);
+    }
+
+    100% {
+        transform: scale(0.8);
+    }
+}
+
+.heart {
+    animation: animateHeart 1.2s infinite;
+}
+
+html {
+    font: 14px verdana;
+    height: 100%;
+}
+
+body {
+    background-image: url("/img/background.jpg");
+    background-repeat: repeat-x;
+    background-position: bottom;
+}
+
+.logo {
+    margin-top: 150px;
+    text-align: center;
+    width: 100%;
+}
+
+.data {
+    text-align: center;
+    width: 100%;
+}
+
+a {
+    color: blue
+}
+
+a:visited {
+    color: blue;
+}

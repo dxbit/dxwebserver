@@ -1,0 +1,166 @@
+html {
+    font: 14px verdana;
+    height: 100%;
+}
+
+@media (pointer:coarse) {
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    form {
+        width: 80%;
+    }
+
+    input {
+        border-width: 1px;
+    }
+}
+
+@media (pointer:fine) {
+    form {
+        width: 300px;
+        margin: 100px auto;
+    }
+
+    input {
+        border-width: 1px;
+    }
+}
+
+body {
+    /*https://www.freepik.com/free-vector/blue-elegant-technology-background_1103042.htm#query=background%20techno&position=45&from_view=keyword*/
+    background-image: url("/img/background.jpg");
+    background-repeat: repeat-x;
+    background-position: bottom;
+}
+
+form {
+    font: inherit;
+    padding: 16px;
+    border: 0px solid #293133;
+    border-radius: 8px;
+    box-shadow: 0px 2px 10px silver;
+    background-color: #F5F5DC;
+    color: #878142;
+    font-weight: bold;
+    border: solid 1px silver;
+}
+
+.bn {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+input {
+    font: inherit;
+    width: 100%;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    border: 1px solid silver;
+    border-radius: 4px;
+    font-weight: normal;
+}
+
+#submit {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    font-weight: normal;
+}
+
+#submit img {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+#submit span {
+    vertical-align: middle;
+}
+
+.hide {
+    display: none;
+}
+
+#msg {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    background-color: #c7c78d;
+    border-radius: 7px 7px 0px 0px;
+    color: #56541a;
+    margin: -16px -16px 16px -16px;
+    padding: 8px;
+    font-weight: bold;
+}
+
+#msg.err {
+    color: #9d3939;
+}
+
+div:nth-child(3) {
+    margin-top: 0.2rem;
+}
+
+div:nth-child(4) {
+    margin-top: 0.5rem;
+}
+
+div:nth-child(5) {
+    margin-top: 0.2rem;
+}
+
+form.err {
+    animation: 1.2s ease-in-out 0s normal none 1 running trambling-animation;
+}
+
+@keyframes trambling-animation {
+
+    0%,
+    50%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    10%,
+    30% {
+        transform: rotate(-10deg);
+    }
+
+    20%,
+    40% {
+        transform: rotate(10deg);
+    }
+}
+
+.loader {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.loader div {
+    animation: loading 1s linear infinite;
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    box-shadow: 2px 2px 0 0 #e15b64;
+    transform-origin: 50% 50%;
+    margin: auto;
+}
+
+@keyframes loading {
+    0% {
+        transform: rotate(0deg)
+    }
+
+    50% {
+        transform: rotate(180deg)
+    }
+
+    100% {
+        transform: rotate(360deg)
+    }
+}

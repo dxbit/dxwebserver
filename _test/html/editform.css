@@ -1,0 +1,383 @@
+body {
+    background-color: #F5F5DC;
+}
+
+.errs {
+    background-color: #e5e5b3;
+    color: red;
+    border: solid 1px red;
+    padding: 4px;
+    margin-bottom: 4px;
+}
+
+.fm {
+    font: 1rem verdana;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    color: black;
+}
+
+.edit {
+    font: inherit;
+    color: blue;
+}
+
+input[type=text] {
+    border: 1px solid silver;
+}
+
+input.err {
+    border: 1px solid red;
+}
+
+.fm select {
+    border: 1px solid silver;
+}
+
+.fm select.err {
+    border: 1px solid red;
+}
+
+/* Заметки */
+textarea {
+    border: 1px solid silver;
+}
+
+textarea.err {
+    border: 1px solid red;
+}
+
+/* выпадающий список */
+.cbxbn {
+    border: 0px;
+    padding: 0px;
+    background: transparent;
+}
+
+.cbxbn:hover {
+    background: #e5e5b3;
+}
+
+.cbxbn:active {
+    background: #c7c78d;
+}
+
+/* переопределяем положение значка на кнопке компонента */
+.editbn img {
+    position: absolute;
+    left: 10%;
+    top: 10%;
+}
+
+.cbxbn i {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(45deg);
+    position: absolute;
+    left: calc(50% - 4px);
+    top: calc(50% - 5px);
+}
+
+.cbxbn:disabled i {
+    border-color: gray;
+}
+
+.cbxbn:disabled img {
+    filter: grayscale(100%);
+}
+
+/* Флажок */
+.checkbox {
+    display: flex;
+    align-items: center;
+}
+
+/* Кнопка */
+button[disabled] {
+    color: silver;
+}
+
+button[disabled] img {
+    filter: grayscale(100%);
+}
+
+/* таблица */
+.grid {
+    border: 1px solid silver;
+    overflow: auto;
+    background-color: #F5F5DC;
+    color: black;
+}
+
+.grid[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.grid[disabled] a {
+    visibility: hidden;
+}
+
+.grid table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: 1px solid grey;
+    font: inherit;
+    margin: 2px;
+}
+
+.grid th {
+    border: 1px solid grey;
+    font: inherit;
+    background-color: #c7c78d;
+    padding: 4px 2px;
+}
+
+.grid td {
+    border: 1px solid grey;
+    font: inherit;
+    padding: 4px 2px;
+}
+
+.grid tr:nth-child(even) {
+    background-color: #e5e5b3;
+}
+
+.grid td:first-child {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.grid td:first-child img {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin: 0px 0.8rem;
+    cursor: pointer;
+}
+
+.grid tr.sel td {
+    color: white;
+    border-color: grey;
+    background-color: #3F8FD2;
+}
+
+.grid th span {
+    cursor: pointer;
+}
+
+.grid th span.sort {
+    font: inherit;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+.grid th span.sort img {
+    vertical-align: middle;
+    width: 8px;
+    height: 8px;
+    margin: 0px 2px;
+}
+
+.gridcmd button {
+    color: inherit;
+    font: inherit;
+}
+
+.gridcmd button[disabled] {
+    color: silver;
+}
+
+/* в случае когда грид нередактируемый */
+.gridro tr:not(.gridbns) th:first-child {
+    display: none;
+}
+
+.gridro tr:not(.gridbns) td:first-child {
+    display: none;
+}
+
+/* кнопки внизу таблицы */
+.grid tr.gridbns button {
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+}
+
+/* сводная таблица */
+.pgrid {
+    border: 1px solid grey;
+    overflow: auto;
+    background-color: #F5F5DC;
+}
+
+.pgrid[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.pgrid td {
+    color: black;
+}
+
+/* закладки */
+.tabsheets {
+    display: flex;
+    align-items: flex-end;
+    height: 1.5em;
+    overflow: hidden;
+}
+
+.tabsheets span {
+    background-color: #e5e5b3;
+    margin-right: 2px;
+    padding: 0px 4px;
+    cursor: pointer;
+    border: solid 1px silver;
+    border-bottom: 0px;
+    white-space: nowrap;
+}
+
+.tabsheets span.sel {
+    font-weight: bold;
+    border-color: black;
+    border-top: solid 3px black;
+}
+
+.tabsarea {
+    position: absolute;
+    top: 1.5em;
+    width: 100%;
+    height: calc(100% - 1.5em);
+    background-color: #FDFDE9;
+    border: solid 1px silver;
+}
+
+.tabsheet {
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: calc(100% - 6px);
+    height: calc(100% - 2px);
+    overflow: hidden;
+}
+
+.tabsheet[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* группа */
+.groupbox {
+    overflow: hidden;
+}
+
+.groupbox[disabled] {
+    pointer-events: none;
+}
+
+.groupcap {
+    background-color: #F5F5DC;
+    padding-left: 4px;
+    padding-right: 4px;
+    display: inline-block;
+    position: absolute;
+    left: 8px;
+    top: -0.5em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.groupframe {
+    background-color: #F5F5DC;
+    border: 1px solid silver;
+    position: absolute;
+    left: 0px;
+    top: 0.6em;
+    height: calc(100% - 0.6em);
+    width: 100%;
+}
+
+.grouparea {
+    position: absolute;
+    left: 1px;
+    top: 0.7em;
+    width: calc(100% - 2px);
+    height: calc(100% - 0.7em);
+}
+
+/* группа в закладке */
+.tabsheet div.groupframe {
+    background-color: #FDFDE9;
+}
+
+/* закладки */
+.pages[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Кнопки на форме */
+.bn {
+    padding: 0px;
+}
+
+.bn img~span {
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.bn img {
+    vertical-align: middle;
+}
+
+/* Изображение */
+.dbimg {
+	object-position: center;
+	object-fit: scale-down;
+}
+
+img.err {
+	border: 1px solid red;
+}
+
+.thumb {
+	object-position: center;
+	object-fit: scale-down;
+}
+
+/* Диаграммы (заглушка) */
+.chart {
+    background-color: #F5F5DC;
+}
+
+.tabsarea .chart {
+    background-color: #FDFDE9;
+}
+
+/* Меню кнопки "Дублировать" */
+.dup-menu {
+    background-color: #e5e5b3;
+    border: 1px solid silver;
+    padding: 0px 8px;
+    box-shadow: 0px 4px 8px silver;
+}
+
+.dup-menu button {
+    display: block;
+    margin: 8px 0px;
+    width: 100%;
+    padding: 8px;
+}
+
+@media (pointer:coarse) {
+    .dup-menu button {
+        font-size: 1.2rem;
+    }
+}
+
+img[src=""] {
+	background: url("/img/img-empty.svg")  no-repeat center / contain;
+}

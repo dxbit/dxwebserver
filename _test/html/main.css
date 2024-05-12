@@ -1,0 +1,649 @@
+html {
+    font: 12px verdana;
+}
+
+@media (pointer:coarse) {
+    .sidebar {
+        width: 100%;
+        background-color: #293133;
+        color: #A1ABA8;
+        font-size: 1.2rem;
+        overflow-y: auto;
+        display: none;
+    }
+
+    .debug {
+        width: 100%;
+        height: calc(12rem + 2px);
+        top: calc(100% - 12rem);
+    }
+
+    /* Кнопка "закрыть меню" */
+    .user div:nth-child(3) {
+        text-align: center;
+    }
+
+    .user div button {
+        padding: 0rem;
+        background-color: transparent;
+        border-color: transparent;
+        vertical-align: middle;
+    }
+
+    .user div button img {
+        width: 1.2rem;
+        height: 1.2rem;
+        vertical-align: middle;
+    }
+
+    /* Панель закладок скрываем */
+    .tabs {
+        display: none;
+    }
+
+    .btns {
+        margin-left: 0.5rem;
+        margin-top: 0.5rem;
+        white-space: nowrap;
+    }
+
+    /* В панели кнопок отображаем название формы */
+    .btns span {
+        vertical-align: middle;
+        font-weight: bold;
+        background-color: #293133;
+        color: white;
+        padding: 0.4rem;
+        border-radius: 0.3em;
+    }
+
+    .btns span img {
+        width: 1rem;
+        height: 1rem;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    /* Выпадающий список */
+    .listcbx input {
+        font-size: 1.2rem
+    }
+
+    .listcbx td {
+        font-size: 1.2rem;
+        padding: 0.5rem;
+    }
+
+    .listbtns img {
+        width: 2rem;
+        height: 2rem;
+        vertical-align: middle;
+    }
+
+    /* Календарь */
+    .calendar {
+        font-size: 1.5rem;
+    }
+
+    /* Время */
+    .timeselector {
+        font-size: 1.5rem;
+    }
+
+    /* Окно сообщения */
+    .msgbns button {
+        display: block;
+        margin-top: 10px;
+        padding: 4px 8px;
+        width: 100%;
+    }
+}
+
+@media (pointer:fine) {
+    .sidebar {
+        height: 100%;
+        width: 200px;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        background-color: #293133;
+        color: #A1ABA8;
+        overflow-y: auto;
+    }
+
+    .main {
+        margin-left: 208px;
+    }
+
+    .debug {
+        width: calc(100% - 216px);
+        height: calc(12rem + 2px);
+        top: calc(100% - 12rem - 8px);
+    }
+
+    /* Панель закладок */
+    .tabs {
+        font: inherit;
+        margin-bottom: 8px;
+        background-color: #293133;
+        color: #A1ABA8;
+        margin-left: -8px;
+    }
+
+    .tabs span {
+        display: inline-block;
+        padding: 8px;
+    }
+
+    .tabs span:last-child {
+        border-right: 0px;
+    }
+
+    .tabs span.sel {
+        background-color: #C1BAB6;
+    }
+
+    .tabs span a {
+        font: inherit;
+        text-decoration: none;
+        color: #A1ABA8;
+    }
+
+    .tabs span.sel a {
+        font: inherit;
+        text-decoration: none;
+        color: #3C4140;
+    }
+
+    /* */
+    .user div button {
+        display: none;
+    }
+
+    /* Скрываем кнопку закрытия боковой панели */
+    #menubn {
+        display: none;
+    }
+
+    /* Скрываем кнопку "показать меню" в панели кнопок */
+    .btns span {
+        display: none;
+    }
+
+    /* Скрываем название формы в панели кнопок */
+    /* Выпадающий список */
+    .listbtns img {
+        width: 2rem;
+        height: 2rem;
+        vertical-align: middle;
+    }
+
+    /* Окно сообщения */
+    .msgbns {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .msgbns button {
+        margin: 0px 2px;
+        padding: 4px 8px;
+    }
+}
+
+body {
+    margin: 0px;
+}
+
+button {
+    font: inherit;
+}
+
+/* Боковая панель */
+.sidebar ul {
+    margin-left: 1rem;
+    padding: 0px;
+}
+
+.sidebar ul li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar a {
+    color: #A1ABA8;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    color: #D7D7D7;
+}
+
+.sidebar a.sel {
+    color: #3C4140;
+}
+
+.sidebar li {
+    padding: 1px 0px;
+}
+
+.sidebar li.sel {
+    background-color: #C1BAB6;
+    padding: 0.25rem;
+    text-overflow: clip;
+    white-space: normal;
+    margin-left: -0.25rem;
+}
+
+.sidebar b {
+    display: block;
+    margin-top: 1rem;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    color: #4E5754;
+}
+
+.sidebar hr {
+    margin-top: 0.5rem;
+    padding: 0px;
+    height: 2px;
+    border: none;
+    background: linear-gradient(45deg, #4E5754, #333);
+}
+
+/* Блок пользователя в боковой панели */
+.user {
+    display: grid;
+    grid-template-columns: 2rem auto 2rem;
+    grid-gap: 0.8rem;
+    align-items: center;
+    padding: 0.8rem;
+    margin: 0px;
+    background-color: #4E5754;
+}
+
+.user a {
+    color: #A1ABA8;
+}
+
+.user div img {
+    width: 2rem;
+    height: 2rem;
+    vertical-align: middle;
+}
+
+/* Панель кнопок */
+.btns {
+    margin-bottom: 0.5rem
+}
+
+.btns button {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    padding: 0.25rem 0.75rem;
+}
+
+.btns button img {
+    width: 2rem;
+    height: 2rem;
+    vertical-align: middle;
+}
+
+/* Чтобы было все ровненько! */
+input,
+select,
+div,
+textarea {
+    box-sizing: border-box;
+}
+
+/* Выпадающий список */
+.listcbx {
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+    color: black;
+    box-shadow: 0px 4px 8px silver;
+}
+
+div table.list {
+    width: 100%;
+    border: none;
+}
+
+div table.list td {
+    border: none;
+    white-space: pre-wrap;
+}
+
+div table.list tr:nth-child(odd) {
+    background: #F5F5F5;
+}
+
+div table.list tr.sel {
+    background: #4682B4;
+    color: white;
+}
+
+div table.list tr:hover {
+    background: #1E90FF;
+    color: white;
+}
+
+div table.list tr th {
+    color: black;
+}
+
+.listbtns {
+    background-color: #e5e5b3;
+    padding: 4px;
+    border-top: solid 1px black;
+}
+
+.listbtns button {
+    padding: 4px;
+    margin-right: 1rem;
+}
+
+/* Календарь */
+.calendar {
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+    color: black;
+    box-shadow: 0px 4px 8px silver;
+}
+
+.date {
+    background-color: #e5e5b3;
+    padding: 0.25rem;
+    text-align: center;
+    border-bottom: solid 1px black;
+}
+
+.calitems {
+    display: flex;
+    justify-content: center;
+}
+
+.calitems div {
+    float: left;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem;
+    margin: 0rem 0.25rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.calitems span {
+    display: block;
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
+}
+
+.calitems span.off {
+    color: red;
+}
+
+.calitems span:hover {
+    background: #1E90FF;
+    color: white;
+}
+
+.calitems span.sel {
+    background: #4682B4;
+    color: white;
+}
+
+.calbtns {
+    background-color: #e5e5b3;
+    border-top: solid 1px black;
+    display: flex;
+    justify-content: center;
+}
+
+.calbtns button {
+    margin: 0.5rem;
+    padding: 4px;
+}
+
+.calbtns button img {
+    width: 2rem;
+    height: 2rem;
+    vertical-align: middle;
+}
+
+/* Время */
+.timeselector {
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+    color: black;
+    box-shadow: 0px 4px 8px silver;
+}
+
+.time {
+    background-color: #e5e5b3;
+    padding: 0.25rem;
+    text-align: center;
+    border-bottom: solid 1px black;
+}
+
+.timeparts {
+    display: flex;
+    justify-content: center;
+}
+
+.timeparts div {
+    float: left;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem;
+    margin: 0rem 0.25rem;
+    text-align: center;
+}
+
+.timeparts span {
+    display: block;
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
+}
+
+.timeparts span.off {
+    color: red;
+}
+
+.timeparts span:hover {
+    background: #1E90FF;
+    color: white;
+}
+
+.timeparts span.sel {
+    background: #4682B4;
+    color: white;
+}
+
+.timebtns {
+    background-color: #e5e5b3;
+    border-top: solid 1px black;
+    display: flex;
+    justify-content: center;
+}
+
+.timebtns button {
+    margin: 0.5rem;
+    padding: 4px;
+}
+
+.timebtns button img {
+    width: 2rem;
+    height: 2rem;
+    vertical-align: middle;
+}
+
+@-moz-document url-prefix() {
+
+    /* Календарь */
+    .calitems span {
+        padding: 0.25rem 1.75rem;
+    }
+
+    .calitems div {
+        padding: 0rem;
+        margin: 0rem 0rem;
+    }
+
+    /* Время */
+    .timeparts div {
+        padding: 0rem;
+        margin: 0rem 0rem;
+    }
+
+    .timeparts span {
+        padding: 0.25rem 1.75rem;
+    }
+}
+
+/* Список шаблонов (кнопка печать) */
+#templates {
+    background-color: #293133;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+}
+
+#templates a {
+    display: block;
+    color: #A1ABA8;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+
+#templates a:hover {
+    color: #D7D7D7;
+}
+
+#templates a:last-child {
+    margin-bottom: 0rem;
+}
+
+/* Кнопки компонентов */
+.editbn {
+    border: 0px;
+    background: transparent;
+}
+
+.editbn:hover {
+    background: #e5e5b3;
+}
+
+.editbn:active {
+    background: #c7c78d;
+}
+
+.editbn img {
+    width: 80%;
+    height: 80%;
+    vertical-align: middle;
+}
+
+/* Окно сообщения */
+.msgbox {
+    background-color: #f0f8ff;
+    border-radius: 8px;
+    padding: 10px;
+    border: solid 1px gray;
+    box-shadow: 0px 3px 5px 0px silver;
+}
+
+.msgtitle {
+    background-color: #a5d3ff;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 5px;
+    margin: -10px -10px 0px -10px;
+    border-radius: 5px 5px 0px 0px;
+}
+
+.msgtext {
+    margin-top: 10px;
+}
+
+/* Крутилка: https://blog.hubspot.com/website/css-loading-animation */
+.loader {
+    position: fixed;
+    left: calc(50% - 50px);
+    top: calc(50% - 50px);
+    border: 10px solid #293133;
+    border-radius: 50%;
+    border-top: 10px solid #FF7A59;
+    width: 100px;
+    height: 100px;
+    animation: spinner 1s linear infinite;
+    z-index: 2;
+}
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Окно вывода (debug) */
+.debug {
+    position: fixed;
+    border: solid 1px #293133;
+    background-color: white;
+}
+
+.debug-title {
+    background-color: #293133;
+    color: #A1ABA8;
+    padding-left: 8px;
+    paddign-right: 4px;
+    height: 2rem;
+    display: grid;
+    grid-template-columns: auto 2.5rem 2.5rem;
+    grid-gap: 0.8rem;
+    align-items: center;
+}
+
+.debug-title span {
+    text-transform: uppercase;
+}
+
+.debug-title button {
+    border-width: 0px;
+    background: transparent;
+    border: solid 1px transparent;
+}
+
+.debug-title button:hover {
+    border: solid 1px #A1ABA8;
+}
+
+.debug-title button:active {
+    border: solid 1px transparent;
+}
+
+.debug-title img {
+    height: 1.3rem;
+    vertical-align: middle;
+}
+
+.debug-body {
+    padding: 8px;
+    overflow: auto;
+    width: 100%;
+    height: 10rem;
+}

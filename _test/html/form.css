@@ -1,0 +1,147 @@
+body {
+    background-color: #F5F5DC;
+}
+
+/* Список фильтров */
+.filters {
+    display: none;
+    background-color: #293133;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+}
+
+.filters hr {
+    width: 70%;
+    margin-left: 0px;
+    margin-top: 0.5rem;
+    padding: 0px;
+    height: 2px;
+    border: none;
+    background: linear-gradient(45deg, #4E5754, #333);
+}
+
+.filters a {
+    display: block;
+    color: #A1ABA8;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+}
+
+.filters a:hover {
+    color: #D7D7D7;
+}
+
+.filters a:last-child {
+    margin-bottom: 0rem;
+}
+
+/* Последние редактированные записи */
+.le a {
+    font: 12px verdana;
+    color: #001ce1;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+    border: solid 1px gray;
+    padding: 0.2rem;
+    background-color: #e5e5b3;
+    display: inline-block;
+}
+
+.le a:hover {
+    background-color: #ededbf;
+}
+
+.le a:active {
+    background-color: #c7c78d;
+}
+
+/* Страницы */
+@media (pointer:fine) {
+    .pages {
+        margin: 8px 0px;
+    }
+}
+
+@media (pointer:coarse) {
+    .pages {
+        margin: 8px;
+    }
+
+    .filters a {
+        font-size: 1.2rem
+    }
+}
+
+.pages button {
+    padding: 8px;
+    font: inherit;
+    vertical-align: middle;
+}
+
+.pages span {
+    vertical-align: middle;
+    margin: 8px;
+    font-weight: bold;
+}
+
+/* Область данных */
+.data {
+    width: 100%;
+    overflow-y: auto;
+}
+
+.data table {
+    border-collapse: collapse;
+}
+
+.data td {
+    border: 1px solid gray;
+    padding: 0.3rem 0.2rem;
+}
+
+.data th {
+    border: 1px solid gray;
+    padding: 0.3rem 0.2rem;
+    font: inherit;
+    background-color: #c7c78d;
+}
+
+.data th span {
+    cursor: pointer;
+}
+
+.data th span.sort {
+    font: inherit;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+.data th span.sort img {
+    vertical-align: middle;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: 0px 0.2rem;
+}
+
+.data tr:nth-child(even) {
+    background-color: #e5e5b3;
+}
+
+.data td:first-child {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.data td:first-child img {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin: 0px 0.8rem;
+    cursor: pointer;
+}
+
+.thumb {
+	object-position: center;
+	object-fit: scale-down;
+}

@@ -1,0 +1,12 @@
+[Unit]
+Description=DataExpress Web Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/var/web/dxwebsrv -r
+RemainAfterExit=yes
+TimeoutSec=25
+
+[Install]
+WantedBy=multi-user.target
