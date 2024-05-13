@@ -12,6 +12,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+
 unit myfpsqlparser;
 { $define debugparser}
 { $define debugexpr}

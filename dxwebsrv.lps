@@ -9,8 +9,8 @@
         <Filename Value="dxwebsrv.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="77"/>
-        <CursorPos X="32" Y="93"/>
+        <TopLine Value="2"/>
+        <CursorPos X="50" Y="30"/>
         <UsageCount Value="200"/>
       </Unit0>
       <Unit1>
@@ -18,8 +18,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="AppSettings"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="78"/>
-        <CursorPos Y="95"/>
+        <CursorPos X="37" Y="21"/>
         <UsageCount Value="200"/>
       </Unit1>
       <Unit2>
@@ -27,8 +26,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="AppUtils"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="1829"/>
-        <CursorPos X="61" Y="1848"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit2>
       <Unit3>
@@ -36,8 +34,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBEngine"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="192"/>
-        <CursorPos X="54" Y="210"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit3>
       <Unit4>
@@ -45,8 +42,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DXCtrls"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="4865"/>
-        <CursorPos X="28" Y="4878"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit4>
       <Unit5>
@@ -54,8 +50,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DXReports"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="1502"/>
-        <CursorPos X="20" Y="1518"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit5>
       <Unit6>
@@ -63,13 +58,12 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DxTypes"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="3250"/>
-        <CursorPos X="19" Y="3267"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="3">
-          <Item0 X="49" Y="2100" ID="6"/>
-          <Item1 X="3" Y="560" ID="4"/>
-          <Item2 X="31" Y="2571" ID="2"/>
+          <Item0 X="49" Y="2118" ID="6"/>
+          <Item1 X="3" Y="578" ID="4"/>
+          <Item2 X="31" Y="2589" ID="2"/>
         </Bookmarks>
       </Unit6>
       <Unit7>
@@ -77,8 +71,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DXUsers"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="130"/>
-        <CursorPos X="5" Y="147"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit7>
       <Unit8>
@@ -86,8 +79,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="Expressions"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="825"/>
-        <CursorPos X="22" Y="842"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit8>
       <Unit9>
@@ -95,11 +87,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ExprFuncs"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="543"/>
-        <CursorPos Y="568"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="1">
-          <Item0 X="3" Y="562" ID="1"/>
+          <Item0 X="3" Y="580" ID="1"/>
         </Bookmarks>
       </Unit9>
       <Unit10>
@@ -107,8 +98,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="FilterParsers"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="668"/>
-        <CursorPos X="28" Y="704"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit10>
       <Unit11>
@@ -116,7 +106,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="FormManager"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="16" Y="20"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit11>
       <Unit12>
@@ -124,11 +114,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="HtmlShow"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="4237"/>
-        <CursorPos X="57" Y="4254"/>
+        <TopLine Value="2454"/>
+        <CursorPos X="3" Y="2471"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="1">
-          <Item0 X="34" Y="2087" ID="3"/>
+          <Item0 X="34" Y="2105" ID="3"/>
         </Bookmarks>
       </Unit12>
       <Unit13>
@@ -136,8 +126,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LfmParser"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="959"/>
-        <CursorPos X="20" Y="985"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit13>
       <Unit14>
@@ -145,19 +134,17 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="MainServer"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="94"/>
-        <CursorPos X="29" Y="117"/>
+        <CursorPos X="32" Y="8"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="1">
-          <Item0 X="18" Y="756" ID="5"/>
+          <Item0 X="18" Y="774" ID="5"/>
         </Bookmarks>
       </Unit14>
       <Unit15>
         <Filename Value="padeg.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="340"/>
-        <CursorPos X="32" Y="358"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit15>
       <Unit16>
@@ -165,8 +152,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ReportManager"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="6"/>
-        <CursorPos X="17" Y="20"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit16>
       <Unit17>
@@ -174,8 +160,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="SAXBaseReader"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="25"/>
-        <CursorPos Y="42"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit17>
       <Unit18>
@@ -183,8 +168,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="SqlGen"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="1484"/>
-        <CursorPos Y="1491"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit18>
       <Unit19>
@@ -192,8 +176,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="StrConsts"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="220"/>
-        <CursorPos X="39" Y="259"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit19>
       <Unit20>
@@ -201,8 +184,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToWordsFuncs"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="156"/>
-        <CursorPos X="10" Y="10"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit20>
       <Unit21>
@@ -210,8 +192,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="XmlReport"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="1892"/>
-        <CursorPos X="14" Y="1908"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit21>
       <Unit22>
@@ -219,7 +200,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="QSort"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="10"/>
+        <CursorPos X="20" Y="19"/>
         <UsageCount Value="200"/>
       </Unit22>
       <Unit23>
@@ -227,8 +208,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TypesWrapper"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="406"/>
-        <CursorPos X="3" Y="410"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="201"/>
       </Unit23>
       <Unit24>
@@ -236,8 +216,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="MainDaemon"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="57"/>
-        <CursorPos X="3" Y="65"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="201"/>
       </Unit24>
       <Unit25>
@@ -245,8 +224,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="PivotGrid"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="58"/>
-        <CursorPos X="14" Y="74"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit25>
       <Unit26>
@@ -254,8 +232,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DxActions"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="202"/>
-        <CursorPos X="17" Y="218"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="201"/>
       </Unit26>
       <Unit27>
@@ -263,8 +240,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DXMains"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="58"/>
-        <CursorPos X="11" Y="70"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="201"/>
       </Unit27>
       <Unit28>
@@ -272,8 +248,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="SQLDB"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="2919"/>
-        <CursorPos Y="2935"/>
+        <CursorPos Y="21"/>
         <UsageCount Value="202"/>
       </Unit28>
       <Unit29>
@@ -281,8 +256,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="IBConnection"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="979"/>
-        <CursorPos X="74" Y="1004"/>
         <UsageCount Value="202"/>
       </Unit29>
       <Unit30>
@@ -290,8 +263,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="SQLDBLib"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="9"/>
-        <CursorPos X="15" Y="26"/>
+        <CursorPos Y="4"/>
         <UsageCount Value="202"/>
       </Unit30>
       <Unit31>
@@ -299,8 +271,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ScriptManager"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="2215"/>
-        <CursorPos X="43" Y="2229"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit31>
       <Unit32>
@@ -308,8 +279,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CompilerDecls"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="951"/>
-        <CursorPos X="36" Y="972"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit32>
       <Unit33>
@@ -317,8 +287,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="MyTypes"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="461"/>
-        <CursorPos X="21" Y="479"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit33>
       <Unit34>
@@ -326,8 +295,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="RunDecls"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="1178"/>
-        <CursorPos X="27" Y="1195"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit34>
       <Unit35>
@@ -335,8 +303,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="HttpClient"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="384"/>
-        <CursorPos X="59" Y="400"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit35>
       <Unit36>
@@ -344,8 +311,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ScriptFuncs"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="440"/>
-        <CursorPos X="18" Y="442"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit36>
       <Unit37>
@@ -353,8 +319,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CSVFiles"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="193"/>
-        <CursorPos X="27" Y="213"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit37>
       <Unit38>
@@ -362,30 +327,28 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DxSQLQuery"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="241"/>
-        <CursorPos Y="295"/>
+        <CursorPos X="82" Y="17"/>
         <UsageCount Value="200"/>
       </Unit38>
       <Unit39>
         <Filename Value="myfpsqlparser.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="115"/>
-        <CursorPos X="15" Y="131"/>
+        <CursorPos Y="16"/>
         <UsageCount Value="200"/>
       </Unit39>
       <Unit40>
         <Filename Value="myfpsqltree.pp"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="53"/>
-        <CursorPos X="3" Y="73"/>
+        <CursorPos X="32" Y="22"/>
         <UsageCount Value="200"/>
       </Unit40>
       <Unit41>
         <Filename Value="myfpsqlscanner.pp"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
+        <CursorPos Y="18"/>
         <UsageCount Value="200"/>
       </Unit41>
       <Unit42>
@@ -393,8 +356,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="WebTemplates"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="9"/>
-        <CursorPos X="15" Y="25"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit42>
       <Unit43>
@@ -402,7 +364,7 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <TopLine Value="219"/>
-        <CursorPos X="17" Y="234"/>
+        <CursorPos X="36" Y="231"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Text"/>
@@ -412,8 +374,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="MyLogger"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="6"/>
-        <CursorPos X="3" Y="26"/>
+        <CursorPos X="81" Y="17"/>
         <UsageCount Value="200"/>
       </Unit44>
       <Unit45>
@@ -993,15 +954,11 @@
       <Define0 Value="UseCThreads"/>
       <Define1 Value="HeapTrc"/>
     </OtherDefines>
-    <JumpHistory Count="2" HistoryIndex="1">
+    <JumpHistory Count="1">
       <Position1>
         <Filename Value="readme.txt"/>
-        <Caret Line="227" Column="34" TopLine="210"/>
+        <Caret Line="231" Column="66" TopLine="219"/>
       </Position1>
-      <Position2>
-        <Filename Value="readme.txt"/>
-        <Caret Line="246" Column="16" TopLine="219"/>
-      </Position2>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>

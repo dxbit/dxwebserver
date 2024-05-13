@@ -1,7 +1,0 @@
-DataExpress Web Server использует библиотеки и компоненты, распространяемые под лицензией отличной от Apache 2.0.
-
-1. Библиотеки СУБД Firebird - Initial Developer's PUBLIC LICENSE Version 1.0, INTERBASE PUBLIC LICENSE. 
-2. Графическая библиотека BGRA - GNU LESSER GENERAL PUBLIC LICENSE Version 3, modified.
-3. Скриптовый движок RemObject Pascal Script - свободная лицензия от Carlo Kok.
-4. Библиотека Padeg - проприетарная лицезия от Сергея Плахова.
-
