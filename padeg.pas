@@ -148,7 +148,11 @@ begin
   LibHandle := SafeLoadLibrary(LibPath);
   if LibHandle = 0 then DoError('Padeg library has been not initialized.');
 
+  {$IFDEF windows}
   Pointer(_GetSex) := GetProcAddress(LibHandle, 'GetSex');
+  {$ELSE}
+  Pointer(_GetSex) := GetProcAddress(LibHandle, 'Get_Sex');
+  {$ENDIF}
   Pointer(_GetIFPadegFS) := GetProcAddress(LibHandle, 'GetIFPadegFS');
   Pointer(_GetFIOPadegFSAS) := GetProcAddress(LibHandle, 'GetFIOPadegFSAS');
   Pointer(_GetFIOPadegFS) := GetProcAddress(LibHandle, 'GetFIOPadegFS');
@@ -274,8 +278,16 @@ begin
 end;
 
 function GetIFPadeg(aName: String; aSex: Byte; aPadeg: LongInt): String;
+var
+  FirstName, LastName: String;
 begin
+  {$IFDEF windows}
   Result := Utf16ToUtf8( WideGetIFPadeg(Utf8ToUtf16(aName), aSex, aPadeg) );
+  {$ELSE}
+  FirstName := GetF(aName);
+  LastName := GetI(aName);
+  Result := GetFIOPadeg(LastName + ' ' + FirstName, aSex, aPadeg);
+  {$ENDIF}
 end;
 
 function WideGetNominativePadeg(aName: UnicodeString): UnicodeString;
@@ -409,7 +421,11 @@ end;
 
 function GetPadegID(aName: String): Byte;
 begin
+  {$IFDEF windows}
   Result := WideGetPadegID( Utf8ToUtf16(aName) );
+  {$ELSE}
+  Result := 0;
+  {$ENDIF}
 end;
 
 function WideNumberToString(Value: Extended; iSex, Decimal: Integer; RemoveZero,

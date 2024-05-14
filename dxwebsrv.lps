@@ -77,9 +77,11 @@
         <Filename Value="expressions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Expressions"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="82" Y="17"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="790"/>
+        <CursorPos X="10" Y="806"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit8>
       <Unit9>
         <Filename Value="exprfuncs.pas"/>
@@ -142,9 +144,12 @@
       <Unit15>
         <Filename Value="padeg.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="81" Y="17"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="422"/>
+        <CursorPos X="30" Y="438"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit15>
       <Unit16>
         <Filename Value="reportmanager.pas"/>
@@ -182,9 +187,11 @@
         <Filename Value="towordsfuncs.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToWordsFuncs"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="81" Y="17"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="34"/>
+        <CursorPos X="10" Y="28"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit20>
       <Unit21>
         <Filename Value="xmlreport.pas"/>
@@ -364,7 +371,6 @@
       <Unit43>
         <Filename Value="readme.txt"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <TopLine Value="1580"/>
         <CursorPos X="61" Y="1595"/>
         <UsageCount Value="201"/>
@@ -956,11 +962,51 @@
       <Define0 Value="UseCThreads"/>
       <Define1 Value="HeapTrc"/>
     </OtherDefines>
-    <JumpHistory Count="1">
+    <JumpHistory Count="11" HistoryIndex="10">
       <Position1>
         <Filename Value="readme.txt"/>
         <Caret Line="231" Column="66" TopLine="219"/>
       </Position1>
+      <Position2>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="17" Column="81"/>
+      </Position2>
+      <Position3>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="591" TopLine="557"/>
+      </Position3>
+      <Position4>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="34" Column="13" TopLine="19"/>
+      </Position4>
+      <Position5>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="402" Column="3" TopLine="391"/>
+      </Position5>
+      <Position6>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="386" Column="10" TopLine="369"/>
+      </Position6>
+      <Position7>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="156" Column="21" TopLine="143"/>
+      </Position7>
+      <Position8>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="279" Column="33" TopLine="259"/>
+      </Position8>
+      <Position9>
+        <Filename Value="expressions.pas"/>
+        <Caret Line="806" Column="10" TopLine="790"/>
+      </Position9>
+      <Position10>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="282" Column="22" TopLine="259"/>
+      </Position10>
+      <Position11>
+        <Filename Value="padeg.pas"/>
+        <Caret Line="35" Column="15" TopLine="23"/>
+      </Position11>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
