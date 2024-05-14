@@ -1060,7 +1060,7 @@ class Calendar {
 		let bn = ev.currentTarget;
 		if (bn.className == 'calbntoday') {
 			this.date = new Date;
-			this.updateDays();
+			this.updateDays(this.date.getMonth()+1, this.date.getFullYear());
 			this.selectDate();
 		} else if (bn.className == 'calbnclear') {
 			this.clearValue();

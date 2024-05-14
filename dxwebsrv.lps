@@ -9,7 +9,6 @@
         <Filename Value="dxwebsrv.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="2"/>
         <CursorPos X="50" Y="30"/>
         <UsageCount Value="200"/>
       </Unit0>
@@ -327,8 +326,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DxSQLQuery"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="82" Y="17"/>
+        <CursorPos X="61" Y="8"/>
         <UsageCount Value="200"/>
+        <Bookmarks Count="1">
+          <Item0 Y="367" ID="1"/>
+        </Bookmarks>
       </Unit38>
       <Unit39>
         <Filename Value="myfpsqlparser.pas"/>
@@ -363,8 +365,8 @@
         <Filename Value="readme.txt"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="219"/>
-        <CursorPos X="36" Y="231"/>
+        <TopLine Value="1580"/>
+        <CursorPos X="61" Y="1595"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Text"/>
