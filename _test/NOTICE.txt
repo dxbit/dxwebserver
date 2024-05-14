@@ -1,7 +1,29 @@
 DataExpress Web Server использует библиотеки и компоненты, распространяемые под лицензией отличной от Apache 2.0.
 
-1. Библиотеки СУБД Firebird - Initial Developer's PUBLIC LICENSE Version 1.0, INTERBASE PUBLIC LICENSE - https://firebirdsql.org
-2. Графическая библиотека BGRA - GNU LESSER GENERAL PUBLIC LICENSE Version 3, modified - https://github.com/dxbit/dataexpress-depend/tree/main/bgra
-3. Скриптовый движок RemObject Pascal Script - свободная лицензия от Carlo Kok - https://github.com/dxbit/dataexpress-depend/tree/main/PascalScript
-4. Библиотека Padeg - проприетарная лицезия от Сергея Плахова - https://vk.com/padegfio
+
+СУБД Firebird 2.5, Firebird 5
+Лицензия: Initial Developer's PUBLIC LICENSE Version 1.0, INTERBASE PUBLIC LICENSE (см. файлы IDPLicense.txt, IPLicense.txt)
+Официальный сайт: https://firebirdsql.org
+
+
+Библиотека склонения по падежам Ф.И.О., должностей, подразделений, числительных (libPadeg.so)
+Авторы: Плахов С.В., Покаташкин Г.Л.
+Электронная почта: seer.true@gmail.com, pgl@tut.by
+Лицензия: проприетарная
+Страничка автора: https://vk.com/padegfio
+
+
+Графическая библиотека BGRA
+Лицензия: LGPL, modifiedLGPL
+Официальный сайт: https://bgrabitmap.github.io/
+Оригинальные исходники: https://github.com/bgrabitmap/bgrabitmap
+Используемые исходники: https://github.com/dxbit/dataexpress-depend/tree/main/bgra
+
+
+Скриптовый движок RemObject Pascal Script
+Авторы: Copyright (C) 2000-2014 by Carlo Kok and RemObjects Software, LLC
+Лицензия: https://github.com/dxbit/dataexpress-depend/blob/main/PascalScript/LICENSE.md
+Оригинальные исходники: https://github.com/remobjects/pascalscript/
+Используемые исходники: https://github.com/dxbit/dataexpress-depend/tree/main/PascalScript
+
 
