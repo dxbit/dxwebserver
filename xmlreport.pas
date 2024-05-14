@@ -1256,7 +1256,8 @@ begin
   begin
     with PDataRec(FData[i])^ do
     begin
-      if RecordSet.Form <> nil then
+      if RecordSet = nil then
+      else if RecordSet.Form <> nil then
       begin
         // Датасет сначала был закрыт, а потом открылся в процессе печати
         if (Id = 0) and not RecordSet.NeedRequery then
@@ -1834,6 +1835,8 @@ var
     Form.DoPrintEvent(paPrintField, pD^.BandName, FldNm, Result, Accept);
     if Accept then Exit;
 
+    if pD^.RecordSet = nil then Exit;
+
     pTmpD := pD;
     // Внутри данных запроса могут быть поля форм.
     if pD^.RecordSet.RD <> nil then
@@ -1900,7 +1903,7 @@ var
     Result := False;
     Tmp := '';
     Form.DoPrintEvent(paNextData, pD^.BandName, '', Tmp, Result);
-    if (not Result) and (pD^.RecordSet.DataSet <> nil) then
+    if (not Result) and (pD^.RecordSet{.DataSet} <> nil) then
     begin
       pD^.RecordSet.DataSet.Next;
       Result := not pD^.RecordSet.DataSet.EOF;
@@ -2116,8 +2119,9 @@ begin
           end;
         end
         else if (pD = nil) or (pD^.BandKind = '') or
-          ((pD^.RecordSet.Form <> nil) and (MyUtf8CompareText(pD^.RecordSet.Form.FormCaption, BnNm) <> 0)) or
-          ((pD^.RecordSet.RD <> nil) and (MyUtf8CompareText(pD^.RecordSet.RD.Name, BnNm) <> 0)) then
+          ((pD^.RecordSet = nil) and (MyUtf8CompareText(pD^.BandName, BnNm) <> 0)) or
+          ((pD^.RecordSet <> nil) and (pD^.RecordSet.Form <> nil) and (MyUtf8CompareText(pD^.RecordSet.Form.FormCaption, BnNm) <> 0)) or
+          ((pD^.RecordSet <> nil) and (pD^.RecordSet.RD <> nil) and (MyUtf8CompareText(pD^.RecordSet.RD.Name, BnNm) <> 0)) then
         begin
           if (BnKd = 'form') then
             n := ParaTagPos
@@ -2141,8 +2145,11 @@ begin
             pD^.BandName:=BnNm;     // Сохраняем оригинальный регистр в шаблоне.
 
             //OpenDS(pD);
-            pD^.RecordSet.Open;
-            pD^.RecordSet.DataSet.First;
+            if not Accept and (pD^.RecordSet <> nil) then
+            begin
+              pD^.RecordSet.Open;
+              pD^.RecordSet.DataSet.First;
+            end;
             {if (not Accept) and (pD^.RecordSet.DataSet <> nil) then
             begin
               //if (pD^.Form <> nil) and pD^.Form.IsHide then pD^.Form.RequeryIfNeed
