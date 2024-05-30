@@ -32,9 +32,11 @@
         <Filename Value="dbengine.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBEngine"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="82" Y="17"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="59"/>
+        <CursorPos X="15" Y="76"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="dxctrls.pas"/>
@@ -114,13 +116,15 @@
         <Filename Value="htmlshow.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="HtmlShow"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="2454"/>
-        <CursorPos X="3" Y="2471"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="3661"/>
+        <CursorPos X="15" Y="3683"/>
         <UsageCount Value="200"/>
-        <Bookmarks Count="1">
+        <Bookmarks Count="2">
           <Item0 X="34" Y="2105" ID="3"/>
+          <Item1 X="15" Y="3683" ID="1"/>
         </Bookmarks>
+        <Loaded Value="True"/>
       </Unit12>
       <Unit13>
         <Filename Value="lfmparser.pas"/>
@@ -286,9 +290,11 @@
         <Filename Value="compilerdecls.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CompilerDecls"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="82" Y="17"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="1565"/>
+        <CursorPos X="73" Y="1583"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit32>
       <Unit33>
         <Filename Value="mytypes.pas"/>
@@ -302,9 +308,11 @@
         <Filename Value="rundecls.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RunDecls"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="81" Y="17"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="2376"/>
+        <CursorPos X="33" Y="2404"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit34>
       <Unit35>
         <Filename Value="httpclient.pas"/>
@@ -375,7 +383,7 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <TopLine Value="1580"/>
-        <CursorPos X="59" Y="1592"/>
+        <CursorPos X="36" Y="1602"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Text"/>
@@ -965,7 +973,24 @@
       <Define0 Value="UseCThreads"/>
       <Define1 Value="HeapTrc"/>
     </OtherDefines>
-    <JumpHistory HistoryIndex="-1"/>
+    <JumpHistory Count="4" HistoryIndex="3">
+      <Position1>
+        <Filename Value="htmlshow.pas"/>
+        <Caret Line="2471" Column="3" TopLine="2454"/>
+      </Position1>
+      <Position2>
+        <Filename Value="htmlshow.pas"/>
+        <Caret Line="3683" Column="15" TopLine="3661"/>
+      </Position2>
+      <Position3>
+        <Filename Value="dbengine.pas"/>
+        <Caret Line="76" Column="15" TopLine="59"/>
+      </Position3>
+      <Position4>
+        <Filename Value="rundecls.pas"/>
+        <Caret Line="31" Column="16"/>
+      </Position4>
+    </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes Count="1" ActiveMode="default">
