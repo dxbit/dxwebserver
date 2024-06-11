@@ -2400,8 +2400,8 @@ begin
   Exec.RegisterDelphiFunction(@GenerateId, 'CreateGUIDString', cdRegister);
   Exec.RegisterDelphiFunction(@AppPath, 'GetAppDir', cdRegister);
 
-  Exec.RegisterDelphiFunction(@GetVar, 'GetVar', cdRegister);
-  Exec.RegisterDelphiFunction(@SetVar, 'SetVar', cdRegister);
+  Exec.RegisterDelphiFunction(@GetVar, 'GetExprVar', cdRegister);
+  Exec.RegisterDelphiFunction(@SetVar, 'SetExprVar', cdRegister);
 end;
 
 procedure RIRegister_All(Cl: TPSRuntimeClassImporter);

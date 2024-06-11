@@ -1579,8 +1579,8 @@ begin
   Cl.AddDelphiFunction('function CreateGUIDString: String');
   Cl.AddDelphiFunction('function GetAppDir: String');
 
-  Cl.AddDelphiFunction('function SetVar(const aName: String; aValue: Variant): Variant');
-  Cl.AddDelphiFunction('function GetVar(const aName: String): Variant');
+  Cl.AddDelphiFunction('function SetExprVar(const aName: String; aValue: Variant): Variant');
+  Cl.AddDelphiFunction('function GetExprVar(const aName: String): Variant');
 end;
 
 //!!!

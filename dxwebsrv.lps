@@ -32,11 +32,10 @@
         <Filename Value="dbengine.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBEngine"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="59"/>
         <CursorPos X="15" Y="76"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="dxctrls.pas"/>
@@ -51,9 +50,11 @@
         <Filename Value="dxreports.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DXReports"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="82" Y="17"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="226"/>
+        <CursorPos X="29" Y="373"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="dxtypes.pas"/>
@@ -116,7 +117,7 @@
         <Filename Value="htmlshow.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="HtmlShow"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="3661"/>
         <CursorPos X="15" Y="3683"/>
         <UsageCount Value="200"/>
@@ -124,7 +125,6 @@
           <Item0 X="34" Y="2105" ID="3"/>
           <Item1 X="15" Y="3683" ID="1"/>
         </Bookmarks>
-        <Loaded Value="True"/>
       </Unit12>
       <Unit13>
         <Filename Value="lfmparser.pas"/>
@@ -290,11 +290,10 @@
         <Filename Value="compilerdecls.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CompilerDecls"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="1565"/>
-        <CursorPos X="73" Y="1583"/>
+        <CursorPos X="41" Y="1582"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
       </Unit32>
       <Unit33>
         <Filename Value="mytypes.pas"/>
@@ -308,11 +307,10 @@
         <Filename Value="rundecls.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RunDecls"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="2376"/>
-        <CursorPos X="33" Y="2404"/>
+        <CursorPos X="48" Y="2404"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
       </Unit34>
       <Unit35>
         <Filename Value="httpclient.pas"/>
@@ -342,12 +340,14 @@
         <Filename Value="dxsqlquery.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DxSQLQuery"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="61" Y="8"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="519"/>
+        <CursorPos X="3" Y="492"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="1">
-          <Item0 Y="367" ID="1"/>
+          <Item0 Y="368" ID="1"/>
         </Bookmarks>
+        <Loaded Value="True"/>
       </Unit38>
       <Unit39>
         <Filename Value="myfpsqlparser.pas"/>
@@ -382,8 +382,8 @@
         <Filename Value="readme.txt"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="1580"/>
-        <CursorPos X="36" Y="1602"/>
+        <TopLine Value="1586"/>
+        <CursorPos X="61" Y="1613"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Text"/>
@@ -973,23 +973,47 @@
       <Define0 Value="UseCThreads"/>
       <Define1 Value="HeapTrc"/>
     </OtherDefines>
-    <JumpHistory Count="4" HistoryIndex="3">
+    <JumpHistory Count="10" HistoryIndex="9">
       <Position1>
-        <Filename Value="htmlshow.pas"/>
-        <Caret Line="2471" Column="3" TopLine="2454"/>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="121" Column="24" TopLine="100"/>
       </Position1>
       <Position2>
-        <Filename Value="htmlshow.pas"/>
-        <Caret Line="3683" Column="15" TopLine="3661"/>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="1036" Column="33" TopLine="1014"/>
       </Position2>
       <Position3>
-        <Filename Value="dbengine.pas"/>
-        <Caret Line="76" Column="15" TopLine="59"/>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="125" Column="134" TopLine="109"/>
       </Position3>
       <Position4>
-        <Filename Value="rundecls.pas"/>
-        <Caret Line="31" Column="16"/>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="533" Column="23" TopLine="519"/>
       </Position4>
+      <Position5>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="133" Column="21" TopLine="107"/>
+      </Position5>
+      <Position6>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="656" Column="33" TopLine="631"/>
+      </Position6>
+      <Position7>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="127" Column="15" TopLine="116"/>
+      </Position7>
+      <Position8>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="605" Column="30" TopLine="583"/>
+      </Position8>
+      <Position9>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="125" Column="15" TopLine="111"/>
+      </Position9>
+      <Position10>
+        <Filename Value="dxsqlquery.pas"/>
+        <Caret Line="126" Column="15" TopLine="111"/>
+      </Position10>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
