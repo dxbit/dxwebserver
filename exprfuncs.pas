@@ -95,6 +95,8 @@ function FNumber(V: Double; Digits: Integer): String;
 function TextFormat(const S: String; ARecordSet: TSsRecordSet): String;
 function GetTimeStamp(D, T: Variant): Variant;
 function CaseOf(const AValue, AItems: String): String;
+function GetTypedText(SS: TSession; AIndex: Integer): Variant;
+procedure SetTypedText(SS: TSession; S: String);
 
 //var
 //  VarList: TVarList;
@@ -117,7 +119,7 @@ begin
   if (RS = nil) and (AMainRecordSet.QGrid <> nil) then
     RS := AMainRecordSet.Parent.FindRecordSetByName(FormName);
   if RS = nil then raise Exception.Create(Format(rsFormQryNotFound, [FormName]))
-  else if (RS.RD <> nil) and RS.QGrid.ManualRefresh then Exit(False);
+  else if (RS.RD <> nil) and {RS.QGrid.ManualRefresh} not RS.DataSet.Active then Exit(False);
 
   Fl := nil; Col := nil;
   if RS.Form <> nil then
@@ -900,9 +902,10 @@ var
   RS: TSsRecordSet;
 begin
   if FieldName = '' then raise Exception.Create(rsFieldNameEmpty);
-  if not GetRecordSet(ARecordSet, FormName, FieldName, RS, F) then Exit(Null);
-  if RS.RD <> nil then Result := F.Value
-  else raise Exception.Create(Format(rsQueryNotFound, [FormName]))
+  if not GetRecordSet(ARecordSet, FormName, '', RS, F) then Exit(Null);
+  if RS.RD <> nil then Result := RS.QGrid.Fields[FieldName]
+  else if RS.Form <> nil then Result := RS.Form.Fields[FieldName]
+  //else raise Exception.Create(Format(rsQueryNotFound, [FormName]))
 end;
 
 function GetOldValue(ARecordSet: TSsRecordSet; const FieldName: String
@@ -1196,7 +1199,9 @@ begin
   if ARecordSet.Form = nil then raise Exception.Create(rsFormNotAvail);
   F := ARecordSet.Form.FindFieldByName(aFieldName);
   if F = nil then raise Exception.Create(Format(rsFieldNotFound, [aFieldName]));
-  ARecordSet.SetDSField(F, Value);
+  with ARecordSet do
+    if DataSet.Active and (DataSet.State in [dsInsert, dsEdit]) then
+      ARecordSet.SetDSField(F, Value);
   (*DS := ARecordSet.DataSet;
   if DS.Active and (DS.State in [dsInsert, dsEdit]) then
   begin
@@ -1419,6 +1424,30 @@ begin
   SL.DelimitedText := AItems;
   Result := SL.Values[AValue];
   SL.Free;
+end;
+
+function GetTypedText(SS: TSession; AIndex: Integer): Variant;
+var
+  S, W: String;
+  i: Integer;
+begin
+  Result := GetVar(SS, '__TypedText__');
+  if (AIndex <= 0) or (Result = Null) then Exit;
+
+  S := VarToStr(Result);
+  for i := 1 to AIndex do
+  begin
+    S := Trim(S);
+    W := CutStr(S, ' ');
+  end;
+  if W = '' then Result := Null
+  else Result := W;
+end;
+
+procedure SetTypedText(SS: TSession; S: String);
+begin
+  S := Trim(S);
+  SetVar(SS, '__TypedText__', IIF(S <> '', S, Null));
 end;
 
 end.

@@ -353,7 +353,7 @@ msgstr "Пусто"
 
 #: strconsts.rsemptysquarebracketsdetected
 msgid "Empty square brackets detected"
-msgstr ""
+msgstr "Обнаружены пустые квадратные скобки"
 
 #: strconsts.rsendlineexpected
 msgid "End of line expected"
@@ -387,7 +387,7 @@ msgstr "Ожидается закрывающая скобка или опера
 
 #: strconsts.rsexprempty
 msgid "Expression is empty"
-msgstr ""
+msgstr "Выражение пусто"
 
 #: strconsts.rsextension
 msgid "Extension"
@@ -407,10 +407,20 @@ msgstr "Поле без имени"
 msgid "Field [%s] not date"
 msgstr "Поле [%s] не является датой"
 
+#: strconsts.rsfieldnotfileimage
+#, object-pascal-format
+msgid "Field is not a file or image: %s"
+msgstr "Поле не является файлом или изображением: %s"
+
 #: strconsts.rsfieldnotfound
 #, object-pascal-format
 msgid "Field not found: %s"
 msgstr "Поле не найдено: %s"
+
+#: strconsts.rsfieldnotimage
+#, object-pascal-format
+msgid "Field is not a image: %s"
+msgstr "Поле не является изображением: %s"
 
 #: strconsts.rsfieldnotobject
 #, object-pascal-format
@@ -482,6 +492,10 @@ msgstr "Функция не найдена"
 #, object-pascal-format
 msgid "Function not found: %s"
 msgstr "Функция не найдена: %s"
+
+#: strconsts.rsfuncnotimagefiles
+msgid "The function cannot be applied to files and images."
+msgstr "Функцию нельзя применить к файлам и изображениям."
 
 #: strconsts.rsgotoform
 msgid "Go to form"
@@ -852,7 +866,7 @@ msgstr "Неизвестно"
 
 #: strconsts.rsunknownfbversion
 msgid "Unknown Firebird version specified."
-msgstr ""
+msgstr "Указана неизвестная версия Firebird."
 
 #: strconsts.rsunknownrequest
 msgid "Unknown request"

@@ -275,6 +275,9 @@ resourcestring
   rsUnknownFBVersion = 'Unknown Firebird version specified.';
   rsEmptySquareBracketsDetected = 'Empty square brackets detected';
   rsExprEmpty = 'Expression is empty';
+  rsFieldNotFileImage = 'Field is not a file or image: %s';
+  rsFieldNotImage = 'Field is not a image: %s';
+  rsFuncNotImageFiles = 'The function cannot be applied to files and images.';
   //rsRecordModifiedAnotherUser = 'The record has been modified by another user.';
   //rsRecordHasBeenDeleted = 'The record has been deleted.';
 

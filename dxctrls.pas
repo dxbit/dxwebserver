@@ -460,9 +460,11 @@ type
   TLCbxListField = class
   private
     FFieldId, FWidth: Integer;
+    FFieldName: String;
     FSearchable: Boolean;
   public
     property FieldId: Integer read FFieldId write FFieldId;
+    property FieldName: String read FFieldName write FFieldName;
 	  property Width: Integer read FWidth write FWidth;
     property Searchable: Boolean read FSearchable write FSearchable;
   end;
@@ -487,6 +489,8 @@ type
     FHideList: Boolean;
     FInsertedValues: TInsertedValues;
     FListFields: TLCbxListFields;
+    FListKeyField: String;
+    FListSource: Integer;
     FListWidthExtra: Integer;
     FOnCreateForm: TCreateFormEvent;
     procedure SetListFields(AValue: TLCbxListFields);
@@ -499,6 +503,8 @@ type
     property ListWidthExtra: Integer read FListWidthExtra write FListWidthExtra;
     property HideList: Boolean read FHideList write FHideList;
     property HideButton: Boolean read FHideButton write FHideButton;
+    property ListKeyField: String read FListKeyField write FListKeyField;
+    property ListSource: Integer read FListSource write FListSource;
     property OnCreateForm: TCreateFormEvent read FOnCreateForm write FOnCreateForm;
   end;
 
@@ -551,6 +557,7 @@ type
   TdxDBImage = class(TdxField)
   private
     FCheckExpression: String;
+    FIsQuery: Boolean;
     FPrintSize: Integer;
     FRequired: Boolean;
     FShowThumbnail: Boolean;
@@ -575,6 +582,7 @@ type
     property CheckExpression: String read FCheckExpression write FCheckExpression;
     property SourceFileName: String read GetSourceFileName;
     property StoredFileName: String read GetStoredFileName;
+    property IsQuery: Boolean read FIsQuery write FIsQuery;
   end;
 
   TShapeType = (stRectangle, stSquare, stRoundRect, stRoundSquare,
@@ -612,6 +620,7 @@ type
   private
     FCheckExpression: String;
     FFieldSize: Integer;
+    FIsQuery: Boolean;
     FRequired: Boolean;
     FStorageFolder: String;
     FStorageType: Integer;
@@ -633,6 +642,7 @@ type
     property SourceFileName: String read GetSourceFileName;
     property StoredFileName: String read GetStoredFileName;
     property Description: String read GetDescription;
+    property IsQuery: Boolean read FIsQuery write FIsQuery;
   end;
 
   { TdxColumn }
@@ -783,6 +793,13 @@ type
     procedure EnableScrollEvents;
     function ScrollEventsDisabled: Boolean;
     function FindColumnByTitle(const ATitle: String): TdxColumn;
+
+    function GetSourceFileName(const aName: String): String;
+    function GetStoredFileName(const aName: String): String;
+    procedure SaveBlobToStreamOrFile(const aName: String; St: TStream; const AFileName: String);
+    procedure SaveBlobToStream(const aName: String; St: TStream);
+    procedure SaveBlobToFile(const aName, AFileName: String);
+    procedure SaveThumbnailToStream(const aName: String; St: TStream);
 
     property Fields[AIndex: String]: Variant read GetQueryFields;
     property AsI[AIndex: String]: Integer read GetAsI;
@@ -1222,7 +1239,7 @@ function SaveImageToFile(const FileName: String; MaxSize: Integer; Image: TdxDBI
 function GetImageStream(Image: TdxDBImage; DS: TDataSet): TStream;
 function GetImageFileName(Image: TdxDBImage; DS: TDataSet): String;
 function GetImageFileExt(Image: TdxDBImage; DS: TDataSet): String;
-function SaveThumbnailToFile(const FileName: String; Image: TdxDBImage; DS: TDataSet): Boolean;
+function SaveThumbnailToFile(const FileName: String; FieldId: Integer; DS: TDataSet): Boolean;
 procedure SaveImageToFileConvert(const FileName: String; Image: TdxDBImage; DS: TDataSet);
 procedure GetImageSize(const FileName: String; var Size: TPoint);
 procedure CreateBlankImage(const FileName: String);
@@ -1327,27 +1344,31 @@ end;
 
 function GetImageStream(Image: TdxDBImage; DS: TDataSet): TStream;
 var
-  FNm, FlName: String;
+  FlNm, FileName: String;
   Tp: Integer;
 begin
   Result := nil;
-  FNm := fieldStr(Image.Id);
+  FlNm := fieldStr(Image.Id);
   Tp := Image.StorageType;
   //if (Tp = StorageTypeDB) and (DS.State in [dsInsert, dsEdit]) then Tp := StorageTypeLink;
   case Tp of
     StorageTypeDb:
-        Result := DS.CreateBlobStream(DS.FieldByName(FNm), bmRead);
+      begin
+        if Image.IsQuery then FlNm := FlNm + 'data';
+        Result := DS.CreateBlobStream(DS.FieldByName(FlNm), bmRead);
+      end;
     StorageTypeFolder:
       begin
-        FlName := GetAbsolutePath(Image.StorageFolder) + DS.FieldByName(FNm + 'dest').AsString;
-        if FileExistsUtf8(FlName) then
-          Result := TFileStream.Create(Utf8ToSys(FlName), fmOpenRead + fmShareDenyNone);
+        FileName := GetAbsolutePath(Image.StorageFolder) + DS.FieldByName(FlNm + 'dest').AsString;
+        if FileExistsUtf8(FileName) then
+          Result := TFileStream.Create(Utf8ToSys(FileName), fmOpenRead + fmShareDenyNone);
       end;
     StorageTypeLink:
       begin
-        FlName := DS.FieldByName(FNm + 'src').AsString;
-        if FileExistsUtf8(FlName) then
-          Result := TFileStream.Create(Utf8ToSys(FlName), fmOpenRead + fmShareDenyNone);
+        if not Image.IsQuery then FlNm := FlNm + 'src';
+        FileName := DS.FieldByName(FlNm).AsString;
+        if FileExistsUtf8(FileName) then
+          Result := TFileStream.Create(Utf8ToSys(FileName), fmOpenRead + fmShareDenyNone);
       end;
   end;
   if (Result <> nil) and (Result.Size = 0) then FreeAndNil(Result);
@@ -1371,17 +1392,17 @@ begin
   Result := ExtractFileExt(GetImageFileName(Image, DS));
 end;
 
-function SaveThumbnailToFile(const FileName: String; Image: TdxDBImage;
+function SaveThumbnailToFile(const FileName: String; FieldId: Integer;
   DS: TDataSet): Boolean;
 var
-  S: String;
+  FlNm: String;
   St: TStream;
 begin
   Result := False;
-  S := FieldStr(Image.Id) + 'thumb';
-  if (Image.ThumbSize = 0) or (DS.FieldByName(S).IsNull) then
-    Exit;
-  St := DS.CreateBlobStream(DS.FieldByName(S), bmRead);
+  FlNm := FieldStr(FieldId) + 'thumb';
+  if DS.FieldByName(FlNm).IsNull then Exit;
+
+  St := DS.CreateBlobStream(DS.FieldByName(FlNm), bmRead);
   with TFileStream.Create(Utf8ToSys(FileName), fmCreate) do
   try
     CopyFrom(St, St.Size);
@@ -1767,7 +1788,6 @@ end;
 
 function SaveFileToStream(Dest: TStream; aFile: TdxFile; DS: TDataSet): String;
 var
-  FS: TFileStream;
   St: TStream;
 begin
   Result := '';
@@ -1787,24 +1807,27 @@ end;
 
 function GetFileStream(aFile: TdxFile; DS: TDataSet): TStream;
 var
-  FNm, FlName: String;
+  FlNm, FileName: String;
 begin
   Result := nil;
-  FNm := fieldStr(aFile.Id);
+  FlNm := fieldStr(aFile.Id);
   case aFile.StorageType of
     StorageTypeDb:
-        Result := DS.CreateBlobStream(DS.FieldByName(FNm), bmRead);
+      begin
+        if aFile.IsQuery then FlNm := FlNm + 'data';
+        Result := DS.CreateBlobStream(DS.FieldByName(FlNm), bmRead);
+      end;
     StorageTypeFolder:
       begin
-        FlName := GetAbsolutePath(aFile.StorageFolder) + DS.FieldByName(FNm + 'dest').AsString;
-        if FileExistsUtf8(FlName) then
-          Result := TFileStream.Create(Utf8ToSys(FlName), fmOpenRead + fmShareDenyWrite);
+        FileName := GetAbsolutePath(aFile.StorageFolder) + DS.FieldByName(FlNm + 'dest').AsString;
+        if FileExistsUtf8(FileName) then
+          Result := TFileStream.Create(Utf8ToSys(FileName), fmOpenRead + fmShareDenyWrite);
       end;
     StorageTypeLink:
       begin
-        FlName := DS.FieldByName(FNm + 'src').AsString;
-        if FileExistsUtf8(FlName) then
-          Result := TFileStream.Create(Utf8ToSys(FlName), fmOpenRead + fmShareDenyNone);
+        FileName := DS.FieldByName(FlNm + 'src').AsString;
+        if FileExistsUtf8(FileName) then
+          Result := TFileStream.Create(Utf8ToSys(FileName), fmOpenRead + fmShareDenyNone);
       end;
   end;
   if (Result <> nil) and (Result.Size = 0) then FreeAndNil(Result);
@@ -2400,16 +2423,16 @@ begin
   RS := TSsRecordSet(Form.RecordSet);
   if FActionOnClick <> '' then
   begin
-    if RS.Actions <> nil then
+    {if RS.Actions <> nil then
     begin
       RS.Actions.Free;
       RS.Actions := nil;
-    end;
+    end;}
     AR := TActionRunner.Create;
     AR.Load(FActionOnClick);
     AR.RS := RS;
     AR.Run;
-    if AR.NeedContinue then RS.Actions := AR
+    if AR.NeedContinue then RS.ActionList.Add(AR) //RS.Actions := AR
     else AR.Free;
     Result := True;
   end
@@ -2523,7 +2546,7 @@ end;
 procedure TdxQueryGrid.RequeryIfNeed;
 begin
   with TSsRecordSet(FRS) do
-    if NeedRequery then Open;
+    if not ManualRefresh and NeedRequery then Open;
 end;
 
 procedure TdxQueryGrid.Assign(Source: TPersistent);
@@ -2675,6 +2698,164 @@ begin
     C := Columns[i];
     if MyUtf8CompareText(C.Caption, ATitle) = 0 then Exit(C);
   end;
+end;
+
+function TdxQueryGrid.GetSourceFileName(const aName: String): String;
+var
+  RD: TReportData;
+  Tp: TRpFieldType;
+  FlNm: String;
+  idx: Integer;
+  QRS: TSsRecordSet;
+begin
+  QRS := TSsRecordSet(FRS);
+  RD := QRS.RD;
+  idx := RD.IndexOfName(aName);
+  if idx < 0 then
+    raise Exception.CreateFmt(rsFieldNotFound, [aName]);
+  Tp := RD.GetFieldType(idx);
+  if not (Tp in [flFile, flImage]) then
+    raise Exception.CreateFmt(rsFieldNotFileImage, [aName]);
+
+  FlNm := RD.GetFieldNameDS(idx);
+  if Tp = flFile then FlNm := FlNm + 'src';
+
+  RequeryIfNeed;
+  Result := QRS.DataSet.FieldByName(FlNm).AsString;
+end;
+
+function TdxQueryGrid.GetStoredFileName(const aName: String): String;
+var
+  RD: TReportData;
+  Tp: TRpFieldType;
+  FlNm: String;
+  idx: Integer;
+  QRS: TSsRecordSet;
+begin
+  QRS := TSsRecordSet(FRS);
+  RD := QRS.RD;
+  idx := RD.IndexOfName(aName);
+  if idx < 0 then
+    raise Exception.CreateFmt(rsFieldNotFound, [aName]);
+  Tp := RD.GetFieldType(idx);
+  if not (Tp in [flFile, flImage]) then
+    raise Exception.CreateFmt(rsFieldNotFileImage, [aName]);
+
+  FlNm := RD.GetFieldNameDS(idx) + 'dest';
+
+  RequeryIfNeed;
+  Result := QRS.DataSet.FieldByName(FlNm).AsString;
+end;
+
+procedure TdxQueryGrid.SaveBlobToStreamOrFile(const aName: String; St: TStream;
+  const AFileName: String);
+var
+  RD: TReportData;
+  Tp: TRpFieldType;
+  idx: Integer;
+  pF: PRpField;
+  SrcImg, TmpImg: TdxDBImage;
+  QRS: TSsRecordSet;
+  C: TdxComponent;
+  SrcFile, TmpFile: TdxFile;
+begin
+  QRS := TSsRecordSet(FRS);
+  RD := QRS.RD;
+  idx := RD.IndexOfName(aName);
+  if idx < 0 then
+    raise Exception.CreateFmt(rsFieldNotFound, [aName]);
+  Tp := RD.GetFieldType(idx);
+  if not (Tp in [flFile, flImage]) then
+    raise Exception.CreateFmt(rsFieldNotFileImage, [aName]);
+
+  pF := RD.TryGetRpField(idx);
+  if pF = nil then Exit;
+
+  C := GetRpFieldComponent(QRS.Session, pF^, True);
+
+  RequeryIfNeed;
+
+  if C is TdxDBImage then
+  begin
+
+    SrcImg := TdxDBImage(C);
+
+    TmpImg := TdxDBImage.Create(nil);
+    with TmpImg do
+    begin
+      Id := pF^.Id;
+      StorageType := SrcImg.StorageType;
+      StorageFolder := SrcImg.StorageFolder;
+      IsQuery := True;
+    end;
+
+    try
+      if St <> nil then
+        SaveImageToStream(St, TmpImg, QRS.DataSet)
+      else if AFileName <> '' then
+        SaveImageToFile(AFileName, TmpImg, QRS.DataSet);
+    finally
+      TmpImg.Free;
+    end;
+
+  end
+  else
+  begin
+    SrcFile := TdxFile(C);
+
+    TmpFile := TdxFile.Create(nil);
+    with TmpFile do
+    begin
+      Id := pF^.Id;
+      StorageType := SrcFile.StorageType;
+      StorageFolder := SrcFile.StorageFolder;
+      IsQuery := True;
+    end;
+
+    try
+      if St <> nil then
+        SaveFileToStream(St, TmpFile, QRS.DataSet)
+      else if AFileName <> '' then
+        SaveFileToFile(AFileName, TmpFile, QRS.DataSet);
+    finally
+      TmpFile.Free;
+    end;
+  end;
+end;
+
+procedure TdxQueryGrid.SaveBlobToStream(const aName: String; St: TStream);
+begin
+  SaveBlobToStreamOrFile(aName, St, '');
+end;
+
+procedure TdxQueryGrid.SaveBlobToFile(const aName, AFileName: String);
+begin
+  SaveBlobToStreamOrFile(aName, nil, AFileName);
+end;
+
+procedure TdxQueryGrid.SaveThumbnailToStream(const aName: String; St: TStream);
+var
+  RD: TReportData;
+  Tp: TRpFieldType;
+  FlNm: String;
+  idx: Integer;
+  QRS: TSsRecordSet;
+begin
+  QRS := TSsRecordSet(FRS);
+  RD := QRS.RD;
+  idx := RD.IndexOfName(aName);
+  if idx < 0 then
+    raise Exception.CreateFmt(rsFieldNotFound, [aName]);
+  Tp := RD.GetFieldType(idx);
+  if Tp <> flImage then
+    raise Exception.CreateFmt(rsFieldNotImage, [aName]);
+
+  FlNm := RD.GetFieldNameDS(idx) + 'thumb';
+
+  RequeryIfNeed;
+
+  with QRS.DataSet do
+    TBlobField(FieldByName(FlNm)).SaveToStream(St);
 end;
 
 { TdxFile }

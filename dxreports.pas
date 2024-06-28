@@ -43,7 +43,7 @@ type
 
   TRpSourceKind = (skNone, skIncome, skOutcome);
   TRpFieldType = (flNone, flText, flNumber, flDate, flBool, flObject, flTime,
-    flCounter, flFile, flRecId);
+    flCounter, flFile, flRecId, flImage);
   TRpFieldTypes = set of TRpFieldType;
   TRpTotalFunc = (tfNone, tfSum, tfAvg, tfMax, tfMin, tfCount, tfProfit, tfDistCount,
     tfMergeAll, tfMerge);
@@ -62,6 +62,7 @@ type
     Parent, Src: PRpField;
     Func: TRpTotalFunc;
     Id: Integer;
+    TextSearch: Boolean;
   end;
 
   PRpSource = ^TRpSource;
@@ -164,7 +165,9 @@ type
     FFixedColor: TColor;
     FFont: TdxFont;
     FIndex: Integer;
+    FIsImage: Boolean;
     FLayout: TTextLayout;
+    FThumbSize: Integer;
     FTitleAlignment: TAlignment;
     FTitleFont: TdxFont;
     FTitleLayout: TTextLayout;
@@ -191,6 +194,9 @@ type
     property AutoLayout: Boolean read FAutoLayout write FAutoLayout;
     property TitleAlignment: TAlignment read FTitleAlignment write FTitleAlignment;
     property TitleLayout: TTextLayout read FTitleLayout write FTitleLayout;
+    // Эти свойства используются только в рантайме
+    property IsImage: Boolean read FIsImage write FIsImage;
+    property ThumbSize: Integer read FThumbSize write FThumbSize;
   end;
 
   { TRpGridSortData }
@@ -336,6 +342,7 @@ type
     FName: String;
     FKind: TReportKind;
     FPrintFields: TStringList;
+    FSearchText: String;
     FSession: TObject;
     //FPivotGrid: TObject;
     FSortOrder: String;
@@ -401,6 +408,8 @@ type
     property SqlMode: Boolean read FSqlMode write FSqlMode;
     property SqlFields: TSQLFieldList read FSqlFields;
     property SQL: String read FSQL write FSQL;
+
+    property SearchText: String read FSearchText write FSearchText;
 
     property Session: TObject read FSession write FSession;
   end;
@@ -497,7 +506,7 @@ begin
   else if C is TdxFile then
     Result := flFile
   else if C is TdxDBImage then
-    Result := flText
+    Result := flImage
   else if C is TdxRecordId then
     Result := flRecId
 end;
@@ -673,7 +682,7 @@ var
 begin
   Result := nil;
   for i := 0 to Count - 1 do
-    if Utf8CompareText(Fields[i].Name, FieldName) = 0 then
+    if MyUtf8CompareText(Fields[i].Name, FieldName) = 0 then
       Exit(Fields[i]);
 end;
 
@@ -1901,7 +1910,7 @@ var
 begin
   Result := -1;
   for i := 0 to GetFieldCount - 1 do
-    if Utf8CompareText(GetFieldName(i), AFieldName) = 0 then Exit(i);
+    if MyUtf8CompareText(GetFieldName(i), AFieldName) = 0 then Exit(i);
 end;
 
 function TReportData.IndexOfNameDS(AFieldNameDS: String): Integer;

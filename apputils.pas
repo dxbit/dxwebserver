@@ -132,6 +132,11 @@ function FieldExists(const FieldName, E: String): Boolean;
 function FormExistsInExpr(const FormName, Expr: String): Boolean;
 function FieldExistsForQuery(const FieldName, E: String): Boolean;
 function IsNumericComponent(SS: TSession; C: TdxField): Boolean;
+function CutStr(var S: String; D: Char): String;
+function GetComponentDisplayFormat(SS: TSession; Fm: TdxForm; C: TdxField): String;
+procedure SetDSFieldDisplayFormat(F: TField; Fmt: String);
+function GetFieldDisplayText(F: TField): String;
+function GetRpFieldComponent(SS: TSession; F: TRpField; aLow: Boolean): TdxComponent;
 //procedure HideUnvisibleControls(Fm: TdxForm);
 
 implementation
@@ -139,7 +144,7 @@ implementation
 uses
   LazUtf8, LazFileUtils, appsettings, sqlgen, DateUtils, {$IFDEF windows}ShellApi,{$ENDIF}
   Variants, expressions, StrUtils, Math, dbengine, dxactions, pivotgrid,
-  mainserver, scriptmanager, uPSRuntime, mylogger;
+  mainserver, scriptmanager, uPSRuntime, mylogger, TypInfo;
 
 function AppPath: String;
 begin
@@ -1977,7 +1982,7 @@ begin
     i := RD.IndexOfNameDS(Col.FieldNameDS);
     case RD.GetFieldType(i) of
       flNumber, flCounter, flDate, flTime, flObject: Result := taRightJustify;
-      flBool: Result := taCenter;
+      flBool, flImage: Result := taCenter;
       else Result := taLeftJustify;
     end;
     {RD.FindFieldByColumn(Col, pF, pCF);
@@ -2703,6 +2708,81 @@ begin
   Result := (C is TdxCalcEdit) or (C is TdxCounter) or (C is TdxRecordId) or
     (C is TdxLookupComboBox) or (C is TdxCheckBox) or ((C is TdxObjectField) and
       IsNumericComponent( SS, GetObjectFieldField(SS, TdxObjectField(C)) ));
+end;
+
+function CutStr(var S: String; D: Char): String;
+var
+  p: SizeInt;
+begin
+  p := Pos(D, S);
+  if p = 0 then
+  begin
+    Result := S;
+    S := '';
+  end
+  else
+  begin
+    Result := Copy(S, 1, p - 1);
+    Delete(S, 1, p);
+  end;
+end;
+
+function GetComponentDisplayFormat(SS: TSession; Fm: TdxForm; C: TdxField): String;
+var
+  ObjC: TdxField;
+  SrcFm: TdxForm;
+begin
+  Result := '';
+  if C is TdxObjectField then
+  begin
+    with TdxObjectField(C) do
+      if (ObjId > 0) and (FieldId > 0) then
+      begin
+        ObjC := Fm.FindField(ObjId);
+        SrcFm := SS.FormMan.FindForm(GetSourceTId(ObjC));
+        C := SrcFm.FindField(FieldId);
+      end;
+  end
+  else if C is TdxLookupComboBox then
+    with TdxLookupComboBox(C) do
+      if (SourceTId > 0) and (SourceFId > 0) then
+      begin
+        SrcFm := SS.FormMan.FindForm(SourceTId);
+        C := SrcFm.FindField(SourceFId);
+      end;
+
+  if C is TdxCalcEdit then
+    Result := TdxCalcEdit(C).PrecStr
+  else if C is TdxTimeEdit then
+    Result := TdxTimeEdit(C).TimeFormatStr;
+end;
+
+procedure SetDSFieldDisplayFormat(F: TField; Fmt: String);
+var
+  PInfo: PPropInfo;
+begin
+  PInfo := GetPropInfo(F, 'DisplayFormat');
+  if PInfo <> nil then
+    SetPropValue(F, PInfo, Fmt)
+end;
+
+function GetFieldDisplayText(F: TField): String;
+begin
+  if F.DataType <> ftMemo then
+    Result := F.DisplayText
+  else
+    Result := F.AsString;
+end;
+
+function GetRpFieldComponent(SS: TSession; F: TRpField; aLow: Boolean): TdxComponent;
+var
+  Fm: TdxForm;
+begin
+  Result := nil;
+  if aLow then F := GetLowField(@F)^;
+  if F.TId = 0 then Exit;
+  Fm := SS.FormMan.FindForm(F.TId);
+  Result := Fm.FindField(F.FId);
 end;
 
 (*procedure HideAllControls(WC: TdxWinControl);

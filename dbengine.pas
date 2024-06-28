@@ -212,6 +212,18 @@ begin
   end;
 end;
 
+function GetNonCalcFieldsCount(RD: TReportData): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 0 to RD.GetRpSQLFieldCount - 1 do
+  begin
+    if RD.GetFieldType(i) in [flFile, flImage] then Inc(Result, 4)
+    else Inc(Result);
+  end;
+end;
+
 function TdxDataSet.LoadField(FieldDef: TFieldDef; buffer: pointer; out
   CreateBlob: boolean): boolean;
 var
@@ -228,7 +240,7 @@ begin
     end
     else
       delta := 0;
-    if FieldDef.FieldNo > RD.GetRpSQLFieldCount + delta then Exit(True);
+    if FieldDef.FieldNo > GetNonCalcFieldsCount(RD) + delta then Exit(True);
   end;
   Result:=inherited LoadField(FieldDef, buffer, CreateBlob);
 end;

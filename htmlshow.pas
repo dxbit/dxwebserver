@@ -109,6 +109,7 @@ type
     function ShowFile(C: TdxFile): String;
     function ShowDBImage(C: TdxDBImage; FileNameOnly: Boolean = False): String;
     function ShowDBImageThumbnail(DS: TDataSet; C: TdxDBImage; FileNameOnly: Boolean = False): String;
+    function ShowQueryThumbnail(RD: TReportData; ColIndex: Integer; DS: TDataSet): String;
     function ShowImage(C: TdxImage): String;
     function ShowTabSheet(C: TdxTabSheet; Visible: Boolean): String;
     function ShowPageControl(C: TdxPageControl): String;
@@ -143,6 +144,10 @@ type
     //function CheckFormCond(FmId: Integer; Edit: Boolean): Boolean;
     function ShowAccessDenied: String;
     function GetEvalChangesAsJson(Flags: TEvalFlags = []): String;
+    function GetLookupComboBoxListForm(C: TdxLookupComboBox; Skip: Integer;
+      const Frags: String; FragList: TStrings): String;
+    function GetLookupComboBoxListSource(C: TdxLookupComboBox; Skip: Integer;
+      const Frags: String; FragList: TStrings): String;
     function GetLookupComboBoxList(C: TdxLookupComboBox; Skip: Integer;
       const Frags: String; FragList: TStrings): String;
     function GetComboBoxList(C: TdxComboBox; const Frags: String; Skip: Integer;
@@ -231,7 +236,7 @@ implementation
 uses
   sqlgen, LazUtf8, apputils, Math, LazFileUtils, dxusers,
   expressions, Variants, xmlreport, dateutils, StrUtils, QSort, appsettings,
-  filterparsers, dxactions, mainserver, scriptmanager, uPSRuntime;
+  filterparsers, dxactions, mainserver, scriptmanager, uPSRuntime, exprfuncs;
 
 type
   TMarkData = record
@@ -366,31 +371,42 @@ begin
   end;
 end;
 
-procedure CheckField(F: TdxField; const Value: String; out V: Variant);
+function DeleteThousandSeparators(const Value: String): String;
+begin
+  Result := StringReplace(Value, DefaultFormatSettings.ThousandSeparator, '',
+    [rfReplaceAll]);
+end;
+
+function CheckField(F: TdxField; const Value: String; out V: Variant): Boolean;
 var
   E: Double;
   D: TDateTime;
   N: integer;
 begin
+  Result := True;
   if Value = '' then V := Null
   else if F is TdxCalcEdit then
   begin
-    if MyStrToFloat(Value, E) then V := E
+    Result := MyStrToFloat( DeleteThousandSeparators(Value), E );
+    if Result then V := E
     else V := Null;
   end
   else if F is TdxDateEdit then
   begin
-    if MyStrToDate(Value, D) then V := D
+    Result := MyStrToDate(Value, D);
+    if Result then V := D
     else V := Null;
   end
   else if F is TdxTimeEdit then
   begin
-    if MyStrToTime(Value, D) then V := D
+    Result := MyStrToTime(Value, D);
+    if Result then V := D
     else V := Null;
   end
   else if F is TdxCounter then
   begin
-    if TryStrToInt(Value, N) then V := N
+    Result := TryStrToInt(Value, N);
+    if Result then V := N
     else V := Null;
   end
   else
@@ -1348,7 +1364,7 @@ begin
     else
       S := S + '>';
     S := S + Col.Caption + '</span></th>';
-    CSS := CSS + '.data table td:nth-child(' + IntToStr(i + 2) + ') { text-align: ' +
+    CSS := CSS + '.grid table td:nth-child(' + IntToStr(i + 2) + ') { text-align: ' +
       AlignmentToCSS(GetRpGridColumnAlignment(FSS, Rp, Col)) + '; vertical-align: ' +
       TextLayoutToCSS(GetRpGridColumnLayout(Col)) + '; }' + LineEnding;
   end;
@@ -2338,8 +2354,10 @@ begin
     if F <> nil then
     begin
       S := AFields.ValueFromIndex[0];
-      CheckField(F, S, V);
-      FRS.ChangeField(F, V);
+      if CheckField(F, S, V) then
+        FRS.ChangeField(F, V)
+      else
+        FRS.RevertFieldValue(F);
       Result := GetEvalChangesAsJson;
     end;
     FResultCode := rcAjaxOk;
@@ -2387,7 +2405,7 @@ begin
     if Row = 1 then
       if QRS.ScrollEventsEnabled then QRS.DataSet.AfterScroll(QRS.DataSet);
     for i := 0 to FRS.Queries.Count - 1 do
-      FRS.Queries[i].Open;
+      if not FRS.Queries[i].QGrid.ManualRefresh then FRS.Queries[i].Open;
 
     Result := GetEvalChangesAsJson;
     FResultCode := rcAjaxOk;
@@ -2486,8 +2504,86 @@ begin
   Result := -(Utf8Length(List[Index1]) - Utf8Length(List[Index2]));
 end;
 
-function THtmlShow.GetLookupComboBoxList(C: TdxLookupComboBox; Skip: Integer;
-  const Frags: String; FragList: TStrings): String;
+{
+var
+  SrcFm: TdxForm;
+  SrcQRS: TSsRecordSet;
+
+  function GetKeyField(DS: TDataSet): TField;
+  begin
+    if C.ListSource = 0 then
+      Result := DS.Fields[0]
+    else
+      Result := DS.FieldByName(C.ListKeyField);
+  end;
+
+  function GetListField(DS: TDataSet; i: Integer): TField;
+  begin
+    if C.ListSource = 0 then
+      Result := DS.Fields[i + 2]
+    else
+      Result := DS.FieldByName(C.ListFields[i].FieldName);
+  end;
+
+  function GetListColumnTitle(i: Integer): String;
+  var
+    SrcF: TdxField;
+    idx: Integer;
+  begin
+    if C.ListSource = 0 then
+    begin
+      if SrcFm = nil then SrcFm := FSS.FormMan.FindForm(C.SourceTId);
+      if i < 0 then
+        SrcF := SrcFm.FindField(C.SourceFId)
+      else
+        SrcF := SrcFm.FindField(C.ListFields[i].FieldId);
+      Result := SrcF.FieldName;
+    end
+    else
+    begin
+      SrcQRS := FRS.Queries.FindRpById(C.ListSource);
+      idx := SrcQRS.RD.IndexOfNameDS(C.ListFields[i].FieldName);
+      Result := SrcQRS.RD.GetFieldName(idx);
+    end;
+  end;
+}
+
+function CalcListColumnAutoWidth(C: TdxLookupComboBox): Integer;
+var
+  ZeroCount, W, i: Integer;
+begin
+  ZeroCount := 0;
+  W := C.Width + C.ListWidthExtra;
+  for i := 0 to C.ListFields.Count - 1 do
+  begin
+    if C.ListFields[i].Width = 0 then Inc(ZeroCount);
+    W := W - C.ListFields[i].Width;
+  end;
+  if ZeroCount > 0 then
+    Result := W div ZeroCount
+  else
+    Result := 0;
+end;
+
+procedure LCbxSetDisplayFormat(SS: TSession; LCbx: TdxLookupComboBox;
+  DS: TDataSet);
+var
+  SrcFm: TdxForm;
+  i: Integer;
+  C: TdxField;
+begin
+  SrcFm := SS.FormMan.FindForm(LCbx.SourceTId);
+  C := SrcFm.FindField(LCbx.SourceFId);
+  SetDSFieldDisplayFormat(DS.Fields[1], GetComponentDisplayFormat(SS, SrcFm, C));
+  for i := 0 to LCbx.ListFields.Count - 1  do
+  begin
+    C := SrcFm.FindField(LCbx.ListFields[i].FieldId);
+    SetDSFieldDisplayFormat(DS.Fields[i+2], GetComponentDisplayFormat(SS, SrcFm, C));
+  end;
+end;
+
+function THtmlShow.GetLookupComboBoxListForm(C: TdxLookupComboBox;
+  Skip: Integer; const Frags: String; FragList: TStrings): String;
 var
   W, i: Integer;
   SrcFm: TdxForm;
@@ -2535,10 +2631,11 @@ begin
   end;
 
   DS := FSS.DBase.OpenDataSet(SqlLCbxSelect(FRS, C, Frags, 100, Skip));
+  LCbxSetDisplayFormat(FSS, C, DS);
 
   while not DS.Eof do
   begin
-    S := StrToHtml(DS.Fields[1].AsString);
+    S := StrToHtml(GetFieldDisplayText(DS.Fields[1]));
     if S <> '' then
     begin
       S := MarkFragments(S, FragList);
@@ -2554,7 +2651,7 @@ begin
     for i := 0 to C.ListFields.Count - 1 do
     begin
       Result := Result + '<td>';
-      S := StrToHtml(DS.Fields[i + 2].AsString);
+      S := StrToHtml(GetFieldDisplayText(DS.Fields[i + 2]));
       if S <> '' then
       begin
         if C.ListFields[i].Searchable then
@@ -2573,6 +2670,164 @@ begin
       '><input type=button value="' + rsMore + '"></td></tr>';
   end;
   DS.Free;
+end;
+
+function THtmlShow.GetLookupComboBoxListSource(C: TdxLookupComboBox;
+  Skip: Integer; const Frags: String; FragList: TStrings): String;
+
+  procedure SetupTextSearch(RD: TReportData);
+  var
+    i, idx: Integer;
+    LF: TLCbxListField;
+    pF: PRpField;
+  begin
+    if RD.SqlMode then Exit;
+
+    RD.SearchText := Frags;
+    for i := 0 to C.ListFields.Count - 1 do
+    begin
+      LF := C.ListFields[i];
+      if not LF.Searchable then Continue;
+      idx := RD.IndexOfNameDS(LF.FieldName);
+      if idx < 0 then Continue;
+
+      pF := RD.TryGetRpField(idx);
+      if pF <> nil then pF^.TextSearch := True;
+    end;
+  end;
+
+  procedure ClearTextSearch(RD: TReportData);
+  var
+    i: Integer;
+  begin
+    if RD.Sources.Count = 0 then Exit;
+
+    for i := 0 to RD.Sources[0]^.Fields.Count - 1 do
+      RD.Sources[0]^.Fields[i]^.TextSearch := False;
+    RD.SearchText := '';
+  end;
+
+var
+  W0, i, W, idx, n: Integer;
+  QRS: TSsRecordSet;
+  DSFields: TList;
+  S, Attr: String;
+begin
+  Result := '';
+  if (C.ListKeyField = '') or (C.ListFields.Count = 0) then Exit;
+
+  SetTypedText(FSS, Frags);
+
+  QRS := FRS.Queries.FindRpById(C.ListSource);
+
+  if Skip = 0 then
+  begin
+    W0 := CalcListColumnAutoWidth(C);
+    Result := Result + '<colgroup>';
+    //
+    for i := 0 to C.ListFields.Count - 1 do
+    begin
+      W := C.ListFields[i].Width;
+      if W = 0 then W := W0;
+      Result := Result + '<col width=' + IntToStr(W) + '>';
+    end;
+    Result := Result + '</colgroup>';
+    if C.ListFields.Count = 1 then
+      Result := Result + '<tr style="display: none;"><th></th></tr>'
+    else
+    begin
+      Result := Result + '<tr>';
+      for i := 0 to C.ListFields.Count - 1 do
+      begin
+        idx := QRS.RD.IndexOfNameDS(C.ListFields[i].FieldName);
+        Result := Result + '<th>' + QRS.RD.GetFieldName(idx) + '</th>';
+      end;
+      Result := Result + '</tr>'
+    end;
+  end;
+
+  // Пустая строка для очистки поля
+  if Skip = 0 then
+  begin
+    Result := Result + '<tr key="">';
+    for i := 0 to C.ListFields.Count - 1 do
+      Result := Result + '<td empty>&nbsp;</td>';
+    Result := Result + '</tr>';
+  end;
+
+  if Skip = 0 then
+  begin
+    SetupTextSearch(QRS.RD);
+    QRS.Close;
+    QRS.Open;
+    ClearTextSearch(QRS.RD);
+    QRS.DataSet.First;
+  end
+  else
+  begin
+    if not QRS.DataSet.Active then QRS.Open;
+    QRS.QGrid.MoveTo(Skip);
+  end;
+
+  DSFields := TList.Create;
+  DSFields.Add(QRS.DataSet.FieldByName(C.ListKeyField));
+  for i := 0 to C.ListFields.Count - 1 do
+    DSFields.Add(QRS.DataSet.FieldByName(C.ListFields[i].FieldName));
+
+  for n := 1 to 100 do
+  begin
+    if QRS.DataSet.Eof then Break;
+
+    {S := StrToHtml(TField(DSFields[1]).AsString);
+    if S <> '' then
+    begin
+      S := MarkFragments(S, FragList);
+      Attr := '';
+    end
+    else
+    begin
+      S := '&nbsp;';
+      Attr := ' empty';
+    end;              }
+    Result := Result + '<tr key=' + TField(DSFields[0]).AsString + '>';{<td' + Attr + '>' +
+      S + '</td>'; }
+    for i := 0 to C.ListFields.Count - 1 do
+    begin
+      S := StrToHtml(GetFieldDisplayText(TField(DSFields[i + 1])));
+      if S <> '' then
+      begin
+        if C.ListFields[i].Searchable then
+          S := MarkFragments(S, FragList);
+        Attr := '';
+      end
+      else
+      begin
+        S := '&nbsp;';
+        Attr := ' empty';
+      end;
+      Result := Result + '<td' + IIF(i = 0, Attr, '') + '>';
+      Result := Result + S + '</td>';
+    end;
+    Result := Result + '</tr>';
+    QRS.DataSet.Next;
+  end;
+
+  if not QRS.DataSet.Eof then
+  begin
+    Result := Result + '<tr><td colspan=' + IntToStr(C.ListFields.Count + 1) +
+      '><input type=button value="' + rsMore + '"></td></tr>';
+  end;
+
+  DSFields.Free;
+end;
+
+function THtmlShow.GetLookupComboBoxList(C: TdxLookupComboBox; Skip: Integer;
+  const Frags: String; FragList: TStrings): String;
+begin
+  if C.ListSource = 0 then
+    Result := GetLookupComboBoxListForm(C, Skip, Frags, FragList)
+  else
+    Result := GetLookupComboBoxListSource(C, Skip, Frags, FragList);
 end;
 
 function THtmlShow.GetComboBoxList(C: TdxComboBox; const Frags: String;
@@ -2936,8 +3191,18 @@ begin
       Col := Rp.Grid.Columns[i]; //TRpGridColumn(L[i]);
       if not Col.Visible or (Col.Width = 0) then Continue;
       TdCls := CalcColoring(ARS, Col.FieldNameDS);
-      S := S + '<td' + IIF(TdCls <> '', ' class=' + TdCls, '') + '>' +
-        StrToHtml( FormatField(DS.FieldByName(Col.FieldNameDS)), True ) + '</td>';
+
+      S := S + '<td' + IIF(TdCls <> '', ' class=' + TdCls, '') + '>';
+
+      if not Col.IsImage then
+        S := S + StrToHtml( FormatField(DS.FieldByName(Col.FieldNameDS)), True )
+      else
+        S := S + ShowQueryThumbnail(Rp, i, ARS.DataSet);
+
+      S := S + '</td>';
+
+      {S := S + '<td' + IIF(TdCls <> '', ' class=' + TdCls, '') + '>' +
+        StrToHtml( FormatField(DS.FieldByName(Col.FieldNameDS)), True ) + '</td>';}
     end;
     S := S + '</tr>';
     if RecCounter = 100 then Break;
@@ -3585,6 +3850,7 @@ var
   AR: TActionRunner;
   BnType: String;
   FreshValue: Longint;
+  i: Integer;
 begin
   Result := '';
   FResultCode := rcAjaxError;
@@ -3598,9 +3864,9 @@ begin
     Exit(MakeJsonErrString(rcInvalidFreshValue, rsInvalidFreshValueMsg));
   FResultCode := rcAjaxOk;
 
-  try try
+  try //try
     FRS.MsgInfo.Visible := False;
-    AR := TActionRunner(FRS.Actions);
+    //AR := TActionRunner(FRS.Actions);
     BnType := AParams.Values['bn'];
     SetLength(BnType, Length(BnType) - 2);
     if FRS.MsgInfo.IsAction then
@@ -3608,7 +3874,20 @@ begin
     else if FRS.Form.OnMsgButtonClick <> nil then
       FRS.Form.OnMsgButtonClick(FRS.Form, GetBnType(BnType));
 
-    if AR <> nil then AR.Run;
+    //if AR <> nil then AR.Run;
+    for i := FRS.ActionList.Count - 1 downto 0 do
+    begin
+      AR := TActionRunner(FRS.ActionList[i]);
+      try
+        AR.Run;
+      finally
+        if not AR.NeedContinue then
+        begin
+          AR.Free;
+          FRS.ActionList.Delete(i);
+        end;
+      end;
+    end;
     Result := GetEvalChangesAsJson;
   except
     on E: EPSException do
@@ -3622,13 +3901,13 @@ begin
       Result := MakeJsonErrString(rcAnyError, E.Message);
     end;
   end;
-  finally
+  {finally
     if (FRS <> nil) and (AR <> nil) and not AR.NeedContinue then
     begin
       AR.Free;
       FRS.Actions := nil;
     end;
-  end;
+  end;  }
 end;
 
 function THtmlShow.ShowUserMonitor: String;
@@ -4308,7 +4587,7 @@ begin
   ImgName := IntToStr(C.Form.Id) + '-' + DS.Fields[0].AsString + '-' +
     IntToStr(C.Id) + 't.png';
   try
-    if SaveThumbnailToFile(GetCachePath(FSS) + ImgName, C, DS) then
+    if SaveThumbnailToFile(GetCachePath(FSS) + ImgName, C.Id, DS) then
       ImgName := GetCachePath(FSS, True) + ImgName
     else
       ImgName := '';
@@ -4320,6 +4599,42 @@ begin
   else
     Result := '<img class="thumb" src="' + ImgName + '" width=' + IntToStr(C.ThumbSize) +
       'px height=' + IntToStr(C.ThumbSize) + '>';
+end;
+
+function THtmlShow.ShowQueryThumbnail(RD: TReportData; ColIndex: Integer;
+  DS: TDataSet): String;
+var
+  Col: TRpGridColumn;
+  ImgName: String;
+  pF: PRpField;
+  idx: Integer;
+begin
+  Result := '';
+  Col := RD.Grid.Columns[ColIndex];
+  if Col.ThumbSize = 0 then Exit;
+
+  ImgName := IntToStr(RD.Id) + '-' + IntToStr(ColIndex) + '-' + IntToStr(DS.RecNo) +
+    't.png';
+
+  idx := RD.IndexOfNameDS(Col.FieldNameDS);
+  pF := RD.TryGetRpField(idx);
+
+  if pF <> nil then
+  begin
+    try
+      if SaveThumbnailToFile(GetCachePath(FSS) + ImgName, pF^.Id, DS) then
+        ImgName := GetCachePath(FSS, True) + ImgName
+      else
+        ImgName := '';
+    except
+      ;
+    end;
+
+    if ImgName <> '' then
+      Result := '<img class="thumb" src="' + ImgName + '" width=' + IntToStr(Col.ThumbSize) +
+        'px height=' + IntToStr(Col.ThumbSize) + '>';
+
+  end;
 end;
 
 function THtmlShow.ShowImage(C: TdxImage): String;
@@ -4549,8 +4864,15 @@ begin
           if Col.Visible and (Col.Width > 0) then
           begin
             TdCls := CalcColoring(ARS, Col.FieldNameDS);
-            S := S + '<td' + IIF(TdCls <> '', ' class=' + TdCls, '') + '>' +
-              StrToHtml( FormatField(FieldByName(Col.FieldNameDS)), True ) + '</td>';
+
+            S := S + '<td' + IIF(TdCls <> '', ' class=' + TdCls, '') + '>';
+
+            if not Col.IsImage then
+              S := S + StrToHtml( FormatField(FieldByName(Col.FieldNameDS)), True )
+            else
+              S := S + ShowQueryThumbnail(RD, i, ARS.DataSet);
+
+            S := S + '</td>';
           end;
         end;
         S := S + '</tr>';
@@ -4608,7 +4930,7 @@ begin
   IsEditable := RD.IsSimple and FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId);
   //
 
-  RS.Open;
+  if not C.ManualRefresh then RS.Open;
 
   if not GridOnly then
   begin
@@ -5597,34 +5919,42 @@ begin
   FRS.CalcAllLabels;
 
   // продолжаем выполнение действий
-  AR := TActionRunner(FRS.Actions);
-  if (AR <> nil) and not FRS.MsgInfo.Visible then
-  begin
-    FRS.GotoUrl := '';
-    try try
-      AR.Run;
-      if FRS.GotoUrl <> '' then
-        Exit(ShowRedirect(FRS.GotoUrl));
-    except
-      on E: EPSException do
+  if (FRS.ActionList.Count > 0) and not FRS.MsgInfo.Visible then
+    for i := FRS.ActionList.Count - 1 downto 0 do
+    begin
+
+      AR := TActionRunner(FRS.ActionList[i]);
+      //AR := TActionRunner(FRS.Actions);
+      //if (AR <> nil) and not FRS.MsgInfo.Visible then
       begin
-        FResultCode := rcAnyError;
-        Exit(ShowErrorPage(rsError, EPSExceptionToString(E)));
+        FRS.GotoUrl := '';
+        try try
+          AR.Run;
+          if FRS.GotoUrl <> '' then
+            Exit(ShowRedirect(FRS.GotoUrl));
+        except
+          on E: EPSException do
+          begin
+            FResultCode := rcAnyError;
+            Exit(ShowErrorPage(rsError, EPSExceptionToString(E)));
+          end;
+          on E: Exception do
+          begin
+            FResultCode := rcAnyError;
+            Exit(ShowErrorPage(rsError, E.Message));
+          end;
+        end;
+        finally
+          if not AR.NeedContinue then
+          begin
+            AR.Free;
+            FRS.ActionList.Delete(i);
+            //FRS.Actions := nil;
+          end;
+        end;
       end;
-      on E: Exception do
-      begin
-        FResultCode := rcAnyError;
-        Exit(ShowErrorPage(rsError, E.Message));
-      end;
+
     end;
-    finally
-      if not AR.NeedContinue then
-      begin
-        AR.Free;
-        FRS.Actions := nil;
-      end;
-    end;
-  end;
 
   if FRS.Form.OnShowForm <> nil then
   begin

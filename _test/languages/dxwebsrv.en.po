@@ -407,9 +407,19 @@ msgstr ""
 msgid "Field [%s] not date"
 msgstr ""
 
+#: strconsts.rsfieldnotfileimage
+#, object-pascal-format
+msgid "Field is not a file or image: %s"
+msgstr ""
+
 #: strconsts.rsfieldnotfound
 #, object-pascal-format
 msgid "Field not found: %s"
+msgstr ""
+
+#: strconsts.rsfieldnotimage
+#, object-pascal-format
+msgid "Field is not a image: %s"
 msgstr ""
 
 #: strconsts.rsfieldnotobject
@@ -481,6 +491,10 @@ msgstr ""
 #: strconsts.rsfuncnotfound2
 #, object-pascal-format
 msgid "Function not found: %s"
+msgstr ""
+
+#: strconsts.rsfuncnotimagefiles
+msgid "The function cannot be applied to files and images."
 msgstr ""
 
 #: strconsts.rsgotoform

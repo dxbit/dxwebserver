@@ -24,7 +24,7 @@ interface
 
 uses
   Classes, SysUtils, Db, dxctrls, expressions, strconsts,
-  DXReports, dxtypes;
+  DXReports, dxtypes, SQLDB;
 
 const
   ttEof = #0;
@@ -120,6 +120,8 @@ type
     function FindGroup(D: TDataRec; const S: String): PGroupRec;
     procedure CheckGroupPos(D: TDataRec; P: Integer);
     procedure CheckBandPos(pCurD: PDataRec; P: Integer; const BnNm, BnKd: String);
+    procedure PrintImage(C: TdxDBImage; DS: TDataSet);
+    procedure PrintImageQ(RD: TReportData; FieldIndex: Integer; DS: TDataSet);
   public
     constructor Create;
     destructor Destroy; override;
@@ -1291,7 +1293,7 @@ var
   C: TdxField;
   BlankImage, NeedConvert: Boolean;
   Lbl: TdxLabel;
-  dt: String;
+  dt, FlList: String;
   Cbx: TdxLookupComboBox;
 begin
   Result := '';
@@ -1335,13 +1337,15 @@ begin
       // ------------------ IMAGE --------------------
       if C is TdxDBImage then
       begin
-        if i > 0 then
+        {if i > 0 then
         begin
           S := DS.FieldByName(FldNm + 'src').AsString;
           Break;
-        end;
+        end;    }
 
-        S := GetImageFileName(TdxDBImage(C), DS);
+        PrintImage(TdxDBImage(C), DS);
+
+        {S := GetImageFileName(TdxDBImage(C), DS);
         BlankImage := S = '';
         if BlankImage then
         begin
@@ -1381,7 +1385,7 @@ begin
             FImgSize := FImgSize.Zero;
           end;
         end;
-        S := '';
+        S := '';  }
         Break;
       end
       // ---------------------------------------------
@@ -1415,7 +1419,11 @@ begin
         if Tmp <> '' then Tmp := '(' + Tmp + ')'
         else Tmp := TableStr(Fm.Id);
 
-        DS := FRecordSet.Session.DBase.OpenDataSet('select ' + GetComponentDataSetFieldName(C)
+        FlList := GetComponentDataSetFieldName(C);
+        if C is TdxDBImage then
+          FlList := FlList + ',' + FieldStr(C.Id) + 'dest,' + FieldStr(C.Id);
+
+        DS := FRecordSet.Session.DBase.OpenDataSet('select ' + FlList
           {FieldStr(C)} + ' from ' + Tmp + ' where id=' + S);
       end
       else if C is TdxCheckBox then
@@ -1575,17 +1583,24 @@ end;
 function TXmlReport.LookupQueryFieldValue(D: TDataRec; const FieldName: String
   ): String;
 var
-  Col: TRpGridColumn;
   F: TField;
   dt: String;
-  pr: Integer;
+  pr, idx: Integer;
+  RD: TReportData;
+  DS: TSQLQuery;
 begin
   Result := ''; dt := ''; pr := 0;
-  Col := D.RecordSet.RD.Grid.FindColumnByTitle(FieldName);
-  if Col <> nil then
+  //Col := D.RecordSet.RD.Grid.FindColumnByTitle(FieldName);
+  //if Col <> nil then
+  RD := D.RecordSet.RD;
+  DS := D.RecordSet.DataSet;
+  idx := RD.IndexOfName(FieldName);
+  if idx >= 0 then
   begin
-    F := D.RecordSet.DataSet.FieldByName(Col.FieldNameDS);
-    if F.IsNull then
+    F := DS.FieldByName( RD.GetFieldNameDS(idx) );
+    if RD.GetFieldType(idx) = flImage then
+      PrintImageQ(RD, idx, DS)
+    else if F.IsNull then
       Exit
     else if F is TNumericField then
     begin
@@ -1662,6 +1677,81 @@ begin
       raise Exception.CreateFmt(rsInvalidUseTagForm, [pCurD^.BandName, BnNm])
     else if BnKd = 'grid' then
       raise Exception.CreateFmt(rsInvalidUseTagGrid, [pCurD^.BandName, BnNm]);
+  end;
+end;
+
+procedure TXmlReport.PrintImage(C: TdxDBImage; DS: TDataSet);
+var
+  Ext, Dir, FlNm, FileName: String;
+  BlankImage, NeedConvert: Boolean;
+begin
+  //Ext := ExtractFileExt(GetImageFileName(C, DS));
+  FlNm := FieldStr(C.Id);
+  if not C.IsQuery then FlNm := FlNm + 'src';
+  Ext := ExtractFileExt(DS.FieldByName(FlNm).AsString);
+  BlankImage := Ext = '';
+  Dir := FImagesFolder;
+
+  if BlankImage then
+  begin
+    FileName := Dir + '__blank__.png';
+  end
+  else
+  begin
+    // Преобразуем в png, если формат отличается от поддерживаемых
+    NeedConvert := Pos(';' + Ext + ';', ';.jpg;.jpeg;.png;.tif;.tiff;') = 0;
+    if NeedConvert then Ext := '.png';
+    FileName := Dir + 'img' + IntToStr(FImageId) + Ext;
+  end;
+
+  FImageFileName := FileName;
+  FImageFiles.Add(FileName);
+  FIsImageFound := True;
+  FIsImageSize := True;
+  FIsAltImageSize := FAltImageSizeTag <> '';
+  Inc(FImageId);
+  if ForceDirectories(Dir) then
+  begin
+    if not BlankImage then
+    begin
+      if TdxDBImage(C).PrintSize > 0 then
+        SaveImageToFile(FileName, TdxDBImage(C).PrintSize, TdxDBImage(C), DS)
+      else if NeedConvert then
+        SaveImageToFileConvert(FileName, TdxDBImage(C), DS)
+      else
+        SaveImageToFile(FileName, TdxDBImage(C), DS);
+      GetImageSize(FileName, FImgSize);
+    end
+    else
+    begin
+      CreateBlankImage(FileName);
+      FImgSize := FImgSize.Zero;
+    end;
+  end;
+end;
+
+procedure TXmlReport.PrintImageQ(RD: TReportData; FieldIndex: Integer;
+  DS: TDataSet);
+var
+  pF: PRpField;
+  SrcImg, TmpImg: TdxDBImage;
+begin
+  pF := RD.TryGetRpField(FieldIndex);
+  if pF = nil then Exit;
+
+  SrcImg := TdxDBImage(GetRpFieldComponent(FRecordSet.Session, pF^, True));
+
+  TmpImg := TdxDBImage.Create(nil);
+  TmpImg.Id := pF^.Id;
+  TmpImg.StorageType := SrcImg.StorageType;
+  TmpImg.StorageFolder := SrcImg.StorageFolder;
+  TmpImg.PrintSize := SrcImg.PrintSize;
+  TmpImg.IsQuery := True;
+
+  try
+    PrintImage(TmpImg, DS);
+  finally
+    TmpImg.Free;
   end;
 end;
 

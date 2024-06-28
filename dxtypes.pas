@@ -43,7 +43,7 @@ type
 
   TSsRecordSet = class
   private
-    FActions: TObject;
+    //FActions: TObject;
     FCallerObj: TdxLookupComboBox;
     FCallerRS: TSsRecordSet;
     FChangedFields: TUniList;
@@ -79,6 +79,7 @@ type
     FRunScript: TRunScript;
     FIsNewRecord: Boolean;
     FOldRecId: Integer;
+    FActionList: TList;
     procedure ChangeObjectFields(Obj: TdxField);
     procedure ControlPropertyChange(Sender: TObject; const PropName: String);
     procedure DataSetAfterCancel(DataSet: TDataSet);
@@ -113,6 +114,8 @@ type
     procedure SetQGrid(AValue: TdxQueryGrid);
     procedure UpdateAccessState;
     procedure InitColoring;
+    procedure InitRpGrid;
+    procedure ParentFormSetModified;
   public
     MsgInfo: TMsgInfo;
   public
@@ -132,6 +135,7 @@ type
     procedure Close;
     procedure RequeryAllQueries;
     procedure ChangeField(F: TdxField; V: Variant);
+    procedure RevertFieldValue(F: TdxField);
     //procedure QueryScroll(AId, ARow: Integer);
     procedure QueryApplyChangeSort(AId: Integer);
     function FindRecordSetByName(const AName: String): TSsRecordSet;
@@ -192,7 +196,7 @@ type
     property GotoOption: TGotoOption read FGotoOption write FGotoOption;
     property DocUrl: String read FDocUrl write FDocUrl;
     property PrintErrors: String read FPrintErrors write FPrintErrors;
-    property Actions: TObject read FActions write FActions;
+   // property Actions: TObject read FActions write FActions;
     property RunScript: TRunScript read FRunScript;
     property Editing: TAccessStatus read FEditing write FEditing;
     property Deleting: TAccessStatus read FDeleting write FDeleting;
@@ -202,6 +206,7 @@ type
     property CallerObj: TdxLookupComboBox read FCallerObj write FCallerObj;
     property QryRecId: Integer read FQryRecId write FQryRecId;
     property FreshValue: Integer read FFreshValue write FFreshValue;
+    property ActionList: TList read FActionList;
   end;
 
   { TSsRecordSets }
@@ -820,7 +825,7 @@ begin
   for i := 0 to Count - 1 do
   begin
     MD := MetaData[i];
-    if (Utf8CompareText(ADatabase, MD.Database) = 0) and
+    if (MyUtf8CompareText(ADatabase, MD.Database) = 0) and
       (ALastModified = MD.LastModified) then Exit(MD);
   end;
 end;
@@ -1135,6 +1140,7 @@ end;
 
 procedure TSsRecordSet.DataSetAfterDelete(DataSet: TDataSet);
 begin
+
 end;
 
 procedure TSsRecordSet.DataSetAfterEdit(DataSet: TDataSet);
@@ -1226,6 +1232,7 @@ begin
   end
   else
   begin
+    ParentFormSetModified;
     FParent.EvalAggFields(FForm.FormCaption);
     FParent.EvalAggLabels(FForm.FormCaption);
     if (FParent.FState = []) and (FState = []) then
@@ -1290,7 +1297,7 @@ begin
     for i := 0 to FForms.Count - 1 do
       FForms[i].NeedRequery := True;
     for i := 0 to FQueries.Count - 1 do
-      if not FQueries[i].QGrid.ManualRefresh then FQueries[i].NeedRequery := True;
+      {if not FQueries[i].QGrid.ManualRefresh then} FQueries[i].NeedRequery := True;
     if [rstRecalculate, rstDuplicate] * FState = [] then
     begin
       UpdateAccessState;
@@ -1737,6 +1744,7 @@ begin
   FRD.LoadFromStream(St);
   St.Free;
   InitColoring;
+  InitRpGrid;
 end;
 
 function TSsRecordSet.GetRecId: Integer;
@@ -1752,7 +1760,7 @@ begin
   for i := 0 to FQueries.Count - 1 do
   begin
     QRS := FQueries[i];
-    if not QRS.QGrid.ManualRefresh and (QRS <> AChangedQuery) and QRS.RD.QueryExistsInExpr(AChangedQuery.RD.Name) then
+    if {not QRS.QGrid.ManualRefresh and} (QRS <> AChangedQuery) and QRS.RD.QueryExistsInExpr(AChangedQuery.RD.Name) then
     begin
       QRS.NeedRequery := True;
       SetNeedRequeryLinkedQueries(QRS);
@@ -1768,7 +1776,7 @@ begin
   for i := 0 to FQueries.Count - 1 do
   begin
     QRS := FQueries[i];
-    if not QRS.QGrid.ManualRefresh and QRS.RD.FieldExistsInExpr(AChangedField) then
+    if {not QRS.QGrid.ManualRefresh and} QRS.RD.FieldExistsInExpr(AChangedField) then
     begin
       QRS.NeedRequery := True;
       SetNeedRequeryLinkedQueries(QRS);
@@ -1858,7 +1866,8 @@ begin
   FGotoUrl := '';
   FDocUrl := '';
   FPrintErrors := '';
-  FreeAndNil(FActions);
+  //FreeAndNil(FActions);
+  ClearList(FActionList);
   MsgInfo.Msg := '';
   MsgInfo.MsgType := mtWarning;
   MsgInfo.Buttons := [];
@@ -2360,7 +2369,7 @@ procedure TSsRecordSet.SetQGrid(AValue: TdxQueryGrid);
 begin
   if FQGrid=AValue then Exit;
   FQGrid:=AValue;
-  if FQGrid.ManualRefresh then FNeedRequery := False;
+  //if FQGrid.ManualRefresh then FNeedRequery := False;
 end;
 
 function TSsRecordSet.CheckAccessDetails: Boolean;
@@ -2510,6 +2519,7 @@ begin
   FDataSet.BeforePost:=@DataSetBeforePost;
 
   FRunScript := TRunScript.Create(SS);
+  FActionList := TList.Create;
 end;
 
 destructor TSsRecordSet.Destroy;
@@ -2531,13 +2541,16 @@ destructor TSsRecordSet.Destroy;
 var
   i: Integer;
 begin
+  ClearList(FActionList);
+  FActionList.Free;
+
   if FFormAssigned and (FForm.PId = 0) then
   begin
     for i := FForms.Count - 1 downto 0 do
       DoScript(FForms[i]);
     DoScript(Self);
   end;
-  FreeAndNil(FActions);
+  //FreeAndNil(FActions);
   FRunScript.Free;
   FChangedQueries.Free;
   FChangedTables.Free;
@@ -2727,7 +2740,7 @@ begin
   for i := 0 to FForms.Count - 1 do
     FForms[i].Open;
   for i := 0 to FQueries.Count - 1 do
-    FQueries[i].Open;
+    if not FQueries[i].QGrid.ManualRefresh then FQueries[i].Open;
 end;
 
 procedure TSsRecordSet.OpenObjectFields(FL: TList; ARecId: Integer);
@@ -2787,7 +2800,7 @@ begin
   for i := 0 to FQueries.Count - 1 do
   begin
     Q := FQueries[i];
-    Q.Open;
+    if not Q.QGrid.ManualRefresh then Q.Open;
     Exclude(Q.FState, rstKeepPos);
   end;
 end;
@@ -2800,6 +2813,12 @@ begin
   SetDSField(F, V)
   //else
   //  FSS.Errs.Add(rsCanNotChangeRec);
+end;
+
+procedure TSsRecordSet.RevertFieldValue(F: TdxField);
+begin
+  ClearChanges;
+  FChangedFields.AddItem(F);
 end;
 
 {procedure TSsRecordSet.QueryScroll(AId, ARow: Integer);
@@ -2972,6 +2991,34 @@ begin
   EB.Free;
 end;
 
+procedure TSsRecordSet.InitRpGrid;
+var
+  i: Integer;
+  pF: PRpField;
+  C: TdxDBImage;
+  Col: TRpGridColumn;
+begin
+  for i := 0 to FRD.GetRpSQLFieldCount - 1 do
+  begin
+    if FRD.GetFieldType(i) <> flImage then Continue;
+
+    Col := FRD.Grid.FindColumnByFieldName(FRD.GetFieldNameDS(i));
+
+    pF := FRD.TryGetRpField(i);
+    if pF <> nil then
+    begin
+      C := TdxDBImage(GetRpFieldComponent(FSS, pF^, True));
+      Col.IsImage := True;
+      Col.ThumbSize := C.ThumbSize;
+    end;
+  end;
+end;
+
+procedure TSsRecordSet.ParentFormSetModified;
+begin
+  Parent.DataSet['id'] := Parent.DataSet['id'];
+end;
+
 function TSsRecordSet.Delete: TAccessStatus;
 
   procedure DeleteChildRecords(RecId: Integer);
@@ -3028,7 +3075,9 @@ begin
       n := IndexOfObject(TObject(PtrInt(RId)));
       if n >= 0 then Delete(n)
     end;
-  end;
+  end
+  else
+    ParentFormSetModified;
 
   if FForm.OnAfterDelete <> nil then FForm.OnAfterDelete(FForm);
   Result := asOk;
@@ -3520,7 +3569,7 @@ begin
   Result := nil;
   for i := 0 to Count - 1 do
     if (Sessions[i].BrowserId = BrowserId) and
-      (Utf8CompareText(Sessions[i].ConnectName, ConnectName) = 0) then
+      (MyUtf8CompareText(Sessions[i].ConnectName, ConnectName) = 0) then
       Exit(Sessions[i]);
 end;
 

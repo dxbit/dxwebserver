@@ -394,7 +394,7 @@ end;
 function StrToRpFieldType(const S: String): TRpFieldType;
 const
   StrType: array [TRpFieldType] of String = ('flNone', 'flText', 'flNumber',
-    'flDate', 'flBool', 'flObject', 'flTime', 'flCounter', 'flFile', 'flRecId');
+    'flDate', 'flBool', 'flObject', 'flTime', 'flCounter', 'flFile', 'flRecId', 'flImage');
 var
   i: TRpFieldType;
 begin
@@ -700,7 +700,7 @@ begin
   if (not Result) and (FObj is TdxCustomComboBox) then
     Result := Pos(S, ' Items.Strings SourceTId SourceFId Filter Style Required DefaultValue FieldSize Expression CheckExpression Editable DropDownCount ') > 0;
   if not Result and (FObj is TdxLookupComboBox) then
-    Result := Pos(S, ' InsertedValues ListFields ListWidthExtra HideList HideButton ') > 0;
+    Result := Pos(S, ' InsertedValues ListFields ListWidthExtra HideList HideButton ListSource ListKeyField ') > 0;
   if (not Result) and (FObj is TdxShape) then
     Result := Pos(S, ' Brush.Color Pen.Color Pen.Style Pen.Width Shape ') > 0;
   if (not Result) and (FObj is TdxImage) then
@@ -857,6 +857,8 @@ begin
 
     if PropName = 'FieldId' then
       LF.FieldId := StrToInt(PropValue)
+    else if PropName = 'FieldName' then
+      LF.FieldName := PropValue
     else if PropName = 'Width' then
       LF.Width := StrToInt(PropValue)
     else if PropName = 'Searchable' then
@@ -1167,6 +1169,10 @@ begin
             HideList := StrToBoolean(PropValue)
           else if PropName = 'HideButton' then
             HideButton := StrToBoolean(PropValue)
+          else if PropName = 'ListSource' then
+            ListSource := StrToInt(PropValue)
+          else if PropName = 'ListKeyField' then
+            ListKeyField := PropValue
         end
     end
   else if FObj is TdxShape then

@@ -508,8 +508,8 @@ begin
   else if Expr is TSQLBinaryExpression then
     with TSQLBinaryExpression(Expr) do
     begin
-      ProcessSQLExpression(Left, Fm, AliasName, Dummy);
-      ProcessSQLExpression(Right, Fm, AliasName, DetectNull);
+      Left := ProcessSQLExpression(Left, Fm, AliasName, Dummy);
+      Right := ProcessSQLExpression(Right, Fm, AliasName, DetectNull);
 
       if Left = nil then
       begin

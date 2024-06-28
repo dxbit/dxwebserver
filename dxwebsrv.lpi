@@ -22,10 +22,10 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="24"/>
-      <MinorVersionNr Value="3"/>
-      <RevisionNr Value="30"/>
+      <MinorVersionNr Value="6"/>
+      <RevisionNr Value="16"/>
       <Language Value="0419"/>
-      <StringTable CompanyName="Pavel Duborkin" FileDescription="DataExpress Web Server" LegalCopyright="Copyright © 2016-2024 Pavel Duborkin" OriginalFilename="dxwebsrv.exe" ProductName="DataExpress Web Server" ProductVersion="24.3.30"/>
+      <StringTable CompanyName="Pavel Duborkin" FileDescription="DataExpress Web Server" LegalCopyright="Copyright © 2016-2024 Pavel Duborkin" OriginalFilename="dxwebsrv.exe" ProductName="DataExpress Web Server" ProductVersion="24.6.16"/>
     </VersionInfo>
     <BuildModes Count="4">
       <Item1 Name="Linux64" Default="True"/>

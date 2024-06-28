@@ -432,7 +432,7 @@ class ListCbx {
 		if (isContained(this.lst, ev.target)) {
 			if (ev.target.tagName == 'TD') {
 				if (!ev.target.parentNode.querySelector('input')) {
-					this.setValue(ev.target);
+					this.setValue(ev.target.parentElement.children[0]);
 					if (this.onSelect) this.onSelect(this);
 					this.hide();
 				}

@@ -1834,6 +1834,12 @@ begin
     RegisterEventPropertyHelper(@TdxQueryGridOnBeforeOpen_R, @TdxQueryGridOnBeforeOpen_W, 'OnBeforeOpen');
     RegisterEventPropertyHelper(@TdxQueryGridOnBeforeScroll_R, @TdxQueryGridOnBeforeScroll_W, 'OnBeforeScroll');
     RegisterEventPropertyHelper(@TdxQueryGridOnCreateForm_R, @TdxQueryGridOnCreateForm_W, 'OnCreateForm');
+
+    RegisterMethod(@TdxQueryGrid.GetSourceFileName, 'GetSourceFileName');
+    RegisterMethod(@TdxQueryGrid.GetStoredFileName, 'GetStoredFileName');
+    RegisterMethod(@TdxQueryGrid.SaveBlobToStream, 'SaveToStream');
+    RegisterMethod(@TdxQueryGrid.SaveBlobToFile, 'SaveToFile');
+    RegisterMethod(@TdxQueryGrid.SaveThumbnailToStream, 'SaveThumbnailToStream');
   end;
 end;
 

@@ -118,7 +118,7 @@ begin
     MainSrv.ServerBanner := 'DataExpress Web Server';
     MainSrv.LookupHostNames := False;
     MainSrv.Port := AppSet.Port;
-    MainSrv.Threaded := True;
+    //MainSrv.Threaded := True;
     MainSrv.AcceptIdleTimeout := 1000;
     MainSrv.UseSSL := AppSet.UseSSL and FileExists(AppSet.PrivateKey) and
       FileExists(AppSet.Certificate);
