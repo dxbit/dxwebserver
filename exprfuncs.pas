@@ -97,6 +97,7 @@ function GetTimeStamp(D, T: Variant): Variant;
 function CaseOf(const AValue, AItems: String): String;
 function GetTypedText(SS: TSession; AIndex: Integer): Variant;
 procedure SetTypedText(SS: TSession; S: String);
+function IsWebServer: Boolean;
 
 //var
 //  VarList: TVarList;
@@ -1448,6 +1449,11 @@ procedure SetTypedText(SS: TSession; S: String);
 begin
   S := Trim(S);
   SetVar(SS, '__TypedText__', IIF(S <> '', S, Null));
+end;
+
+function IsWebServer: Boolean;
+begin
+  Result := True;
 end;
 
 end.

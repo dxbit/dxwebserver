@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Win32"/>
+    <BuildModes Active="Linux64 HeapTrc"/>
     <Units Count="123">
       <Unit0>
         <Filename Value="dxwebsrv.pas"/>
@@ -84,19 +84,21 @@
         <Filename Value="expressions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Expressions"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="132"/>
-        <CursorPos X="10" Y="227"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="924"/>
+        <CursorPos X="24" Y="952"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit8>
       <Unit9>
         <Filename Value="exprfuncs.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ExprFuncs"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="897"/>
-        <CursorPos X="75" Y="906"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="84"/>
+        <CursorPos X="21" Y="100"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit9>
       <Unit10>
         <Filename Value="filterparsers.pas"/>
@@ -118,9 +120,9 @@
         <Filename Value="htmlshow.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="HtmlShow"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="6565"/>
-        <CursorPos X="31" Y="6581"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="3980"/>
+        <CursorPos X="52" Y="3996"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="4">
           <Item0 X="38" Y="5072" ID="2"/>
@@ -128,6 +130,7 @@
           <Item2 X="13" Y="4867" ID="1"/>
           <Item3 X="25" Y="3205" ID="5"/>
         </Bookmarks>
+        <Loaded Value="True"/>
       </Unit12>
       <Unit13>
         <Filename Value="lfmparser.pas"/>
@@ -384,8 +387,8 @@
         <Filename Value="readme.txt"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="1637"/>
-        <CursorPos X="14" Y="1663"/>
+        <TopLine Value="1631"/>
+        <CursorPos X="67" Y="1642"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Text"/>
@@ -944,7 +947,56 @@
       <Define0 Value="UseCThreads"/>
       <Define1 Value="HeapTrc"/>
     </OtherDefines>
-    <JumpHistory HistoryIndex="-1"/>
+    <JumpHistory Count="12" HistoryIndex="11">
+      <Position1>
+        <Filename Value="exprfuncs.pas"/>
+        <Caret Line="100" Column="25" TopLine="69"/>
+      </Position1>
+      <Position2>
+        <Filename Value="exprfuncs.pas"/>
+        <Caret Line="1454" Column="11" TopLine="1427"/>
+      </Position2>
+      <Position3>
+        <Filename Value="htmlshow.pas"/>
+        <Caret Line="271" Column="5" TopLine="254"/>
+      </Position3>
+      <Position4>
+        <Filename Value="htmlshow.pas"/>
+        <Caret Line="3944" Column="11" TopLine="3928"/>
+      </Position4>
+      <Position5>
+        <Filename Value="htmlshow.pas"/>
+        <Caret Line="3996" Column="52" TopLine="3980"/>
+      </Position5>
+      <Position6>
+        <Filename Value="exprfuncs.pas"/>
+        <Caret Line="1454" Column="12" TopLine="1427"/>
+      </Position6>
+      <Position7>
+        <Filename Value="exprfuncs.pas"/>
+        <Caret Line="100" Column="19" TopLine="83"/>
+      </Position7>
+      <Position8>
+        <Filename Value="exprfuncs.pas"/>
+        <Caret Line="1455" TopLine="1427"/>
+      </Position8>
+      <Position9>
+        <Filename Value="exprfuncs.pas"/>
+        <Caret Line="100" Column="15" TopLine="83"/>
+      </Position9>
+      <Position10>
+        <Filename Value="expressions.pas"/>
+        <Caret Line="537" Column="15" TopLine="518"/>
+      </Position10>
+      <Position11>
+        <Filename Value="exprfuncs.pas"/>
+        <Caret Line="1456" Column="18" TopLine="1427"/>
+      </Position11>
+      <Position12>
+        <Filename Value="expressions.pas"/>
+        <Caret Line="952" Column="33" TopLine="924"/>
+      </Position12>
+    </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes Count="1" ActiveMode="default">
