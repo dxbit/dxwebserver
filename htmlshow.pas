@@ -4885,7 +4885,9 @@ begin
       GotoBookmark(B);
       FreeBookmark(B);
       ARS.EnableScrollEvents;
-    end;
+    end
+  else
+    DataSetEof := True;
 
   CanAppendBn := not (QG.ShowButtons and (gbnAppend in QG.VisibleButtons)) and
     IsEditable and FSS.UserMan.CheckFmAdding(FSS.RoleId, FmId) and (FRS.Editing = asOk);

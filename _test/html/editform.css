@@ -377,7 +377,3 @@ img.err {
         font-size: 1.2rem;
     }
 }
-
-img[src=""] {
-	background: url("/img/img-empty.svg")  no-repeat center / contain;
-}

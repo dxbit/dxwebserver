@@ -1318,7 +1318,7 @@ begin
       for i := 0 to FParent.Queries.Count - 1 do
       begin
         QRS := FParent.Queries[i];
-        if QRS.NeedRequery then FParent.ChangedQueries.AddItem(QRS);
+        if not QRS.QGrid.ManualRefresh and QRS.NeedRequery then FParent.ChangedQueries.AddItem(QRS);
       end;
     end;
   end;
@@ -1788,12 +1788,12 @@ begin
     for i := 0 to FQueries.Count - 1 do
     begin
       QRS := FQueries[i];
-      if QRS.NeedRequery then FChangedQueries.AddItem(QRS);
+      if not QRS.QGrid.ManualRefresh and QRS.NeedRequery then FChangedQueries.AddItem(QRS);
     end;
     for i := 0 to FQueries.Count - 1 do
     begin
       QRS := FQueries[i];
-      if QRS.NeedRequery then QRS.Open;
+      if not QRS.QGrid.ManualRefresh and QRS.NeedRequery then QRS.Open;
     end;
   end;
 end;
