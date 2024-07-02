@@ -4753,7 +4753,8 @@ begin
   begin
     Tab := C.Pages[i];
     // !!! Доступ
-    if FSS.UserMan.CheckControlVisible(FSS.RoleId, C.Form.Id, Tab.Name) then
+    //if FSS.UserMan.CheckControlVisible(FSS.RoleId, C.Form.Id, Tab.Name) then
+    if Tab.ControlVisible then
     begin
       Result := Result + '<span';
       if i = idx then

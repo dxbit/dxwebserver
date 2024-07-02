@@ -682,7 +682,7 @@ begin
   S := ' ' + PropName + ' ';
   if FObj is TdxControl then
     Result := Pos(S, ' Left Top Width Height Color Font.Name ' +
-      ' Font.Height Font.Color Font.Style TabOrder StopTab ParentFont Caption ') > 0;
+      ' Font.Height Font.Color Font.Style TabOrder StopTab ParentFont Caption Hidden ') > 0;
   if (not Result) and (FObj is TdxField) then
     Result := Pos(S, ' Id FieldName ') > 0;
   if (not Result) and (FObj is TdxLabel) then
@@ -1020,6 +1020,8 @@ begin
       FObj.ParentFont := StrToBoolean(PropValue)
     else if PropName = 'Caption' then
       FObj.Caption := PropValue
+    else if PropName = 'Hidden' then
+      FObj.Hidden := StrToBoolean(PropValue)
   end;
   if FObj is TdxField then
     with TdxField(FObj) do

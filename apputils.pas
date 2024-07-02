@@ -2615,7 +2615,8 @@ begin
     for j := 0 to Pages.ControlCount - 1 do
     begin
       Tab := Pages.Pages[j];
-      Tab.ControlVisible := SS.UserMan.CheckControlVisible(SS.RoleId, Fm.Id, Tab.Name);
+      Tab.ControlVisible := SS.UserMan.CheckControlVisible(SS.RoleId, Fm.Id, Tab.Name)
+        and not Tab.Hidden;
     end;
     if Pages.ActivePageIndex >= 0 then
     begin

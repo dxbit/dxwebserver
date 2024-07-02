@@ -1696,7 +1696,17 @@ begin
   for i := 0 to FForm.ComponentCount - 1 do
   begin
     C := FForm.Components[i];
-    if C is TdxControl then TdxControl(C).OnPropertyChange:=@ControlPropertyChange;
+    if C is TdxControl then
+      with TdxControl(C) do
+      begin
+        OnPropertyChange:=@ControlPropertyChange;
+        if Hidden then
+        begin
+          Visible := False;
+          if C is TdxTabSheet then
+            TdxTabSheet(C).TabVisible := False;
+        end;
+      end;
     if C is TdxGrid then
       TdxControl(C).Font := FForms.FindFormById(TdxGrid(C).Id).Form.Grid.Font
     else if C is TdxQueryGrid then
