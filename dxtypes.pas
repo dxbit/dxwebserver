@@ -1607,7 +1607,7 @@ var
 begin
   FFormAssigned := True;
   FForm := FSS.MetaData.LoadForm(AValue.Id);
-  CheckVisiblePageControls(FSS, FForm);
+  CheckVisibleControls(FSS, FForm);
   FForm.RecordSet := Self;
 
   EB := TExpressionBuilder.Create;
@@ -1700,12 +1700,13 @@ begin
       with TdxControl(C) do
       begin
         OnPropertyChange:=@ControlPropertyChange;
-        if Hidden then
+        // Установка свойств в соответствии с Hidden
+        {if Hidden then
         begin
           Visible := False;
           if C is TdxTabSheet then
             TdxTabSheet(C).TabVisible := False;
-        end;
+        end;   }
       end;
     if C is TdxGrid then
       TdxControl(C).Font := FForms.FindFormById(TdxGrid(C).Id).Form.Grid.Font

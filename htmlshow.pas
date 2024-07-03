@@ -2145,7 +2145,7 @@ begin
     for i := 0 to FRS.ChangedFields.Count - 1 do
     begin
       F := TdxField(FRS.ChangedFields[i]);
-      if F.Hidden then Continue;
+      if not F.ControlVisible then Continue;
 
       JsonObj := TJsonObject.Create(['field', FieldStr(F.Id)]);
       if F is TdxLookupComboBox then
@@ -2184,7 +2184,7 @@ begin
     for i := 0 to FRS.ChangedLabels.Count - 1 do
     begin
       Lbl := TdxLabel(FRS.ChangedLabels[i]);
-      if Lbl.Hidden then Continue;
+      if not Lbl.ControlVisible then Continue;
       JsonLabels.Add(TJSONObject.Create(['fieldName', LbL.FieldName,
         'value', StrToHtml(Lbl.Caption, True)]));
     end;
@@ -2192,7 +2192,7 @@ begin
     for i := 0 to FRS.ChangedProps.Count - 1 do
     begin
       Prp := FRS.ChangedProps[i];
-      if TdxControl(Prp.Control).Hidden then Continue;
+      if not TdxControl(Prp.Control).ControlVisible then Continue;
 
       if Prp.PropName = 'recno' then
       begin
@@ -2211,7 +2211,7 @@ begin
     begin
       TRS := TSsRecordSet(FRS.ChangedTables[i]);
       TblGrid := FRS.Form.FindTable(TRS.Form.Id);
-      if TblGrid.Hidden then Continue;
+      if not TblGrid.ControlVisible then Continue;
 
       JsonTs.Add(TJSONObject.Create(['table', 't' + IntToStr(TRS.Form.Id),
         'html', ShowGrid(TblGrid, True)]));
@@ -2224,7 +2224,7 @@ begin
     begin
       QRS := TSsRecordSet(FRS.ChangedQueries[i]);
 
-      if not QRS.QGrid.Hidden then
+      if QRS.QGrid.ControlVisible then
         JsonQs.Add(TJSONObject.Create(['query', 'q' + IntToStr(QRS.RD.Id),
           'html', ShowQueryGrid(FRS.Form.FindQuery(QRS.RD.Id), True)]));
 
@@ -5775,7 +5775,8 @@ function THtmlShow.ShowControl(C: TdxControl): String;
 begin
   if C.Hidden then Exit('');
   // !!! Доступ
-  if not FSS.UserMan.CheckControlVisible(FSS.RoleId, C.Form.Id, C.Name) then
+  //if not FSS.UserMan.CheckControlVisible(FSS.RoleId, C.Form.Id, C.Name) then
+  if not C.ControlVisible then
   begin
     Result := ShowDummyComponent(C);
     Exit;

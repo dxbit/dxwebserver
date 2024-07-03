@@ -169,6 +169,7 @@ type
   private
     FCaption: String;
     FColor: TColor;
+    FControlVisible: Boolean;
     FFontStyleParsed: Boolean;
     FHidden: Boolean;
     FEnabled: Boolean;
@@ -224,6 +225,7 @@ type
       write FOnPropertyChange;
     property Hidden: Boolean read FHidden write FHidden;
     property FontStyleParsed: Boolean read FFontStyleParsed write FFontStyleParsed;
+    property ControlVisible: Boolean read FControlVisible write FControlVisible;
   end;
 
   { TControlList }
@@ -827,7 +829,6 @@ type
 
   TdxTabSheet = class(TdxWinControl)
   private
-    FControlVisible: Boolean;
     function GetPageIndex: Integer;
     function GetTabVisible: Boolean;
     procedure SetTabVisible(AValue: Boolean);
@@ -835,7 +836,6 @@ type
     procedure Assign(Source: TPersistent); override;
     property TabVisible: Boolean read GetTabVisible write SetTabVisible;
     property PageIndex: Integer read GetPageIndex;
-    property ControlVisible: Boolean read FControlVisible write FControlVisible;
   end;
 
   { TdxPageControl }
@@ -2169,6 +2169,7 @@ begin
   FParentFont := True;
   FVisible := True;
   FEnabled := True;
+  FControlVisible := True;
 end;
 
 destructor TdxControl.Destroy;

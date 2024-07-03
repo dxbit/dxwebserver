@@ -126,7 +126,7 @@ function SQLSelect(SS: TSession; const SQL: String): TdxSQLQuery;
 procedure SQLExecute(SS: TSession; const SQL: String);
 function NowTime: Integer;
 function GetFormHRef(Fm: TdxForm): String;
-procedure CheckVisiblePageControls(SS: TSession; Fm: TdxForm);
+procedure CheckVisibleControls(SS: TSession; Fm: TdxForm);
 function GetListSourceField(SS: TSession; Obj: TdxCustomComboBox): TdxField;
 function FieldExists(const FieldName, E: String): Boolean;
 function FormExistsInExpr(const FormName, Expr: String): Boolean;
@@ -2599,31 +2599,52 @@ begin
   Result := '?fm=' + IntToStr(Fm.Id) + IIF(Fm.ViewType = vtSimpleForm, '&rec=1', '');
 end;
 
-procedure CheckVisiblePageControls(SS: TSession; Fm: TdxForm);
+procedure CheckVisibleControls(SS: TSession; Fm: TdxForm);
 var
-  i, j: Integer;
+  i, idx: Integer;
   C: TdxComponent;
   Pages: TdxPageControl;
-  Tab: TdxTabSheet;
+  V: Boolean;
+  Ctrl: TdxControl;
 begin
   for i := 0 to Fm.ComponentCount - 1 do
   begin
     C := Fm.Components[i];
-    if not (C is TdxPageControl) then Continue;
+    if not (C is TdxControl) then Continue;
 
-    Pages := TdxPageControl(C);
-    for j := 0 to Pages.ControlCount - 1 do
+    Ctrl := TdxControl(C);
+
+    V := SS.UserMan.CheckControlVisible(SS.RoleId, Fm.Id, Ctrl.Name);
+    Ctrl.ControlVisible := V and not Ctrl.Hidden;
+
+    if Ctrl.Hidden then Ctrl.Visible := False;
+
+    if not Ctrl.ControlVisible and (Ctrl is TdxTabSheet) then
     begin
-      Tab := Pages.Pages[j];
-      Tab.ControlVisible := SS.UserMan.CheckControlVisible(SS.RoleId, Fm.Id, Tab.Name)
-        and not Tab.Hidden;
-    end;
-    if Pages.ActivePageIndex >= 0 then
-    begin
-      Tab := Pages.Pages[Pages.ActivePageIndex];
-      if not Tab.ControlVisible or not Tab.TabVisible then
+      if Ctrl.Hidden then TdxTabSheet(Ctrl).TabVisible := False;
+
+      Pages := TdxPageControl(Ctrl.Parent);
+      idx := Pages.ActivePageIndex;
+      if (idx >= 0) and (Pages.Pages[idx] = Ctrl) then
         Pages.SetVisiblePage;
     end;
+
+    {if C is TdxPageControl then
+    begin
+      Pages := TdxPageControl(C);
+      for j := 0 to Pages.ControlCount - 1 do
+      begin
+        Tab := Pages.Pages[j];
+        Tab.ControlVisible := SS.UserMan.CheckControlVisible(SS.RoleId, Fm.Id, Tab.Name)
+          and not Tab.Hidden;
+      end;
+      if Pages.ActivePageIndex >= 0 then
+      begin
+        Tab := Pages.Pages[Pages.ActivePageIndex];
+        if not Tab.ControlVisible or not Tab.TabVisible then
+          Pages.SetVisiblePage;
+      end;
+    end;}
   end;
 end;
 
