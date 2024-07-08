@@ -122,9 +122,16 @@ begin
     MainSrv.AcceptIdleTimeout := 1000;
     MainSrv.UseSSL := AppSet.UseSSL and FileExists(AppSet.PrivateKey) and
       FileExists(AppSet.Certificate);
+
+    {if MainSrv.UseSSL then
+    begin
+      MainSrv.CertificateData.Certificate.FileName := AppSet.Certificate;
+      MainSrv.CertificateData.PrivateKey.FileName := AppSet.PrivateKey;
+    end;      }
+
     {$IFDEF LINUX}
-    LibUtilSSLFile := AppPath + 'libcrypto.so';
-    LibSSLFile := AppPath + 'libssl.so';
+    LibUtilSSLFile := '';// AppPath + 'libcrypto.so';
+    LibSSLFile := ''; //AppPath + 'libssl.so';
     {$ELSE}
     LibUtilSSLFile := '';
     LibSSLFile := '';
