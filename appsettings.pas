@@ -29,8 +29,9 @@ type
 
   TDBItem = class
   public
-    Name, DatabasePath, TemplatesPath, DBPwd: String;
+    Name, DatabasePath, TemplatesPath, DBPwd, ServiceId: String;
     SessionTime: Integer;
+    KeepMetaData: Boolean;
   end;
 
   { TDBList }
@@ -202,6 +203,8 @@ begin
         Item.TemplatesPath := ReadString(Sect, 'Templates', '');
         Item.SessionTime := ReadInteger(Sect, 'SessionTime', 0);
         Item.DBPwd := ReadString(Sect, 'DBPwd', '');
+        Item.ServiceId := ReadString(Sect, 'ServiceId', '');
+        Item.KeepMetaData := ReadBool(Sect, 'KeepMetadata', False);
       end;
     end;
   finally

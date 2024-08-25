@@ -2196,6 +2196,8 @@ begin
     RegisterMethod(@TSession.GetCurrentUser, 'GetCurrentUser');
     RegisterMethod(@TSession.GetCurrentRole, 'GetCurrentRole');
     RegisterMethod(@TSession.GetCurrentDatabase, 'GetCurrentDatabase');
+    RegisterMethod(@TSession.GetExprVar, 'GetExprVar');
+    RegisterMethod(@TSession.SetExprVar, 'SetExprVar');
 
     RegisterPropertyHelper(@TSessionFormCount_R, nil, 'FormCount');
     RegisterPropertyHelper(@TSessionForms_R, nil, 'Forms');
@@ -2405,9 +2407,6 @@ begin
   Exec.RegisterDelphiFunction(@IIF, 'IIF', cdRegister);
   Exec.RegisterDelphiFunction(@GenerateId, 'CreateGUIDString', cdRegister);
   Exec.RegisterDelphiFunction(@AppPath, 'GetAppDir', cdRegister);
-
-  Exec.RegisterDelphiFunction(@GetVar, 'GetExprVar', cdRegister);
-  Exec.RegisterDelphiFunction(@SetVar, 'SetExprVar', cdRegister);
 end;
 
 procedure RIRegister_All(Cl: TPSRuntimeClassImporter);

@@ -1368,6 +1368,8 @@ begin
     RegisterMethod('function GetCurrentRole: String');
     RegisterMethod('function GetCurrentDatabase: String');
     RegisterMethod('function GetTemplatesDir: String');
+    RegisterMethod('function GetExprVar(const AName: String): Variant');
+    RegisterMethod('function SetExprVar(const AName: String; AValue: Variant): Variant');
     RegisterProperty('FormCount', 'Integer', iptR);
     RegisterProperty('Forms', 'TdxForm Integer', iptR);
     RegisterProperty('Request', 'TFPHTTPConnectionRequest', iptR);

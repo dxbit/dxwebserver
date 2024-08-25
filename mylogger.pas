@@ -31,6 +31,7 @@ type
 
   TMyLogger = class
   private
+    FDateTimeLog: Boolean;
     FFileName: String;
     FLock: TRTLCriticalSection;
   public
@@ -38,18 +39,36 @@ type
     destructor Destroy; override;
     procedure WriteToFile(const S: String);
     property FileName: String read FFileName write FFileName;
+    property DataTimeLog: Boolean read FDateTimeLog write FDateTimeLog;
+  end;
+
+  { TMyLogMan }
+
+  TMyLogMan = class(TThreadList)
+  public
+    constructor Create;
+    function AddLogger(const FileName: String): TMyLogger;
+    function FindLogger(const FileName: String): TMyLogger;
+    procedure DeleteLogger(Lg: TMyLogger);
+    procedure Clear; reintroduce;
+    procedure WriteToFile(const FileName, S: String);
   end;
 
 var
   MyLog: TMyLogger;
+  LogMan: TMyLogMan;
 
 implementation
+
+uses
+  apputils;
 
 { TMyLogger }
 
 constructor TMyLogger.Create;
 begin
   InitCriticalSection(FLock);
+  FDateTimeLog := True;
 end;
 
 destructor TMyLogger.Destroy;
@@ -74,7 +93,9 @@ begin
       Mode := fmOpenWrite + fmShareDenyNone;
 
     FS := TFileStream.Create(FFileName, Mode);
-    Buf := DateTimeToStr(Now) + ' ' + S + LineEnding;
+    Buf := '';
+    if FDateTimeLog then Buf := DateTimeToStr(Now) + ' ';
+    Buf := Buf + S + LineEnding;
     FS.Position := FS.Size;
     FS.Write(Pointer(Buf)^, Length(Buf));
 
@@ -87,11 +108,94 @@ begin
   end;
 end;
 
+{ TMyLogMan }
+
+constructor TMyLogMan.Create;
+begin
+  inherited Create;
+  Duplicates := dupAccept;
+end;
+
+function TMyLogMan.AddLogger(const FileName: String): TMyLogger;
+begin
+  Result := FindLogger(FileName);
+  if Result = nil then
+  begin
+    Result := TMyLogger.Create;
+    Result.FileName := FileName;
+    Result.FDateTimeLog := False;
+  end;
+  Add(Result);      // Да, да. Так и должно быть.
+end;
+
+function TMyLogMan.FindLogger(const FileName: String): TMyLogger;
+var
+  L: TList;
+  Lg: TMyLogger;
+  i: Integer;
+begin
+  Result := nil;
+  L := LockList;
+  try
+    for i := 0 to L.Count - 1 do
+    begin
+      Lg := TMyLogger(L.Items[i]);
+      if MyUtf8CompareText(Lg.FileName, FileName) = 0 then Exit(Lg);
+    end;
+  finally
+    UnlockList;
+  end;
+end;
+
+procedure TMyLogMan.DeleteLogger(Lg: TMyLogger);
+var
+  L: TList;
+begin
+  L := LockList;
+  try
+    L.Remove(Lg);
+    if L.IndexOf(Lg) < 0 then Lg.Free;
+  finally
+    UnlockList;
+  end;
+end;
+
+procedure TMyLogMan.Clear;
+var
+  L: TList;
+  Lg: TMyLogger;
+begin
+  L := LockList;
+
+  try
+    while L.Count > 0 do
+    begin
+      Lg := TMyLogger(L.Items[0]);
+      while L.IndexOf(Lg) >= 0 do
+        L.Remove(Lg);
+      Lg.Free;
+    end;
+  finally
+    UnlockList;
+  end;
+end;
+
+procedure TMyLogMan.WriteToFile(const FileName, S: String);
+var
+  Lg: TMyLogger;
+begin
+  Lg := AddLogger(FileName);
+  Lg.WriteToFile(S);
+  DeleteLogger(Lg);
+end;
+
 initialization
   MyLog := TMyLogger.Create;
+  LogMan := TMyLogMan.Create;
 
 finalization
   MyLog.Free;
+  LogMan.Free;
 
 end.
 

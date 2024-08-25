@@ -57,10 +57,6 @@
             </CompilerMessages>
             <CustomOptions Value="-dUseCThreads
 -dHeapTrc"/>
-            <OtherDefines Count="2">
-              <Define0 Value="UseCThreads"/>
-              <Define1 Value="HeapTrc"/>
-            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item2>

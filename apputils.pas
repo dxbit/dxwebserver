@@ -2438,6 +2438,11 @@ begin
 end;
 
 procedure DebugFile(const FileName: String; Value: Variant);
+begin
+  LogMan.WriteToFile(FileName, VarToStr(Value));
+end;
+
+{procedure DebugFile(const FileName: String; Value: Variant);
 var
   mode: Integer;
   S: String;
@@ -2452,7 +2457,7 @@ begin
     finally
       Free;
     end;
-end;
+end; }
 
 procedure TryStrToColor(const ColorStr: String; out Color: TColor);
 begin
@@ -2621,7 +2626,7 @@ begin
 
     if not Ctrl.ControlVisible and (Ctrl is TdxTabSheet) then
     begin
-      if Ctrl.Hidden then TdxTabSheet(Ctrl).TabVisible := False;
+      {if Ctrl.Hidden then }TdxTabSheet(Ctrl).TabVisible := False;
 
       Pages := TdxPageControl(Ctrl.Parent);
       idx := Pages.ActivePageIndex;
@@ -2677,7 +2682,7 @@ begin
     end
     else if IsField and (p = i) and (E[i] in ['!', ':']) then
       p := i + 1
-    else if IsField and ((E[i] = ']') or (i = L)) then
+    else if IsField and ((E[i] in [']', '|']) or (i = L)) then
     begin
       SS := Utf8LowerCase(Copy(E, p, i - p));
       if S = SS then Exit(True);

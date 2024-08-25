@@ -24,7 +24,7 @@ interface
 
 uses
   Classes, SysUtils, fphttpserver, dxtypes, ssockets, strconsts,
-  uPSUtils, Variants, IBConnection, openssl, sslsockets;
+  uPSUtils, Variants, IBConnection, openssl;
 
 {const
   APP_VERSION: String = '22.12.5';}
@@ -41,7 +41,7 @@ type
     //function CheckPwd(UserId: Integer; const aPwd: String): Boolean;
     procedure CleanCacheDir;
   protected
-    function GetSocketHandler(const AUseSSL: Boolean): TSocketHandler; override;
+    //function GetSocketHandler(const AUseSSL: Boolean): TSocketHandler; override;
     procedure DoConnect(Sender: TObject; Data: TSocketStream); override;
     procedure HandleRequestError(Sender: TObject; E: Exception); override;
     procedure HandleRequest(var ARequest: TFPHTTPConnectionRequest;
@@ -76,7 +76,7 @@ uses
   scriptmanager, dxctrls, HTTPDefs, base64;
 
 
-function LoadCertificate(const FileName: String; out Buf: TBytes): Boolean;
+{function LoadCertificate(const FileName: String; out Buf: TBytes): Boolean;
 var
   SL: TStringList;
   Base64Str, RawStr: String;
@@ -100,7 +100,56 @@ begin
   finally
     SL.Free;
   end;
-end;
+end; }
+
+{function LoadCertificate(const FileName: String; out Buf: TBytes): Boolean;
+var
+  SL: TStringList;
+  Base64Str, RawStr, S: String;
+  i, RawStrLen, BufSize: Integer;
+  InCert: Boolean;
+begin
+  Result := False;
+  i := 0;
+  BufSize := 0;
+  InCert := False;
+
+  SL := TStringList.Create;
+  try try
+    SL.LoadFromFile(FileName);
+
+    for i := 0 to SL.Count - 1 do
+    begin
+      S := SL[i];
+      if (S <> '') and (S[1] = '-') then
+      begin
+        if not InCert then
+        begin
+          InCert := True;
+          Base64Str := '';
+        end
+        else
+        begin
+          RawStr := DecodeStringBase64(Base64Str);
+          RawStrLen := Length(RawStr);
+          SetLength(Buf, RawStrLen + BufSize);
+          Move(RawStr[1], Buf[BufSize], RawStrLen);
+          BufSize := BufSize + RawStrLen;
+          InCert := False;
+        end;
+      end
+      else
+        Base64Str := Base64Str + S;
+    end;
+    Result := True;
+  except
+    on E: Exception do
+      LogString('LoadCertificate. ' + E.ClassName + ': ' + E.Message);
+  end;
+  finally
+    SL.Free;
+  end;
+end;   }
 
 { TMainServerThread }
 
@@ -110,8 +159,8 @@ begin
 end;
 
 procedure TMainServerThread.Execute;
-var
-  LibUtilSSLFile, LibSSLFile: String;
+//var
+//  LibUtilSSLFile, LibSSLFile: String;
 begin
   try try
     MainSrv := TMainServer.Create(nil);
@@ -120,24 +169,33 @@ begin
     MainSrv.Port := AppSet.Port;
     MainSrv.Threaded := True;
     MainSrv.AcceptIdleTimeout := 1000;
-    MainSrv.UseSSL := AppSet.UseSSL and FileExists(AppSet.PrivateKey) and
-      FileExists(AppSet.Certificate);
+    if AppSet.UseSSL then
+    begin
+      if not FileExists(AppSet.Certificate) then
+        LogString('Certificate not found: ' + AppSet.Certificate)
+      else if not FileExists(AppSet.PrivateKey) then
+        LogString('Private key not found: ' + AppSet.PrivateKey)
+      else
+        MainSrv.UseSSL := True;
+    end;
+    {MainSrv.UseSSL := AppSet.UseSSL and FileExists(AppSet.PrivateKey) and
+      FileExists(AppSet.Certificate); }
 
-    {if MainSrv.UseSSL then
+    if MainSrv.UseSSL then
     begin
       MainSrv.CertificateData.Certificate.FileName := AppSet.Certificate;
       MainSrv.CertificateData.PrivateKey.FileName := AppSet.PrivateKey;
-    end;      }
+    end;
 
-    {$IFDEF LINUX}
+    (*{$IFDEF LINUX}
     LibUtilSSLFile := '';// AppPath + 'libcrypto.so';
     LibSSLFile := ''; //AppPath + 'libssl.so';
     {$ELSE}
     LibUtilSSLFile := '';
     LibSSLFile := '';
-    {$ENDIF}
+    {$ENDIF}  *)
     if MainSrv.UseSSL then
-      if not InitSSLInterface(LibUtilSSLFile, LibSSLFile) then
+      if not InitSSLInterface{(LibUtilSSLFile, LibSSLFile)} then
         LogString('Can not load ssl library.');
     MainSrv.Active := True;
   except
@@ -347,6 +405,7 @@ var
 begin
   if not FirstCleanCacheDir then CleanCacheDir;
 
+  //DebugStr('AcceptIdle Sessions.Lock');
   Sessions.Lock;
 
   try try
@@ -369,6 +428,7 @@ begin
       LogString('AcceptIdle exception: ' + E.Message);
   end;
   finally
+    //DebugStr('AcceptIdle Sessions.Unlock');
     Sessions.Unlock;
   end;
 end;
@@ -411,6 +471,7 @@ begin
   Sessions := TSessionList.Create;
   OnAcceptIdle :=@AcceptIdle;
   InitCriticalSection(FLock);
+  QueueSize := 100;
 end;
 
 destructor TMainServer.Destroy;
@@ -437,7 +498,7 @@ begin
   end;
 end;
 
-function TMainServer.GetSocketHandler(const AUseSSL: Boolean): TSocketHandler;
+{function TMainServer.GetSocketHandler(const AUseSSL: Boolean): TSocketHandler;
 var
   FlAge: LongInt;
 begin
@@ -460,7 +521,7 @@ begin
       Certificate.Value := CertData;
       PrivateKey.Value := PrivateKeyData;
     end;
-end;
+end;  }
 
 function GetMimeType(const Ext: String): String;
 begin
@@ -543,47 +604,8 @@ var
   MetaLastModified: TDateTime;
   MD: TMetaData;
   U: TdxUser;
-  HandleOk: Boolean;
-
-  {function TryRunHandleRequest: Boolean;
-  var
-    PSE: TPSDebugExec;
-    P: PPSVariant;
-    Params: TPSList;
-    ProcNo: Cardinal;
-    V: Variant;
-  begin
-    Params := TPSList.Create;
-    PSE := SS.RunScript.Exec;
-
-    P := CreateHeapVariant(PSE.GetTypeNo(PSE.GetType('TFPHTTPConnectionResponse')));
-    SetVariantToClass(P, AResponse);
-    Params.Add(P);
-    P := CreateHeapVariant(PSE.GetTypeNo(PSE.GetType('TFPHTTPConnectionRequest')));
-    SetVariantToClass(P, ARequest);
-    Params.Add(P);
-    P := CreateHeapVariant(PSE.GetTypeNo(26)); // Boolean
-    Params.Add(P);
-
-    try try
-      ProcNo := PSE.GetProc('HandleRequest');
-      PSE.RunProc(Params, ProcNo);
-      PSE.RaiseCurrentException;
-      PIFVariantToVariant(P, V);
-      if VarIsBool(V) then Result := V
-      else Result := False;
-    except
-      on E: Exception do
-      begin
-        AResponse.Contents.Text := ExceptionToHtml(E);
-        AResponse.Code := 500;
-        Result := True;
-      end;
-    end;
-    finally
-      FreePIFVariantList(Params);
-    end;
-  end;  }
+  HandleOk, IsService: Boolean;
+  DBItem: TDBItem;
 
   procedure RunMainAction(const ActionData: String);
   var
@@ -619,6 +641,7 @@ var
   end;
 
 begin
+  DebugStr(ARequest.RemoteAddress + ' ' + ARequest.Method + ': ' + ARequest.URI);
   if not FirstCleanCacheDir then CleanCacheDir;
 
   SS := nil;
@@ -750,13 +773,41 @@ begin
   end;
 
   //DebugStr(IntToStr(Sessions.Count));
+  IsService := False;
   if SS = nil then
   begin
-    if ARequest.Query = 'login' then
+    if (ARequest.QueryFields.Count > 0) and (ARequest.QueryFields.Names[0] = 'serviceid') then
     begin
-      AResponse.Code := rcAjaxError;
-      User := ARequest.ContentFields.Values['user'];
-      Pwd := ARequest.ContentFields.Values['pwd'];
+      DBItem := AppSet.DBList.FindItem(ConnectName);
+      if ARequest.QueryFields.ValueFromIndex[0] = DBItem.ServiceId then
+      begin
+        IsService := True;
+        // Если нет параметров, то возвращаем ok
+        if (ARequest.QueryFields.Count = 1) and (ARequest.ContentFields.Count = 0)
+          and (ARequest.Files.Count = 0) and (ARequest.Content = '') then
+        begin
+          AResponse.Code := 200;
+          AResponse.Content := 'I am ready!';
+          Exit;
+        end;
+      end
+      else
+      begin
+        AResponse.Code := 401;
+        AResponse.Content := 'Unauthorized';
+        Exit;
+      end;
+    end;
+
+    if (ARequest.Query = 'login') or IsService then
+    begin
+      if not IsService then
+      begin
+        AResponse.Code := rcAjaxError;
+
+        User := ARequest.ContentFields.Values['user'];
+        Pwd := ARequest.ContentFields.Values['pwd'];
+      end;
 
       DebugStr('SS = nil Sessions.Lock');
       Sessions.Lock;
@@ -786,10 +837,14 @@ begin
           MD := MetaMan.FindMetaData(SS.DBase.Database, MetaLastModified);
           if MD = nil then
           begin
+            if SS.DBItem.KeepMetaData then
+              MetaMan.DeleteOldMetaData(SS.DBase.Database);
+
             MD := TMetaData.Create;
             MD.Database := SS.DBase.Database;
             MD.LastModified := MetaLastModified;
             MD.ConnectName := ConnectName;
+            MD.KeepMetaData := SS.DBItem.KeepMetaData;
             MetaMan.Add(MD);
             DebugStr('Add metadata. Count: ' + IntToStr(MetaMan.Count), SS);
           end
@@ -817,7 +872,11 @@ begin
           MD.Unlock;
         end;
 
-        UId := CheckPwd(User, Pwd);
+        if not IsService then
+          UId := CheckPwd(User, Pwd)
+        else
+          UId := -1;
+
         if UId >= -1 then
         begin
           SS.UserId := UId;
@@ -847,10 +906,15 @@ begin
 
           SS.IP := ARequest.RemoteAddr;
           SS.LastTime := Now;
-          if SS.MainErrorMsg <> '' then StartUrl := '?runtimeerror'
-          else if MD.ScriptMan.HasErrors then StartUrl := '?compileerror'
-          else if StartUrl = '' then StartUrl := HS.GetFirstForm;
-          AResponse.Contents.Text := MakeJsonObjectString(['url', StartUrl]);
+
+          if not IsService then
+          begin
+            if SS.MainErrorMsg <> '' then StartUrl := '?runtimeerror'
+            else if MD.ScriptMan.HasErrors then StartUrl := '?compileerror'
+            else if StartUrl = '' then StartUrl := HS.GetFirstForm;
+            AResponse.Contents.Text := MakeJsonObjectString(['url', StartUrl]);
+          end;
+
           if not DirectoryExists(GetCachePath(SS)) then
           begin
             if not ForceDirectories(GetCachePath(SS)) then
@@ -864,6 +928,7 @@ begin
             SS.RunScript.LoadBin;
             SS.RunScript.BindVars;
             SS.Request := ARequest;
+            SS.IsService := IsService;
             try
               SS.RunScript.TryRunProc('DATABASE_OPEN', []);
               RunMainAction(MD.Main.Actions);
@@ -872,8 +937,32 @@ begin
                 SS.MainErrorMsg := ExceptionToHtml(E);
             end;
           end;
-          AResponse.Code := rcAjaxOk;
+
           DebugStr('Login [' + SS.GetCurrentUser + '] complete. Session count: ' + IntToStr(Sessions.Count), SS);
+
+          if IsService then
+          begin
+            if SS.OnHandleRequest <> nil then
+              SS.OnHandleRequest(SS, ARequest, AResponse);
+
+            try
+              if SS.OnDatabaseClose <> nil then SS.OnDatabaseClose(SS);
+              SS.RunScript.TryRunProc('DATABASE_CLOSE', []);
+            except
+              ;
+            end;
+
+            SS.UnlockSession;
+            Sessions.Lock;
+            try
+              Sessions.DeleteSession(SS);
+              MetaMan.DeleteMetaData(MD);
+            finally
+              Sessions.Unlock;
+            end;
+          end
+          else
+            AResponse.Code := rcAjaxOk;
         end
         else
         begin
@@ -897,6 +986,7 @@ begin
           if E is EIBDatabaseError then S := WinCPToUtf8(E.Message)
           else S := E.Message;
           AResponse.Content := MakeJsonErrString(rcConnectError, S);
+          AResponse.ContentType := GetMimeType('.json');
 
           DebugStr('Connect error. ' + E.ClassName + ': ' + E.Message, SS);
           DebugStr('Connect exception Sessions.Lock', SS);
@@ -1245,6 +1335,9 @@ begin
       LogString('HandleRequest exception. ' + E.ClassName + ': ' + E.Message);  // LogError
   end;
   finally
+    if HS.ResultCode = rcAjaxError then
+      AResponse.ContentType := GetMimeType('.json');
+
     HS.Free;
     if SS <> nil then
     begin

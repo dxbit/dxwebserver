@@ -258,7 +258,7 @@ type
   TMetaData = class;
   TImageManager = class;
   TWebServerRequestHandler = function (Sender: TObject; var ARequest: TFPHTTPConnectionRequest;
-      var AResponse : TFPHTTPConnectionResponse): Boolean of object;
+    var AResponse : TFPHTTPConnectionResponse): Boolean of object;
 
   { TSession }
 
@@ -269,6 +269,7 @@ type
     FDebugMsg: String;
     FDebugShow: Boolean;
     FDebugText: String;
+    FIsService: Boolean;
     FMainErrorMsg: String;
     FMetaData: TMetaData;
     FBusy: Boolean;
@@ -376,7 +377,10 @@ type
     function GetCurrentRole: String;
     function GetCurrentDatabase: String;
     function GetTemplatesPath: String;
+    function SetExprVar(const AName: String; AValue: Variant): Variant;
+    function GetExprVar(const AName: String): Variant;
     property Request: TFPHTTPConnectionRequest read FRequest write FRequest;
+    property IsService: Boolean read FIsService write FIsService;
     property OnCreateForm: TCreateFormEvent read FOnCreateForm write FOnCreateForm;
     property OnDestroyForm: TCreateFormEvent read FOnDestroyForm write FOnDestroyForm;
     property OnDatabaseClose: TNotifyEvent read FOnDatabaseClose write FOnDatabaseClose;
@@ -425,6 +429,7 @@ type
     FConnectName: String;
     FId: String;
     FImageMan: TImageManager;
+    FKeepMetaData: Boolean;
     FLoadComplete: Boolean;
     FLock: TRTLCriticalSection;
     FDatabase: String;
@@ -464,6 +469,7 @@ type
     property ConnectName: String read FConnectName write FConnectName;
     property LoadComplete: Boolean read FLoadComplete write FLoadComplete;
     property UsersLoaded: Boolean read FUsersLoaded write FUsersLoaded;
+    property KeepMetaData: Boolean read FKeepMetaData write FKeepMetaData;
   end;
 
   { TMetaManager }
@@ -476,7 +482,9 @@ type
     constructor Create;
     destructor Destroy; override;
     function FindMetaData(const ADatabase: String; ALastModified: TDateTime): TMetaData;
+    function NewMetaDataExists(OldMD: TMetaData): Boolean;
     procedure DeleteMetaData(MD: TMetaData);
+    procedure DeleteOldMetaData(const ADatabase: String);
     procedure Clear; override;
     procedure Lock;
     procedure Unlock;
@@ -490,7 +498,7 @@ implementation
 
 uses
   LazUtf8, FileUtil, sqlgen, apputils, expressions, lfmparser, dxactions,
-  BGRABitmapTypes;
+  BGRABitmapTypes, exprfuncs;
 
 function MsgDlgTypeToStr(T: TMsgDlgType): String;
 begin
@@ -830,6 +838,20 @@ begin
   end;
 end;
 
+function TMetaManager.NewMetaDataExists(OldMD: TMetaData): Boolean;
+var
+  i: Integer;
+  MD: TMetaData;
+begin
+  Result := False;
+  for i := 0 to Count - 1 do
+  begin
+    MD := MetaData[i];
+    if (MyUtf8CompareText(MD.Database, OldMD.Database) = 0) and
+      (MD.LastModified > OldMD.LastModified) then Exit(True);
+  end;
+end;
+
 procedure TMetaManager.DeleteMetaData(MD: TMetaData);
 begin
   DebugStr('DeleteMetaData Lock');
@@ -838,7 +860,7 @@ begin
   try
     DebugStr('MD.DecRef');
     MD.DecRef;
-    if MD.Ref = 0 then
+    if (MD.Ref = 0) and ( not MD.KeepMetaData or NewMetaDataExists(MD) ) then
     begin
       DebugStr('Delete meta dir: ' + GetMetaDataPath(MD));
       if not DeleteDirectory(GetMetaDataPath(MD), False) then
@@ -857,6 +879,39 @@ begin
 
   if MD = nil then
     DebugStr('Delete metadata. Count: ' + IntToStr(Count));
+end;
+
+procedure TMetaManager.DeleteOldMetaData(const ADatabase: String);
+var
+  i: Integer;
+  MD: TMetaData;
+begin
+  DebugStr('ClearOldMetaData Lock');
+  Lock;
+
+  try
+
+    for i := Count - 1 downto 0 do
+    begin
+      MD := MetaData[i];
+      if (MyUtf8CompareText(ADatabase, MD.Database) = 0) and (MD.Ref = 0) then
+      begin
+        DebugStr('Delete meta dir: ' + GetMetaDataPath(MD));
+        if not DeleteDirectory(GetMetaDataPath(MD), False) then
+        begin
+          if DirectoryExists(GetMetaDataPath(MD)) then
+            DebugStr('Can not delete metadata directory ' + GetMetaDataPath(MD));
+        end;
+        DebugStr('Remove(MD)');
+        Remove(MD);
+        FreeAndNil(MD);
+      end;
+    end;
+
+  finally
+    DebugStr('ClearOldMetaData Unlock');
+    UnLock;
+  end;
 end;
 
 procedure TMetaManager.Lock;
@@ -3470,6 +3525,16 @@ begin
   end
   else
     Result := AppPath + 'templates' + DirectorySeparator;
+end;
+
+function TSession.SetExprVar(const AName: String; AValue: Variant): Variant;
+begin
+  Result := SetVar(Self, AName, AValue);
+end;
+
+function TSession.GetExprVar(const AName: String): Variant;
+begin
+  Result := GetVar(Self, AName);
 end;
 
 function TSession.AddRecordSet(AForm: TdxForm): TSsRecordSet;
