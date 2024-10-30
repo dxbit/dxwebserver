@@ -1421,7 +1421,7 @@ begin
   end;
 end;
 
-function CustomSortByFormIndex(List: TStringList; Index1, Index2: Integer
+{function CustomSortByFormIndex(List: TStringList; Index1, Index2: Integer
   ): Integer;
 var
   Fm1, Fm2: TdxForm;
@@ -1429,13 +1429,11 @@ begin
   Fm1 := TdxForm(List.Objects[Index1]);
   Fm2 := TdxForm(List.Objects[Index2]);
   Result := Fm1.Index - Fm2.Index;
-end;
+end;  }
 
 function THtmlShow.GetFirstForm: String;
 var
-  SL: TStringList;
   i, FmId: Integer;
-  Fm: TdxForm;
   Intf: TdxIntf;
 begin
   Result := '';
@@ -1449,19 +1447,11 @@ begin
     end
   else
   begin
-    SL := TStringList.Create;
-    FSs.FormMan.GetFormList(SL);
-    SL.CustomSort(@CustomSortByFormIndex);
-    for i := 0 to SL.Count - 1 do
+    for i := 0 to FSS.Main.Tabs.Count - 1 do
     begin
-      Fm := TdxForm(SL.Objects[i]);
-      if Fm.AutoOpen and FSS.UserMan.CheckFmVisible(FSS.RoleId, Fm.Id) then
-      begin
-        FmId := Fm.Id;
-        Break;
-      end;
+      FmId := FSS.Main.Tabs[i];
+      if FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId) then Break;
     end;
-    SL.Free;
   end;
 
   Result := '?fm=' + IntToStr(FmId);
@@ -1598,7 +1588,6 @@ end;
 function THtmlShow.ShowTabs(UserMonShowed: Boolean): String;
 var
   S, Cls: String;
-  SL: TStringList;
   i, FmId: Integer;
   Fm: TdxForm;
   Intf: TdxIntf;
@@ -1628,26 +1617,23 @@ begin
     end
   else
   begin
-    SL := TStringList.Create;
-    FSs.FormMan.GetFormList(SL);
-    SL.CustomSort(@CustomSortByFormIndex);
-    for i := 0 to SL.Count - 1 do
+    for i := 0 to FSS.Main.Tabs.Count - 1 do
     begin
-      Fm := TdxForm(SL.Objects[i]);
-      if Fm.AutoOpen and FSS.UserMan.CheckFmVisible(FSS.RoleId, Fm.Id) then
+      FmId := FSS.Main.Tabs[i];
+      if FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId) then
       begin
-        if Fm.Id = FSS.FormId then
+        if FmId = FSS.FormId then
         begin
           Cls := ' class=sel';
           TabExists := True;
         end
         else
           Cls := '';
+        Fm := FSS.FormMan.FindForm(FmId);
         S := S + '<span' + Cls + '><a href="' + GetFormHRef(Fm) + '">' +
           Fm.GetRecordsCaption + '</a></span>';
       end;
     end;
-    SL.Free;
   end;
 
   if not TabExists then
@@ -3431,7 +3417,7 @@ begin
   if QRS.QGrid.OnCreateForm <> nil then QRS.QGrid.OnCreateForm(QRS.QGrid, FRS.Form);
   FRS.CallerRS := QRS;
 
-  FRS.OpenRecord(0);
+  FRS.OpenRecord(0, False);
   FRS.Append;
   if QRS.RD.GetSourceFilter <> '' then
   begin
@@ -3504,7 +3490,7 @@ begin
     begin
       NewRS := FSS.AddRecordSet(Fm);
       if QRS.QGrid.OnCreateForm <> nil then QRS.QGrid.OnCreateForm(QRS.QGrid, NewRS.Form);
-      NewRS.OpenRecord(QRS.RecId);
+      NewRS.OpenRecord(QRS.RecId, True);
     end;
     Result := GetHRef(Fm.Id, QRS.RecId);
     FResultCode := rcAjaxOk;
@@ -3559,7 +3545,7 @@ begin
     begin
       NewRS := FSS.AddRecordSet(Fm);
       //if QRS.QGrid.OnCreateForm <> nil then QRS.QGrid.OnCreateForm(QRS.QGrid, NewRS.Form);
-      NewRS.OpenRecord(QRS.RecId);
+      NewRS.OpenRecord(QRS.RecId, True);
       if NewRS.DataSet.RecordCount = 0 then
       begin
         FSS.RecordSets.DeleteRecordSet(NewRS);
@@ -3647,7 +3633,7 @@ begin
     if ObjF.OnCreateForm <> nil then ObjF.OnCreateForm(ObjF, ObjRS.Form);
     ObjRS.CallerRS := FRS;
     ObjRS.CallerObj := ObjF;
-    ObjRS.OpenRecord(0);
+    ObjRS.OpenRecord(0, False);
     ObjRS.Append;
     Result := GetHRef(Fm.Id, ObjRS.RecId);
     FResultCode := rcAjaxOk;
@@ -3692,7 +3678,7 @@ begin
     begin
       ObjRS := FSS.AddRecordSet(Fm);
       if ObjF.OnCreateForm <> nil then ObjF.OnCreateForm(ObjF, ObjRS.Form);
-      ObjRS.OpenRecord(RId);
+      ObjRS.OpenRecord(RId, True);
     end;
     ObjRS.CallerRS := FRS;
     ObjRS.CallerObj := ObjF;
@@ -5866,7 +5852,7 @@ begin
       FRS := FSS.AddRecordSet(Fm);
       if Fm.ViewType <> vtSimpleForm then
       begin
-        FRS.OpenRecord(FSS.RecId);
+        FRS.OpenRecord(FSS.RecId, True);
         if FRS.DataSet.RecordCount = 0 then
         begin
           FSS.RecordSets.DeleteRecordSet(FRS);
@@ -5876,11 +5862,11 @@ begin
       end
       else
       begin
-        FRS.OpenRecord(0);
+        FRS.OpenRecord(0, False);
         FRS.Append;
       end;
-      FRS.OpenDetails;
       if FRS.Editing = asOk then FRS.Edit;
+      FRS.OpenDetails;
     end
     else
     begin
@@ -5916,6 +5902,13 @@ begin
   end
   else
   begin
+    if (FRS.DataSet.RecordCount = 0) and (FRS.DataSet.State <> dsInsert) then
+    begin
+      FSS.RecordSets.DeleteRecordSet(FRS);
+      FResultCode := rcPageNotFound;
+      Exit(ShowErrorPage(rsRecordNotFound, rsRecordNotFoundMsg));
+    end;
+
     if FRS.Editing = asOk then FRS.Edit;
     FRS.RequeryAllQueries;
   end;
@@ -6326,7 +6319,7 @@ begin
   begin
     Fm := FSS.FormMan.FindForm(FSS.FormId);
     FRS := FSS.AddRecordSet(Fm);
-    FRS.OpenRecord(FSS.RecId);
+    FRS.OpenRecord(FSS.RecId, True);
     if FRS.DataSet.RecordCount = 0 then
     begin
       FSS.RecordSets.DeleteRecordSet(FRS);
@@ -6357,7 +6350,7 @@ begin
   try
 
   FRS := FSS.AddRecordSet(Fm);
-  FRS.OpenRecord(0);
+  FRS.OpenRecord(0, False);
   FRS.Append;
   //FRS.OpenDetails;
   Result := GetHRef(FmId, FRS.RecId);

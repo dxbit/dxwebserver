@@ -756,11 +756,11 @@ msgid "<p>The action could not be completed.</p><p>Possible reasons: You are edi
 msgstr ""
 
 #: strconsts.rsrecordnotfound
-msgid "Record not found"
+msgid "Record not found or access denied"
 msgstr ""
 
 #: strconsts.rsrecordnotfoundmsg
-msgid "Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li></ol>"
+msgid "Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li><li>Access denied by record selection condition.</li></ol>"
 msgstr ""
 
 #: strconsts.rsrecordused

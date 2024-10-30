@@ -4589,7 +4589,7 @@ end;
 procedure TdxForm.OpenRecord(ARecId: Integer);
 begin
   if FPId > 0 then raise Exception.CreateFmt(rsInvalidMethotCall, [FormCaption]);
-  TSsRecordSet(FRS).OpenRecord(ARecId);
+  TSsRecordSet(FRS).OpenRecord(ARecId, False);
 end;
 
 procedure TdxForm.OpenRecords(const AFilter: String; Fm: TdxForm;

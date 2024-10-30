@@ -759,12 +759,12 @@ msgid "<p>The action could not be completed.</p><p>Possible reasons: You are edi
 msgstr "<p>Действие не может быть выполнено.</p><p>Возможные причины: Вы редактируете записи одной таблицы одновременно в нескольких вкладках.</p><p>Вы можете редактировать только одну запись таблицы за раз.</p>"
 
 #: strconsts.rsrecordnotfound
-msgid "Record not found"
-msgstr "Запись не найдена"
+msgid "Record not found or access denied"
+msgstr "Запись не найдена или доступ запрещен"
 
 #: strconsts.rsrecordnotfoundmsg
-msgid "Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li></ol>"
-msgstr "<p>Возможные причины:<ol><li>Запись была удалена.</li><li>Новая запись не была сохранена.</li><li>Допущена ошибка в адресе.</li></ol></p>"
+msgid "Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li><li>Access denied by record selection condition.</li></ol>"
+msgstr "<p>Возможные причины:<ol><li>Запись была удалена.</li><li>Новая запись не была сохранена.</li><li>Допущена ошибка в адресе.</li><li>Доступ запрещен условием отбора записей.</li></ol></p>"
 
 #: strconsts.rsrecordused
 msgid "Cannot delete the record because it is in use."

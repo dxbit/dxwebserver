@@ -241,8 +241,8 @@ resourcestring
   rsAboutText = 'DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2024 Pavel Duborkin<br><br><a href="https://mydataexpress.ru">Project Website</a> | <a href="https://forum.mydataexpress.ru">Forum</a> | <a href="https://wiki.mydataexpress.ru">Wiki</a>';
   rsAboutTextConsole = 'DataExpress Web Server is working...' + LineEnding + 'Version: %s' + LineEnding + 'Copyright (c) 2016-2024 Pavel Duborkin';
   rsLoopDetectedCalc = 'A loop was detected while modifying the field or label [%s].';
-  rsRecordNotFound = 'Record not found';
-  rsRecordNotFoundMsg = 'Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li></ol>';
+  rsRecordNotFound = 'Record not found or access denied';
+  rsRecordNotFoundMsg = 'Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li><li>Access denied by record selection condition.</li></ol>';
   rsRpUnderDevelopment = 'Report under development - no data sources specified.';
   //rsRecordNotFoundMsg = '<p>Запись не найдена. Возможные причины:<ol><li>Запись была удалена.</li><li>Новая запись не была сохранена.</li><li>Допущена ошибка в УРЛ.</li></ol></p>';
   rsForm = 'Form';

@@ -23,7 +23,7 @@ unit DXMains;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, mytypes;
 
 type
   { TDXMain }
@@ -33,14 +33,19 @@ type
     FActions: String;
     FDesignTimePPI: Integer;
     FLastModified: TDateTime;
+    FTabs: TIntegerList;
+    FVersion: Integer;
   public
     constructor Create;
+    destructor Destroy; override;
     procedure LoadSettings(St: TStream);
     procedure LoadActions(St: TStream);
     //procedure RunActions;
     property Actions: String read FActions write FActions;
     property DesignTimePPI: Integer read FDesignTimePPI write FDesignTimePPI;
     property LastModified: TDateTime read FLastModified write FLastModified;
+    property Tabs: TIntegerList read FTabs;
+    property Version: Integer read FVersion;
   end;
 
 var
@@ -49,7 +54,7 @@ var
 implementation
 
 uses
-  SAX, saxbasereader;
+  apputils, SAX, saxbasereader;
 
 type
 
@@ -69,11 +74,26 @@ type
 
 procedure TSettingsReader.DoStartElement(const NamespaceURI, LocalName,
   QName: SAXString; Atts: TSAXAttributes);
+var
+  SL: TStringList;
+  i: Integer;
 begin
   if LocalName = 'designer' then
   begin
     FMain.DesignTimePPI := GetInt(Atts, 'designtimeppi');
+    if AttrExists(Atts, 'tabs') then
+    begin
+      SL := TStringList.Create;
+      SplitStr(GetStr(Atts, 'tabs'), ';', SL);
+      for i := 0 to SL.Count - 1 do
+        FMain.Tabs.AddValue(StrToInt(SL[i]));
+      SL.Free;
+    end;
   end
+  else if LocalName = 'settings' then
+  begin
+    FMain.FVersion := GetInt(Atts, 'version');
+  end;
 end;
 
 { TDXMain }
@@ -122,6 +142,13 @@ end;
 constructor TDXMain.Create;
 begin
   FDesignTimePPI := 96;
+  FTabs := TIntegerList.Create;
+end;
+
+destructor TDXMain.Destroy;
+begin
+  FTabs.Free;
+  inherited Destroy;
 end;
 
 end.

@@ -70,6 +70,7 @@ var
   S: String;
 begin
   Result := '';
+  if Atts = nil then Exit;
   for i := 0 to Atts.Length - 1 do
   begin
     S := Atts.GetLocalName(i);
@@ -85,6 +86,7 @@ var
   S: String;
 begin
   Result := False;
+  if Atts = nil then Exit;
   for i := 0 to Atts.Length - 1 do
   begin
     S := Atts.GetLocalName(i);

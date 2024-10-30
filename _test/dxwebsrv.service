@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/var/web/dxwebsrv -r
+ExecStart=/opt/dxwebsrv_linux64/dxwebsrv -r
 RemainAfterExit=yes
 TimeoutSec=25
 

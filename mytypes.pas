@@ -172,6 +172,19 @@ type
     JSonFormatFloatEnabled: Boolean;
   end;
 
+  { TIntegerList }
+
+  TIntegerList = class(TList)
+  private
+    function GetValues(Index: Integer): Integer;
+    procedure SetValues(Index: Integer; AValue: Integer);
+  public
+    function AddValue(Value: Integer): Integer;
+    function DeleteValue(Value: Integer): Boolean;
+    function FindValue(Value: Integer): Integer;
+    property Values[Index: Integer]: Integer read GetValues write SetValues; default;
+  end;
+
 implementation
 
 uses
@@ -514,6 +527,41 @@ begin
   end
   else
     Result := inherited GetAsString;
+end;
+
+{ TIntegerList }
+
+function TIntegerList.GetValues(Index: Integer): Integer;
+begin
+  Result := Integer(Items[Index]);
+end;
+
+procedure TIntegerList.SetValues(Index: Integer; AValue: Integer);
+begin
+  Items[Index] := Pointer(AValue);
+end;
+
+function TIntegerList.AddValue(Value: Integer): Integer;
+begin
+  Result := Add(Pointer(Value));
+end;
+
+function TIntegerList.DeleteValue(Value: Integer): Boolean;
+var
+  i: Integer;
+begin
+  i := FindValue(Value);
+  Result := i >= 0;
+  if Result then Delete(i);
+end;
+
+function TIntegerList.FindValue(Value: Integer): Integer;
+var
+  i: Integer;
+begin
+  Result := -1;
+  for i := 0 to Count - 1 do
+  	if Values[i] = Value then Exit(i);
 end;
 
 initialization

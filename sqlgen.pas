@@ -269,6 +269,7 @@ var
   SrcFm: TdxForm;
   Flt, S: String;
   SS: TSession;
+  SrcRS: TSsRecordSet;
 begin
   Result := '';
   SrcFm := ARecordSet.Session.FormMan.FindForm(GetSourceTId(Cbx));
@@ -303,9 +304,15 @@ begin
     S := SS.UserMan.GetSelCond(SS.RoleId, SrcFm.Id);
     if S <> '' then
     begin
-      S := SqlSelCondFilter(ARecordSet, nil, S, JStr, AliasSL);
-      if Result <> '' then Result := Result + ' and ';
-      Result := Result + '(' + S + ')';
+      SrcRS := TSsRecordSet.Create(SS, nil);
+      SrcRS.AssignForm(SrcFm);
+      try
+        S := SqlSelCondFilter(SrcRS, nil, S, JStr, AliasSL);
+        if Result <> '' then Result := Result + ' and ';
+        Result := Result + '(' + S + ')';
+      finally
+        SrcRS.Free;
+      end;
     end;
   end;
   //
@@ -703,9 +710,26 @@ begin
   if OnlyCount then Fl := 'count(' + T + '.id)';
 
   Wh := '';
+
+  // !!! Доступ
+  if UseSelCond then
+  begin
+    S := SS.UserMan.GetSelCond(SS.RoleId, Fm.Id);
+    try
+      S := SqlSelCondFilter(ARecordSet, nil, S, Jn, AliasSL);
+      if S <> '' then
+        Wh := Wh + '(' + S + ')';
+    except
+      on E: EFilterParserError do
+        raise ESQLSelectStatementError.Create(E.Message, rsSelCond, E.Position);
+    end;
+  end;
+  //
+
   if RecId >= 0 then
   begin
-    Wh := TableStr(Fm.Id) + '.id=' + IntToStr(RecId);
+    if Wh <> '' then Wh := Wh + ' and ';
+    Wh := Wh + TableStr(Fm.Id) + '.id=' + IntToStr(RecId);
     // В иерархических справочниках, когда родитель является обязательным полем,
     // корневые элементы (без родителя) не попадают в выборку. Зато корневые
     // элементы можно увидеть в родительском поле. Однако при попытке редактировать
@@ -716,22 +740,8 @@ begin
     // было редактировать.
     Jn := StringReplace(Jn, 'inner join', 'left join', [rfReplaceAll]);
   end
-  else //if UserFilter = '' then
+  else
   begin
-    // !!! Доступ
-    if UseSelCond then
-    begin
-      S := SS.UserMan.GetSelCond(SS.RoleId, Fm.Id);
-      try
-        S := SqlSelCondFilter(ARecordSet, nil, S, Jn, AliasSL);
-        if S <> '' then
-	        Wh := Wh + '(' + S + ')';
-      except
-        on E: EFilterParserError do
-          raise ESQLSelectStatementError.Create(E.Message, rsSelCond, E.Position);
-      end;
-    end;
-    //
     if UseFormFilter then
     begin
       S := SqlFormFilter(SS, Fm, Jn, AliasSL);

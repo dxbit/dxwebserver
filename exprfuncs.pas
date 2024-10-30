@@ -120,7 +120,8 @@ begin
   if (RS = nil) and (AMainRecordSet.QGrid <> nil) then
     RS := AMainRecordSet.Parent.FindRecordSetByName(FormName);
   if RS = nil then raise Exception.Create(Format(rsFormQryNotFound, [FormName]))
-  else if (RS.RD <> nil) and {RS.QGrid.ManualRefresh} not RS.DataSet.Active then Exit(False);
+  else if (RS.RD <> nil) and RS.QGrid.ManualRefresh and
+    (rstRecalculate in RS.GetTopParent.RecordSetState) {not RS.DataSet.Active} then Exit(False);
 
   Fl := nil; Col := nil;
   if RS.Form <> nil then

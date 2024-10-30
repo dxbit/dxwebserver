@@ -137,6 +137,7 @@ function GetComponentDisplayFormat(SS: TSession; Fm: TdxForm; C: TdxField): Stri
 procedure SetDSFieldDisplayFormat(F: TField; Fmt: String);
 function GetFieldDisplayText(F: TField): String;
 function GetRpFieldComponent(SS: TSession; F: TRpField; aLow: Boolean): TdxComponent;
+procedure ConvertToDXMainVersion2(SS: TSession);
 //procedure HideUnvisibleControls(Fm: TdxForm);
 
 implementation
@@ -144,7 +145,7 @@ implementation
 uses
   LazUtf8, LazFileUtils, appsettings, sqlgen, DateUtils, {$IFDEF windows}ShellApi,{$ENDIF}
   Variants, expressions, StrUtils, Math, dbengine, dxactions, pivotgrid,
-  mainserver, scriptmanager, uPSRuntime, mylogger, TypInfo;
+  mainserver, scriptmanager, uPSRuntime, mylogger, TypInfo, dxmains;
 
 function AppPath: String;
 begin
@@ -2810,6 +2811,37 @@ begin
   if F.TId = 0 then Exit;
   Fm := SS.FormMan.FindForm(F.TId);
   Result := Fm.FindField(F.FId);
+end;
+
+function CustomSortByFormIndex(List: TStringList; Index1, Index2: Integer
+  ): Integer;
+var
+  Fm1, Fm2: TdxForm;
+begin
+  Fm1 := TdxForm(List.Objects[Index1]);
+  Fm2 := TdxForm(List.Objects[Index2]);
+  Result := Fm1.Index - Fm2.Index;
+end;
+
+procedure ConvertToDXMainVersion2(SS: TSession);
+var
+  SL: TStringList;
+  i: Integer;
+  Fm: TdxForm;
+begin
+  if SS.Main.Version = 2 then Exit;
+
+  SL := TStringList.Create;
+  SS.FormMan.GetFormList(SL);
+  SL.CustomSort(@CustomSortByFormIndex);
+
+  for i := 0 to SL.Count - 1 do
+  begin
+    Fm := TdxForm(SL.Objects[i]);
+    if Fm.AutoOpen then
+      SS.Main.Tabs.AddValue(Fm.Id);
+  end;
+  SL.Free;
 end;
 
 (*procedure HideAllControls(WC: TdxWinControl);

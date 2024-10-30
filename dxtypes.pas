@@ -128,7 +128,7 @@ type
     function Open: Boolean;
     procedure OpenRecords;
     procedure OpenPage(AStart, ACount: Integer);
-    procedure OpenRecord(ARecId: Integer);
+    procedure OpenRecord(ARecId: Integer; AUseSelCond: Boolean);
     procedure OpenDetails;
     procedure OpenObjectFields(FL: TList; ARecId: Integer);
     procedure OpenReport;
@@ -176,6 +176,7 @@ type
     procedure BeginDuplicate;
     procedure EndDuplicate;
     function GetCurrentForm: TdxForm;
+    function GetTopParent: TSsRecordSet;
     property Session: TSession read FSS;
     property Form: TdxForm read FForm write FForm;
     property QGrid: TdxQueryGrid read FQGrid write SetQGrid;
@@ -207,6 +208,7 @@ type
     property QryRecId: Integer read FQryRecId write FQryRecId;
     property FreshValue: Integer read FFreshValue write FFreshValue;
     property ActionList: TList read FActionList;
+    property RecordSetState: TSsRecordSetStates read FState;
   end;
 
   { TSsRecordSets }
@@ -306,6 +308,7 @@ type
     //FUserMan: TdxUserManager;
     FVarList: TVarList;
     FLock: TRTLCriticalSection;
+    function GetDXMain: TDXMain;
     function GetFormMan: TFormManager;
     function GetImageMan: TImageManager;
     function GetReportMan: TReportManager;
@@ -344,6 +347,7 @@ type
     property LastTime: TDateTime read FLastTime write FLastTime;
     property FilterId: Integer read FFilterId write FFilterId;
     property FilterPrId: Integer read FFilterPrId write FFilterPrId;
+    property Main: TDXMain read GetDXMain;
     property FormMan: TFormManager read GetFormMan;
     property ReportMan: TReportManager read GetReportMan;
     property VarList: TVarList read FVarList;
@@ -2111,24 +2115,24 @@ begin
   else
     C := FForm.FindFieldByName(AFieldName);
 
-  E := nil;
   aExpr := Trim(aExpr);
-  if aExpr <> '' then
-  begin
-    EB := TExpressionBuilder.Create;
-    EB.SkipLabels := True;
-    if ATableName = '' then
-      EB.RecordSet := Self
-    else
-      EB.RecordSet := TblRS;
-    try
-      E := EB.Build(aExpr);
-    finally
-      EB.Free;
-    end;
+  if aExpr = '' then
+    aExpr := Trim(GetExpression(C));
+  if aExpr = '' then Exit;
+
+  EB := TExpressionBuilder.Create;
+  EB.SkipLabels := True;
+  if ATableName = '' then
+    EB.RecordSet := Self
+  else
+    EB.RecordSet := TblRS;
+  try
+    E := EB.Build(aExpr);
+  finally
+    EB.Free;
   end;
 
-  if (E = nil) and (aExpr <> '') then Exit;
+  if E = nil then Exit;
 
   try
     Include(FState, rstRecalculate);
@@ -2177,6 +2181,12 @@ function TSsRecordSet.GetCurrentForm: TdxForm;
 begin
   Result := FForm;
   if (Result = nil) and (Parent <> nil) then Result := Parent.Form;
+end;
+
+function TSsRecordSet.GetTopParent: TSsRecordSet;
+begin
+  Result := Parent;
+  if (Result <> nil) and (Result.Parent <> nil) then Result := Result.Parent;
 end;
 
 procedure TSsRecordSet.EvalLabels(const AChangedField: String);
@@ -2783,11 +2793,11 @@ begin
   FNeedRequery := False;
 end;
 
-procedure TSsRecordSet.OpenRecord(ARecId: Integer);
+procedure TSsRecordSet.OpenRecord(ARecId: Integer; AUseSelCond: Boolean);
 begin
   DisableScrollEvents;
   FDataSet.Close;
-  FDataSet.SQL.Text := SqlSelectStatement(Self, nil, False,
+  FDataSet.SQL.Text := SqlSelectStatement(Self, nil, AUseSelCond,
     False, nil, '', ARecId, False, 0, 0, False);
   FDataSet.DeleteSQL.Text := 'delete from ' + TableStr(FForm.Id) + ' where id=:id';
   FDataSet.Open;
@@ -3291,6 +3301,11 @@ end;   }
 function TSession.GetFormMan: TFormManager;
 begin
   Result := FMetaData.FormMan;
+end;
+
+function TSession.GetDXMain: TDXMain;
+begin
+  Result := MetaData.Main;
 end;
 
 function TSession.GetImageMan: TImageManager;

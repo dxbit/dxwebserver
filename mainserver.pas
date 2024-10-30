@@ -897,6 +897,7 @@ begin
               MD.LoadImages(SS.DBase);
               MD.LoadScripts(SS.DBase);
               MD.ScriptMan.CompileAll;
+              ConvertToDXMainVersion2(SS);
               MD.LoadComplete := True;
             end;
           finally
