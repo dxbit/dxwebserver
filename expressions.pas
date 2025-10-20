@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -240,7 +240,7 @@ const
     ('+', '-', '', '', '', ''), ('*', '/', '', '', '', ''),
     ('', '', '', '', '', ''));
 
-  Funcs: array [0..141, 0..2] of String =
+  Funcs: array [0..143, 0..2] of String =
     (('COUNT', 's', 'n'),
     ('SUM', 'ss', 'n'),
     ('LENGTH', 's', 'n'),
@@ -378,7 +378,7 @@ const
     ('TIMESTAMP', 'dt', 'n'),
     ('MERGEX', 'sss', 's'),
     ('TAKE', 'sss', 'v'),
-    ('CASEOF', 'ss', 's'),
+    ('CASEOF', 'vs', 's'),
 
     ('MONEYTOWORDS', 'nsnn', 's'),
     ('NUMTOWORDS', 'nnn', 's'),
@@ -387,7 +387,10 @@ const
 
     ('TYPEDTEXT', 'n', 'v'),
     ('ISWEB', '', 'b'),
-    ('ISSERVICE', '', 'b')
+    ('ISSERVICE', '', 'b'),
+
+    ('ENCODEDATE', 'nnn', 'd'),
+    ('ENCODETIME', 'nnn', 't')
 
     );
 
@@ -538,6 +541,9 @@ const
     FUNC_TYPEDTEXT = 139;
     FUNC_ISWEB = 140;
     FUNC_ISSERVICE = 141;
+
+    FUNC_ENCODEDATE = 142;
+    FUNC_ENCODETIME = 143;
 
 function EvalField(ARecordSet: TSsRecordSet; const aExpr: String;
   aSkipLabels: Boolean): Variant;
@@ -729,7 +735,7 @@ var
   F: TField;
 begin
   Result := Null;
-  Col := FRD.Grid.FindColumnByTitle(FFieldName);
+  Col := FRD.Grid.FindColumnByFieldName(FFieldName);
   if Col <> nil then
   begin
     F := FDS.FindField(Col.FieldNameDS);
@@ -798,7 +804,7 @@ begin
 
   if CheckNull(Vals) and not (FIdx in [FUNC_IIF, FUNC_CSTR, FUNC_NZ, FUNC_SETVAR,
     FUNC_SETFIELD, FUNC_SETLABEL, FUNC_BLOCK, FUNC_CONCAT, FUNC_IFZ, FUNC_IFE,
-    FUNC_TIMESTAMP]) then Exit;
+    FUNC_TIMESTAMP, FUNC_CASEOF]) then Exit;
 
   case FIdx of
     FUNC_COUNT: V := CalcAggFunc(FRS, Vals[0], '', '', tfCount);
@@ -845,7 +851,7 @@ begin
     FUNC_AVGIF: V := CalcAggFunc(FRS, Vals[0], Vals[1], Vals[2], tfAvg);
     FUNC_CSTR: V := VarToStr(Vals[0]);
     FUNC_CNUM: V := StrToFloat(Vals[0]);
-    FUNC_CDATE: V := StrToDate(Vals[0]);
+    FUNC_CDATE: V := TextToDate(Vals[0]);
     FUNC_ADDDAY: V := IncDay(Vals[0], Vals[1]);
     FUNC_ADDWEEK: V := IncWeek(Vals[0], Vals[1]);
     FUNC_ADDMONTH: V := IncMonth(Vals[0], Vals[1]);
@@ -941,7 +947,7 @@ begin
     FUNC_TIMESTAMP: V := GetTimeStamp(Vals[0], Vals[1]);
     FUNC_MERGEX: V := MergeRowsEx(FRS, Vals[0], Vals[1], Vals[2]);
     FUNC_TAKE: V := CalcAggFunc(FRS, Vals[0], Vals[1], Vals[2], tfNone);
-    FUNC_CASEOF: V := CaseOf(Vals[0], Vals[1]);
+    FUNC_CASEOF: V := CaseOf(VarToStr(Vals[0]), VarToStr(Vals[1]));
 
     // Падеж
     FUNC_MONEYTOWORDS: V := DeclCurrency(Vals[0], Vals[1], Vals[2], Vals[3]);
@@ -953,6 +959,9 @@ begin
     FUNC_TYPEDTEXT: V := GetTypedText(FRS.Session, Vals[0]);
     FUNC_ISWEB: V := IsWebServer;
     FUNC_ISSERVICE: V := FRS.Session.IsService;
+
+    FUNC_ENCODEDATE: V := EncodeDate(Vals[0], Vals[1], Vals[2]);
+    FUNC_ENCODETIME: V := EncodeTime(Vals[0], Vals[1], Vals[2], 0);
   end;
   Result := V;
 end;
@@ -1887,7 +1896,7 @@ begin
           Break;
         end;
 
-        Tmp := SqlSelectGroups(FRS.Session, Fm.Id, True);
+        Tmp := SqlSelectGroups(FRS.Session, Fm.Id, True, False);
         if Tmp <> '' then Tmp := '(' + Tmp + ')'
         else Tmp := TableStr(Fm.Id);
 

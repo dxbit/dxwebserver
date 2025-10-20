@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -229,7 +229,7 @@ begin
   if TryStrToInt(Value, N) then Result := rsNumber
   else if TryStrToFloat(Value, E) then Result := rsNumber
   else if TryStrToTime(Value, DT) then Result := rsTime
-  else if TryStrToDate(Value, DT) then Result := rsDate
+  else if TryTextToDate(Value, DT) then Result := rsDate
   else Result := rsText;
 end;
 
@@ -720,7 +720,7 @@ begin
       begin
         AliasSL.Add(AliasName);
         AliasNm := AliasStr(AliasSL, AliasName);
-        Tmp := SqlSelectGroups(FSS, Fm.Id, True);
+        Tmp := SqlSelectGroups(FSS, Fm.Id, True, False);
         if Tmp <> '' then Tmp := '(' + Tmp + ')'
         else Tmp := TableStr(Fm.Id);
         JoinStr := JoinStr + GetJoinType(FSS, RootC, ParentC) + Tmp + ' ' + AliasNm +
@@ -971,7 +971,7 @@ begin
         FSrcRS.SetDSField(FCmp, StrToInt(Value));
     end
   else if FCmp is TdxDateEdit then
-    FSrcRS.SetDSField(FCmp, StrToDate(Value))
+    FSrcRS.SetDSField(FCmp, Str2Date(Value))
   else
     FSrcRS.SetDSField(FCmp, Value)
 end;

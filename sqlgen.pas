@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ function SqlSelectStatement(ARecordSet: TSsRecordSet; Fields: TList; UseSelCond,
 function SqlReportSelect(RD: TReportData; ARecordSet: TSsRecordSet): String;
 function SqlSelCondFilter(SrcRS, ARecordSet: TSsRecordSet; const Cond: String;
   var JStr: String; AliasSL: TStrings): String;
-function SqlSelectGroups(SS: TSession; SourceTId: Integer; AllFields: Boolean): String;
+function SqlSelectGroups(SS: TSession; SourceTId: Integer; AllFields, ShowAsTree: Boolean): String;
 function SqlSelectIDs(SS: TSession; SourceTId: Integer; SId: String): String;
 function GetJoinType(SS: TSession; ParentObj, Obj: TdxField): String;
 procedure CheckTime(fmt: TdxTimeFormat; var Bg, Ed: String);
@@ -169,10 +169,11 @@ begin
   end;
 end;
 
-function SqlSelectGroups(SS: TSession; SourceTId: Integer; AllFields: Boolean): String;
+function SqlSelectGroups(SS: TSession; SourceTId: Integer; AllFields,
+  ShowAsTree: Boolean): String;
 var
   Fm: TdxForm;
-  TNm, FNm, PFNm, S, LevelChars: String;
+  TNm, FNm, PFNm, S, LevelChars, Delim: String;
   i, FId: Integer;
   C: TdxField;
   L: TList;
@@ -186,12 +187,14 @@ begin
   FNm := FieldStr(FId);
   PFNm := FieldStr(Fm.ParentField);
 	LevelChars := IntToStr(Fm.LevelCount * GetFieldSize(Fm.FindField(FId)) + Fm.LevelCount - 1);
+  if ShowAsTree then Delim := 'ASCII_CHAR(9)'
+  else Delim := '''\''';
   Result := 'with recursive pathes as ' +
 	  '(select id, CAST(LEFT(' + FNm + ',' +
     LevelChars + ') as VARCHAR(' + LevelChars + ')) as ' + FNm + ' from ' + TNm +
     ' where ' + PFNm + ' is null ' +
     'union all ' +
-    'select t.id,LEFT(p.' + FNm + ' || ''\'' || t.' + FNm + ',' + LevelChars + ') from ' + TNm +
+    'select t.id,LEFT(p.' + FNm + ' || ' + Delim + ' || t.' + FNm + ',' + LevelChars + ') from ' + TNm +
     ' t join pathes p on t.' + PFNm + '=p.id) ';
 
   if AllFields then
@@ -342,7 +345,7 @@ begin
         AliasSL.Add(STa);
         AliasNm := AliasStr(AliasSL, STa);
 
-        ST := SqlSelectGroups(SS, SourceTId, True);
+        ST := SqlSelectGroups(SS, SourceTId, True, False);
         if ST = '' then ST := TableStr(SourceTId)
         else ST := '(' + ST + ')';
         Jn := Jn + GetJoinType(SS, Obj, Obj) + ST + ' ' + AliasNm + ' on ' + T + '.' + F + '=' +
@@ -382,7 +385,7 @@ begin
           AliasSL.Add(STa);
           AliasNm := AliasStr(AliasSL, STa);
 
-          ST := SqlSelectGroups(SS, SourceTId, True);
+          ST := SqlSelectGroups(SS, SourceTId, True, False);
           if ST = '' then ST := TableStr(SourceTId)
           else ST := '(' + ST + ')';
           Jn := Jn + GetJoinType(SS, Obj, C) + ST + ' ' + AliasNm + ' on ' + CbxAliasNm + '.' + F + '=' +
@@ -465,7 +468,7 @@ var
   DT: TDateTime;
 begin
   if Value = '' then Exit('');
-  DT := StrToDate(Value);
+  DT := TextToDate(Value);
   Result := Date2Str(DT);
 end;
 
@@ -474,12 +477,12 @@ begin
   Result := False;
   if Copy(S, 1, 1) = '$' then
   begin
-    Ed := DateToStr(Date);
+    Ed := Date2Str(Date);
     case TPeriodType(StrToInt(Copy(S, 2, 10))) of
-      ptToday: Bg := DateToStr(Date);
-      ptThisWeek: Bg := DateToStr( IncDay(Date, -DayOfTheWeek(Date)+1) );
-      ptThisMonth: Bg := DateToStr( IncDay(Date, -DayOf(Date)+1) );
-      ptThisYear: Bg := DateToStr( EncodeDate(YearOf(Date), 1, 1) );
+      ptToday: Bg := Date2Str(Date);
+      ptThisWeek: Bg := Date2Str( IncDay(Date, -DayOfTheWeek(Date)+1) );
+      ptThisMonth: Bg := Date2Str( IncDay(Date, -DayOf(Date)+1) );
+      ptThisYear: Bg := Date2Str( EncodeDate(YearOf(Date), 1, 1) );
     end;
     Result := True;
   end;
@@ -1067,7 +1070,7 @@ var
       AliasNm := AliasStr(AliasSL, S);
       ParentAliasNm := GetAliasOrTblNm(Fl.Parent^);
 
-      Tmp := SqlSelectGroups(SS, Fl.TId, True);
+      Tmp := SqlSelectGroups(SS, Fl.TId, True, False);
       if Tmp <> '' then Tmp := '(' + Tmp + ')'
       else Tmp := TableStr(Fl.TId);
       JStr := JStr + GetJoinTypeByRpField(SS, Fl.Parent^) + Tmp + ' ' + AliasNm +
@@ -1264,9 +1267,9 @@ begin
     else if Tp = flDate then
     begin
       if V1 <> '' then
-      	Tmp := Tmp + Fn + '>=''' + V1 + ''' and ';
+      	Tmp := Tmp + Fn + '>=''' + CheckDate(V1) + ''' and ';
     	if V2 <> '' then
-        Tmp := Tmp + Fn + '<=''' + V2 + ''' and ';
+        Tmp := Tmp + Fn + '<=''' + CheckDate(V2) + ''' and ';
       Tmp := Copy(Tmp, 1, Length(Tmp) - 5);
       rS := rS + '(' + Tmp + ') or ';
     end
@@ -1348,9 +1351,9 @@ begin
           Ed := Copy(S, p + 4, 1024);
           Tmp := '';
           if Bg <> '' then
-            Tmp := Tmp + FlNm + '>=''' + Bg + ''' and ';
+            Tmp := Tmp + FlNm + '>=''' + CheckDate(Bg) + ''' and ';
           if Ed <> '' then
-            Tmp := Tmp + FlNm + '<=''' + Ed + ''' and ';
+            Tmp := Tmp + FlNm + '<=''' + CheckDate(Ed) + ''' and ';
           Tmp := Copy(Tmp, 1, Length(Tmp) - 5);
           if Tmp <> '' then
             W := W + '(' + Tmp + ') or ';
@@ -1974,7 +1977,7 @@ begin
           AliasSL.Add(STa);
           AliasNm := AliasStr(AliasSL, STa);
 
-          ST := SqlSelectGroups(ARecordSet.Session, SourceTId, True);
+          ST := SqlSelectGroups(ARecordSet.Session, SourceTId, True, False);
           if ST = '' then ST := TableStr(SourceTId)
           else ST := '(' + ST + ')';
           SF := FieldStr(SourceFId);
@@ -2003,7 +2006,7 @@ begin
     SplitStr(Fragments, ' ', SL);
     for i := 0 to SL.Count - 1 do
     begin
-      S := EscapeSQuotes(SL[i]);
+      S := StringReplace(EscapeSQuotes(SL[i]), '\', #9, [rfReplaceall]);
       if S = '' then Continue;
 
       Flt := Flt + '(' + GetCastByFieldId(SrcFm, FId, S, nil) + ' or ';
@@ -2025,7 +2028,7 @@ begin
     Wh := Wh + '(' + Flt + ')';
   end;
 
-  Grps := SqlSelectGroups(ARecordSet.Session, TId, True);
+  Grps := SqlSelectGroups(ARecordSet.Session, TId, True, LCbx.ShowAsTreeList);
   if Grps <> '' then
   	Result := Result + ' from (' + Grps + ') ' + T
   else
@@ -2036,6 +2039,7 @@ begin
   if Wh <> '' then Result := Result + ' where ' + Wh;
 
   Result := Result + ' order by 2';
+  if LCbx.ShowAsTreeList then Result := Result + ' collate ucs_basic';
 
   AliasSL.Free;
   LCbxFields.Free;
@@ -2090,7 +2094,7 @@ begin
     Wh := Wh + '(' + Flt + ')';
   end;
 
-  Grps := SqlSelectGroups(ARecordSet.Session, TId, True);
+  Grps := SqlSelectGroups(ARecordSet.Session, TId, True, False);
   if Grps <> '' then
   	Result := Result + ' from (' + Grps + ') ' + T
   else
@@ -2151,7 +2155,7 @@ begin
     Wh := Flt;
   end;
 
-  Grps := SqlSelectGroups(SS, TId, True);
+  Grps := SqlSelectGroups(SS, TId, True, LCbx is TdxLookupComboBox);
   if Grps <> '' then
   	Result := Result + ' from (' + Grps + ') ' + T
   else
@@ -2160,6 +2164,7 @@ begin
   if Wh <> '' then Result := Result + ' where ' + Wh;
 
   Result := Result + ' order by 2';
+  if LCbx is TdxLookupComboBox then Result := Result + ' collate ucs_basic';
 end;
 
 function SqlLookupSelect(SS: TSession; C: TdxField; RecId: Integer): String;
@@ -2180,7 +2185,7 @@ begin
   Result := 'select ' + TableStr(TId) + '.id,' +
   	TableStr(TId) + '.' + FlNm + ' from ';
 
-  Grps := SqlSelectGroups(SS, TId, True);
+  Grps := SqlSelectGroups(SS, TId, True, False);
   if Grps <> '' then
   	Result := Result + '(' + Grps + ') ' + TableStr(TId)
   else

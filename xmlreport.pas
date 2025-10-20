@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ type
     procedure AddDataRec(ARecordSet: TSsRecordSet);
     procedure AddDataRecQ(ARecordSet: TSsRecordSet; aParent: PDataRec);
     function GetData(i: Integer): PDataRec;
-    function FindDataByFormCaption(const S: String): PDataRec;
+    function FindDataByFormCaption(PParentD: PDataRec; const S: String): PDataRec;
     function LookupFieldValue(Form: TdxForm; const FieldName: String; DataSet: TDataSet): String;
     procedure AddError(const S: String);
     function DoCalcField(pD: PDataRec; const FldNm: String; var V: Variant): Boolean;
@@ -810,7 +810,7 @@ var
           // данных может быть произвольный текст или несколько полей.
           if (m > 1) or ((dt = 'n') and
             not TryStrToFloat(StringReplace(S, ts, '', [rfReplaceAll]), E)) or
-            ((dt = 'd') and not TryStrToDate(S, Dat)) or
+            ((dt = 'd') and not TryTextToDate(S, Dat)) or
             ((dt = 't') and not TryStrToTime(S, Dat)) then dt := 's';
 
           NumGrouping := (dt = 'n') and (Pos(ts, S) > 0);
@@ -922,7 +922,7 @@ var
           end
           else if dt = 'd' then
           begin
-            if TryStrToDate(N.TextContent, Dat) then
+            if TryTextToDate(N.TextContent, Dat) then
             begin
               N.SetAttribute('office:date-value', Format('%s-%s-%sT00:00:00',
                 [SetZeros(YearOf(Dat), 2), SetZeros(MonthOf(Dat), 2), SetZeros(DayOf(Dat), 2)]));
@@ -1214,7 +1214,7 @@ begin
   Result := PDataRec(FData[i]);
 end;
 
-function TXmlReport.FindDataByFormCaption(const S: String): PDataRec;
+{function TXmlReport.FindDataByFormCaption(const S: String): PDataRec;
 var
   i: Integer;
   pD: PDataRec;
@@ -1224,6 +1224,24 @@ begin
   begin
     pD := getData(i);
     if MyUtf8CompareText(pD^.BandName, S) = 0 then Exit(pD);
+  end;
+end;}
+
+function TXmlReport.FindDataByFormCaption(PParentD: PDataRec; const S: String
+  ): PDataRec;
+var
+  i: Integer;
+  pD: PDataRec;
+begin
+  Result := nil;
+  if (PParentD <> nil) and (PParentD^.RecordSet.RD <> nil) then
+    PParentD := PParentD^.Parent;
+
+  for i := 0 to FData.Count - 1 do
+  begin
+    pD := GetData(i);
+    if ((pD^.Parent = PParentD) or (PParentD = nil) and (pD^.Parent = FData[0]))
+      and (MyUtf8CompareText(pD^.BandName, S) = 0) then Exit(pD);
   end;
 end;
 
@@ -1415,7 +1433,7 @@ begin
         end
         else if C is TdxRecordId then Break;
 
-        Tmp := SqlSelectGroups(FRecordSet.Session, Fm.Id, True);
+        Tmp := SqlSelectGroups(FRecordSet.Session, Fm.Id, True, False);
         if Tmp <> '' then Tmp := '(' + Tmp + ')'
         else Tmp := TableStr(Fm.Id);
 
@@ -1590,7 +1608,7 @@ var
   DS: TSQLQuery;
 begin
   Result := ''; dt := ''; pr := 0;
-  //Col := D.RecordSet.RD.Grid.FindColumnByTitle(FieldName);
+  //Col := D.RecordSet.RD.Grid.FindColumnByFieldName(FieldName);
   //if Col <> nil then
   RD := D.RecordSet.RD;
   DS := D.RecordSet.DataSet;
@@ -2223,7 +2241,7 @@ begin
           Form.DoPrintEvent(paBeginData, BnNm, '', Tmp, Accept);
 
           pOldD := pD;
-          pD := FindDataByFormCaption(BnNm);
+          pD := FindDataByFormCaption(pOldD, BnNm);
           if Accept and (pD = nil) then pD := AddVirtualData(BnNm);
 
           if pD <> nil then

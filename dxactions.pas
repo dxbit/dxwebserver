@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ type
   private
     FExpression: String;
     FFileAction: TPrintFileAction;
-    FOutFile: String;
+    FOutFileExpr: String;
     FSaveRecord: Boolean;
     FTemplateFile: String;
   protected
@@ -111,7 +111,7 @@ type
     constructor Create; override;
     property TemplateFile: String read FTemplateFile write FTemplateFile;
     property Expression: String read FExpression write FExpression;
-    property OutFile: String read FOutFile write FOutFile;
+    property OutFile: String read FOutFileExpr write FOutFileExpr;
     property SaveRecord: Boolean read FSaveRecord write FSaveRecord;
     property FileAction: TPrintFileAction read FFileAction write FFileAction;
   end;
@@ -232,7 +232,7 @@ type
     Action: TBaseAction;
     Cond, Text: String;
     Lines: TActionLines;
-    StopHere: Boolean;
+    StopHere, SkipCond: Boolean;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -760,6 +760,7 @@ var
   SkipCond: Boolean;
   Fm: TdxForm;
 begin
+  SkipCond := False;
   Fm := FRS.Form;
   for i := 0 to ALines.Count - 1 do
   begin
@@ -771,11 +772,13 @@ begin
       begin
         L.StopHere := False;
         FNeedContinue := False;
-        //Continue;
       end
       else if L.Kind in [alkIf, alkElseIf, alkElse] then
+      begin
+        if not SkipCond then
+          SkipCond := L.SkipCond;
         RunLines(L.Lines);
-      //else Continue;
+      end;
       Continue;
     end;
 
@@ -787,11 +790,7 @@ begin
       begin
         L.Action.RS := FRS;
         Fm.ActionResult := L.Action.Execute;
-        {if FRS.GotoUrl <> '' then
-        begin
-          raise EActionBreak.Create('');
-        end
-        else }if FRS.MsgInfo.Visible or (FRS.GotoUrl <> '')  then
+        if FRS.MsgInfo.Visible or (FRS.GotoUrl <> '')  then
         begin
           L.StopHere := True;
           FNeedContinue := True;
@@ -805,6 +804,7 @@ begin
       if VarIsBool(Cond) and (Cond = True) then
       begin
         SkipCond := True;
+        L.SkipCond := True;
         RunLines(L.Lines);
       end;
     end
@@ -1286,7 +1286,7 @@ end;    }
 
 function TPrintAction.InnerExecute: Variant;
 var
-  Tpl, TplFullName, OutName, Errs: String;
+  Tpl, TplFullName, OutName, FileName, Errs: String;
   IsModified: Boolean;
 begin
   Result := False;
@@ -1309,13 +1309,30 @@ begin
   if Tpl = '' then Exit;
   TplFullName := FRS.Session.GetTemplatesPath + StringReplace(Tpl, '\',
     DirectorySeparator, [rfReplaceAll]);
-  OutName := ExtractFileName(TplFullName);
 
   if not FileExists(TplFullName) then
     raise Exception.Create(Format(rsTemplateNotFound, [Tpl]));
 
-  ReportToXXX(RS, TplFullName, GetCachePath(FRS.Session) + OutName, Errs);
-  FRS.DocUrl := GetCachePath(FRS.Session, True) + OutName;
+  if FOutFileExpr <> '' then
+    FileName := VarToStr(EvalExpr(FOutFileExpr, FRS));
+
+  if FileName = '' then
+    OutName := ExtractFileName(TplFullName)
+  else
+    OutName := ExtractFileName(FileName);
+
+  // Если выходной файл не указан или указано только имя файла, то файл будет в кэше
+  if (FileName = '') or (OutName = FileName) then
+  begin
+    if FFileAction > pfaNone then
+      FRS.DocUrl := GetCachePath(FRS.Session, True) + OutName;
+    OutName := GetCachePath(FRS.Session) + OutName;
+  end
+  else
+    OutName := FileName;
+
+  ReportToXXX(RS, TplFullName, OutName, Errs);
+
   FRS.PrintErrors := Errs;
   Result := True;
 end;

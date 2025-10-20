@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -1207,7 +1207,12 @@ begin
         Result := TryStrToInt(S, N);
         if Result then V := N;
       end;
-    flDate, flTime:
+    flDate:
+      begin
+        Result := TryTextToDate(S, D);
+        if Result then V := D;
+      end;
+    flTime:
       begin
         Result := TryStrToDateTime(S, D);
         if Result then V := D;

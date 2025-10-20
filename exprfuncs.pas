@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ begin
   begin
     if FieldName <> '' then
     begin
-      Col := RS.RD.Grid.FindColumnByTitle(FieldName);
+      Col := RS.RD.Grid.FindColumnByFieldName(FieldName);
       if Col = nil then raise Exception.CreateFmt(rsFieldNotFound, [FieldName]);
     end;
     if not RS.Open then raise Exception.CreateFmt(rsCouldNotOpenQueryDataSet,
@@ -608,7 +608,7 @@ begin
     CC := Fm.FindField(Fm.ParentField);
     if GetSourceFId(CC) = C.Id then
     begin
-      SQL := SqlSelectGroups(SS, Fm.Id, False);
+      SQL := SqlSelectGroups(SS, Fm.Id, False, False);
       SQL := SQL + ' where ' + FieldStr(C.Id) + '=''' + FieldValue + '''';
     end;
   end;
@@ -1125,7 +1125,7 @@ begin
     end
     else
     begin
-      rC := RS.RD.Grid.FindColumnByTitle(S);
+      rC := RS.RD.Grid.FindColumnByFieldName(S);
       if rC = nil then raise Exception.Create(Format(rsFieldNotFound, [S]));
       F := DS.FieldByName(rC.FieldNameDS);
     end;
@@ -1416,7 +1416,7 @@ begin
   end;
 end;
 
-function CaseOf(const AValue, AItems: String): String;
+{function CaseOf(const AValue, AItems: String): String;
 var
   SL: TStringListUtf8;
 begin
@@ -1424,6 +1424,16 @@ begin
   SL.Delimiter:=';';
   SL.StrictDelimiter:=True;
   SL.DelimitedText := AItems;
+  Result := SL.Values[AValue];
+  SL.Free;
+end;  }
+
+function CaseOf(const AValue, AItems: String): String;
+var
+  SL: TStringListUtf8;
+begin
+  SL := TStringListUtf8.Create;
+  SplitStr(AItems, ';', SL);
   Result := SL.Values[AValue];
   SL.Free;
 end;

@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -175,6 +175,7 @@ type
     FEnabled: Boolean;
     FFont: TdxFont;
     FHeight: Integer;
+    FHint: String;
     FLeft: Integer;
     FOnPropertyChange: TPropertyChangeEvent;
     FParent: TdxWinControl;
@@ -226,6 +227,7 @@ type
     property Hidden: Boolean read FHidden write FHidden;
     property FontStyleParsed: Boolean read FFontStyleParsed write FFontStyleParsed;
     property ControlVisible: Boolean read FControlVisible write FControlVisible;
+    property Hint: String read FHint write FHint;
   end;
 
   { TControlList }
@@ -243,10 +245,12 @@ type
   private
     FFieldName: String;
     FId: Integer;
+    FTextHint: String;
   public
     procedure Assign(Source: TPersistent); override;
     property Id: Integer read FId write FId;
     property FieldName: String read FFieldName write FFieldName;
+    property TextHint: String read FTextHint write FTextHint;
   end;
 
   { TdxWinControl }
@@ -269,15 +273,22 @@ type
   TdxLabel = class(TdxControl)
   private
     FAlignment: TAlignment;
+    FAutoSize: Boolean;
     FExpr: String;
     FFieldName: String;
+    FLayout: TTextLayout;
     FValue: Variant;
+    FWordWrap: Boolean;
   public
+    constructor Create(AOwner: TdxComponent); override;
     procedure Assign(Source: TPersistent); override;
     property FieldName: String read FFieldName write FFieldName;
     property Expression: String read FExpr write FExpr;
     property Value: Variant read FValue write FValue;
     property Alignment: TAlignment read FAlignment write FAlignment;
+    property Layout: TTextLayout read FLayout write FLayout;
+    property WordWrap: Boolean read FWordWrap write FWordWrap;
+    property AutoSize: Boolean read FAutoSize write FAutoSize;
   end;
 
   { TdxEdit }
@@ -434,7 +445,10 @@ type
   { TdxComboBox }
 
   TdxComboBox = class(TdxCustomComboBox)
-
+  private
+    FItemsOnly: Boolean;
+  public
+    property ItemsOnly: Boolean read FItemsOnly write FItemsOnly;
   end;
 
   { TInsertValueData }
@@ -495,6 +509,7 @@ type
     FListSource: Integer;
     FListWidthExtra: Integer;
     FOnCreateForm: TCreateFormEvent;
+    FShowAsTreeList: Boolean;
     procedure SetListFields(AValue: TLCbxListFields);
   public
     constructor Create(AOwner: TdxComponent); override;
@@ -507,6 +522,7 @@ type
     property HideButton: Boolean read FHideButton write FHideButton;
     property ListKeyField: String read FListKeyField write FListKeyField;
     property ListSource: Integer read FListSource write FListSource;
+    property ShowAsTreeList: Boolean read FShowAsTreeList write FShowAsTreeList;
     property OnCreateForm: TCreateFormEvent read FOnCreateForm write FOnCreateForm;
   end;
 
@@ -587,8 +603,10 @@ type
     property IsQuery: Boolean read FIsQuery write FIsQuery;
   end;
 
-  TShapeType = (stRectangle, stSquare, stRoundRect, stRoundSquare,
-      stEllipse, stCircle, stSquaredDiamond, stDiamond, stTriangle);
+  TShapeType = (stRectangle, stSquare, stRoundRect, stRoundSquare, stEllipse,
+    stCircle, stSquaredDiamond, stDiamond, stTriangle, stTriangleLeft,
+    stTriangleRight, stTriangleDown, stStar, stStarDown, stPolygon);
+  TShapeTypeEx = (steNone, steVertLine, steHorzLine, steBDiagonal, steFDiagonal, steCross, steDiagCross);
 
   { TdxShape }
 
@@ -598,11 +616,13 @@ type
     FPen: TdxPen;
     FShape: TShapeType;
     FModified: Boolean;
+    FShapeEx: TShapeTypeEx;
     procedure BrushChange(Sender: TObject);
     procedure PenChange(Sender: TObject);
     procedure SetBrush(AValue: TdxBrush);
     procedure SetPen(AValue: TdxPen);
     procedure SetShape(AValue: TShapeType);
+    procedure SetShapeEx(AValue: TShapeTypeEx);
     //procedure Paint(Canvas: TBGRACanvas);
   public
     constructor Create(AOwner: TdxComponent); override;
@@ -613,6 +633,7 @@ type
     property Brush: TdxBrush read FBrush write SetBrush;
     property Pen: TdxPen read FPen write SetPen;
     property Shape: TShapeType read FShape write SetShape;
+    property ShapeEx: TShapeTypeEx read FShapeEx write SetShapeEx;
     property Modified: Boolean read FModified write FModified;
   end;
 
@@ -1463,13 +1484,48 @@ begin
   end;
 end;
 
+// Angle of 5-angled star is function(N=0..9, Down) = pi/5 * N + pi/2 * IfThen(Down, -1, 1);
+const
+  CosStarBig: array[0..4, Boolean] of Single = (
+    (Cos(       + pi/2), Cos(       - pi/2)),
+    (Cos(2*pi/5 + pi/2), Cos(2*pi/5 - pi/2)),
+    (Cos(4*pi/5 + pi/2), Cos(4*pi/5 - pi/2)),
+    (Cos(6*pi/5 + pi/2), Cos(6*pi/5 - pi/2)),
+    (Cos(8*pi/5 + pi/2), Cos(8*pi/5 - pi/2))
+    );
+  SinStarBig: array[0..4, Boolean] of Single = (
+    (Sin(       + pi/2), Sin(       - pi/2)),
+    (Sin(2*pi/5 + pi/2), Sin(2*pi/5 - pi/2)),
+    (Sin(4*pi/5 + pi/2), Sin(4*pi/5 - pi/2)),
+    (Sin(6*pi/5 + pi/2), Sin(6*pi/5 - pi/2)),
+    (Sin(8*pi/5 + pi/2), Sin(8*pi/5 - pi/2))
+    );
+  CosStarSmall: array[0..4, Boolean] of Single = (
+    (Cos(  pi/5 + pi/2), Cos(  pi/5 - pi/2)),
+    (Cos(3*pi/5 + pi/2), Cos(3*pi/5 - pi/2)),
+    (Cos(5*pi/5 + pi/2), Cos(5*pi/5 - pi/2)),
+    (Cos(7*pi/5 + pi/2), Cos(7*pi/5 - pi/2)),
+    (Cos(9*pi/5 + pi/2), Cos(9*pi/5 - pi/2))
+    );
+  SinStarSmall: array[0..4, Boolean] of Single = (
+    (Sin(  pi/5 + pi/2), Sin(  pi/5 - pi/2)),
+    (Sin(3*pi/5 + pi/2), Sin(3*pi/5 - pi/2)),
+    (Sin(5*pi/5 + pi/2), Sin(5*pi/5 - pi/2)),
+    (Sin(7*pi/5 + pi/2), Sin(7*pi/5 - pi/2)),
+    (Sin(9*pi/5 + pi/2), Sin(9*pi/5 - pi/2))
+    );
+
 procedure ShapeToFile(Cmp: TdxShape; const FileName: String);
+const
+  cStarError = 2; // Detect N pixels error for 5-star horizontal lines
 var
   PaintRect: TRect;
   MinSize: Longint;
-  P: array[0..3] of TPoint;
-  PenInc, PenDec: Integer;
+  P: array of TPoint;
+  PCenter: TPoint;
+  PenInc, PenDec, i, x, y: Integer;
   Bmp: TBGRABitmap;
+  RadiusBig, RadiusBig2, RadiusSm: Int64;
 begin
   Bmp := TBGRABitmap.Create(Cmp.Width, Cmp.Height);
   try try
@@ -1501,41 +1557,149 @@ begin
       end;
     end;
 
-    case Cmp.Shape of
-      stRectangle, stSquare:
-        Rectangle(PaintRect);
-      stRoundRect, stRoundSquare:
-        RoundRect(PaintRect, MinSize div 4, MinSize div 4);
-      stCircle, stEllipse:
-        Ellipse(PaintRect);
-      stSquaredDiamond, stDiamond:
-      begin
-        with PaintRect do
+    if Cmp.ShapeEx = steNone then
+      case Cmp.Shape of
+        stRectangle, stSquare:
+          Rectangle(PaintRect);
+        stRoundRect, stRoundSquare:
+          RoundRect(PaintRect, MinSize div 4, MinSize div 4);
+        stCircle, stEllipse:
+          Ellipse(PaintRect);
+        stSquaredDiamond, stDiamond:
         begin
-          P[0].x := Left;
-          P[0].y := (Top + Bottom) div 2;
-          P[1].x := (Left + Right) div 2;
-          P[1].y := Top;
-          P[2].x := Right - 1;
-          P[2].y := P[0].y;
-          P[3].x := P[1].x;
-          P[3].y := Bottom - 1;
+          with PaintRect do
+          begin
+            SetLength(P, 4);
+            P[0].x := Left;
+            P[0].y := (Top + Bottom) div 2;
+            P[1].x := (Left + Right) div 2;
+            P[1].y := Top;
+            P[2].x := Right - 1;
+            P[2].y := P[0].y;
+            P[3].x := P[1].x;
+            P[3].y := Bottom - 1;
+            Polygon(P);
+          end;
+        end;
+        stTriangle:
+        begin
+          SetLength(P, 3);
+          P[0].x := (Width - 1) div 2;
+          P[0].y := PenInc;
+          P[1].x := Width - PenInc - 1;
+          P[1].y := Height - PenInc - 1;
+          P[2].x := PenInc;
+          P[2].y := Height - PenInc - 1;
           Polygon(P);
         end;
+        stTriangleDown:
+        begin
+          SetLength(P, 3);
+          P[0].x := (Width - 1) div 2;
+          P[0].y := Height - PenInc - 1;
+          P[1].x := Width - PenInc - 1;
+          P[1].y := PenInc;
+          P[2].x := PenInc;
+          P[2].y := PenInc;
+          Polygon(P);
+        end;
+        stTriangleLeft:
+        begin
+          SetLength(P, 3);
+          P[0].x := PenInc;
+          P[0].y := Height div 2;
+          P[1].x := Width - PenInc - 1;
+          P[1].y := PenInc;
+          P[2].x := Width - PenInc - 1;
+          P[2].y := Height - PenInc - 1;
+          Polygon(P);
+        end;
+        stTriangleRight:
+        begin
+          SetLength(P, 3);
+          P[0].x := Width - PenInc - 1;
+          P[0].y := Height div 2;
+          P[1].x := PenInc;
+          P[1].y := PenInc;
+          P[2].x := PenInc;
+          P[2].y := Height - PenInc - 1;
+          Polygon(P);
+        end;
+        stStar, stStarDown:
+        begin
+          //radius if star scaled by height
+          RadiusBig := Trunc((Height-Pen.Width) / (1+cos(pi/5)));
+          //radius if star scaled by width
+          RadiusBig2 := Trunc((Width-Pen.Width) / (2*sin(pi*2/5)));
+
+          if RadiusBig<=RadiusBig2 then
+          begin
+            if Cmp.Shape=stStar then
+              PCenter.Y := RadiusBig+PenDec
+            else
+              PCenter.Y := Height-RadiusBig-PenDec;
+          end
+          else begin
+            RadiusBig := RadiusBig2;
+            PCenter.Y := Height div 2;
+          end;
+
+          PCenter.X := Width div 2;
+          RadiusSm := RadiusBig * 57 div 150;
+
+          SetLength(P, 10);
+          for i := 0 to 4 do
+          begin
+            P[i*2].x := PCenter.X + Round(RadiusBig*CosStarBig[i, Cmp.Shape=stStarDown]);
+            P[i*2].y := PCenter.Y - Round(RadiusBig*SinStarBig[i, Cmp.Shape=stStarDown]);
+            P[i*2+1].x := PCenter.X + Round(RadiusSm*CosStarSmall[i, Cmp.Shape=stStarDown]);
+            P[i*2+1].y := PCenter.Y - Round(RadiusSm*SinStarSmall[i, Cmp.Shape=stStarDown]);
+          end;
+
+          // Fix 1 pixel error of horizontal lines, adjust point on small radius to the point on big one
+          for i := 0 to 4 do
+            if Abs(P[i*2].y - P[i*2+1].y) <= cStarError then
+              P[i*2+1].y := P[i*2].y;
+          for i := 1 to 4 do
+            if Abs(P[i*2].y - P[i*2-1].y) <= cStarError then
+              P[i*2-1].y := P[i*2].y;
+
+          Polygon(P);
+        end;
+      end
+    else
+      case Cmp.ShapeEx of
+        steVertLine:
+          begin
+            x := Width div 2;
+            Line(x, 0, x, Height);
+          end;
+        steHorzLine:
+          begin
+            y := Height div 2;
+            Line(0, y, Width, y);
+          end;
+        steBDiagonal:
+          begin
+            Line(0, Height, Width, 0);
+          end;
+        steFDiagonal:
+          begin
+            Line(0, 0, Width, Height);
+          end;
+        steCross:
+          begin
+            x := Width div 2;
+            Line(x, 0, x, Height);
+            y := Height div 2;
+            Line(0, y, Width, y);
+          end;
+        steDiagCross:
+          begin
+            Line(0, Height, Width, 0);
+            Line(0, 0, Width, Height);
+          end;
       end;
-      stTriangle:
-      begin
-        P[0].x := (Width - 1) div 2;
-        P[0].y := PenInc;
-        P[1].x := Width - PenInc - 1;
-        P[1].y := Height - PenInc - 1;
-        P[2].x := PenInc;
-        P[2].y := Height - PenInc - 1;
-        P[3].x := P[0].x;
-        P[3].y := P[0].y;
-        Polygon(P);
-      end;
-    end;
   end;
   Bmp.SaveToFile(FileName);
 
@@ -2533,7 +2697,7 @@ function TdxQueryGrid.GetQueryFields(AIndex: String): Variant;
 var
   C: TRpGridColumn;
 begin
-  C := TSsRecordSet(FRS).RD.Grid.FindColumnByTitle(AIndex);
+  C := TSsRecordSet(FRS).RD.Grid.FindColumnByFieldName(AIndex);
   if C = nil then raise Exception.CreateFmt(rsFieldNotFound, [AIndex]);
   RequeryIfNeed;
   Result := TSsRecordSet(FRS).DataSet.FieldByName(C.FieldNameDS).Value;
@@ -2653,7 +2817,7 @@ begin
     SplitStr(FieldNames, ';', SL);
     for i := 0 to SL.Count - 1 do
     begin
-      C := RSet.RD.Grid.FindColumnByTitle(SL[i]);
+      C := RSet.RD.Grid.FindColumnByFieldName(SL[i]);
       if C = nil then raise Exception.CreateFmt(rsFieldNotFound, [SL[i]]);
       S := S + C.FieldNameDS;
       if i < SL.Count - 1 then S := S + ';';
@@ -3047,6 +3211,12 @@ end;
 
 { TdxLabel }
 
+constructor TdxLabel.Create(AOwner: TdxComponent);
+begin
+  inherited Create(AOwner);
+  FAutoSize := True;
+end;
+
 procedure TdxLabel.Assign(Source: TPersistent);
 var
   S: TdxLabel;
@@ -3421,6 +3591,14 @@ procedure TdxShape.SetShape(AValue: TShapeType);
 begin
   if FShape=AValue then Exit;
   FShape:=AValue;
+  FModified := True;
+  DoPropertyChange('bitmap');
+end;
+
+procedure TdxShape.SetShapeEx(AValue: TShapeTypeEx);
+begin
+  if FShapeEx=AValue then Exit;
+  FShapeEx:=AValue;
   FModified := True;
   DoPropertyChange('bitmap');
 end;
@@ -4509,12 +4687,21 @@ begin
   if not FileExists(TplFullName) then
     raise Exception.CreateFmt(rsTemplateNotFound, [TemplateName]);
 
-  OutName := ExtractFileName(OutFileName);
-  if OutName = '' then OutName := ExtractFileName(TplFullName);
-  ReportToXXX(RS, TplFullName, GetCachePath(RS.Session) + OutName, AErrs);
-  if aOpenFile then
-    RS.DocUrl := GetCachePath(RS.Session, True) + OutName;
-  Result := GetCachePath(RS.Session) + OutName;
+  if OutFileName = '' then
+    OutName := ExtractFileName(TplFullName)
+  else
+    OutName := ExtractFileName(OutFileName);
+
+  // Если выходной файл не указан или указано только имя файла, то файл будет в кэше
+  if (OutFileName = '') or (OutName = OutFileName) then
+  begin
+    if aOpenFile then
+      RS.DocUrl := GetCachePath(RS.Session, True) + OutName;
+    OutName := GetCachePath(RS.Session) + OutName;
+  end;
+
+  ReportToXXX(RS, TplFullName, OutName, AErrs);
+  Result := OutName;
 end;
 
 function TdxForm.Locate(const FieldNames: String;

@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ interface
 
 uses
   Classes, SysUtils, fphttpserver, dxtypes, ssockets, strconsts,
-  uPSUtils, Variants, IBConnection, openssl;
+  uPSUtils, Variants, IBConnection, openssl, math;
 
 {const
   APP_VERSION: String = '22.12.5';}
@@ -384,6 +384,7 @@ begin
     end;
   end
   else if Fields[0] = 'formadd' then
+  else if Fields[0] = 'formedit' then
   else if Fields[0] = 'usermon' then
   else if Fields[0] = 'showdbg' then
   else if Fields[0] = 'closedbg' then
@@ -641,6 +642,10 @@ var
   end;
 
 begin
+  {$ifdef windows}
+  SetPrecisionMode(pmExtended);
+  {$endif}
+
   DebugStr(ARequest.RemoteAddress + ' ' + ARequest.Method + ': ' + ARequest.URI);
   if not FirstCleanCacheDir then CleanCacheDir;
 
@@ -671,10 +676,10 @@ begin
     AResponse.ContentStream := FS;
     if Pos('/cache/', URI) = 0 then
     begin
-      //AResponse.CacheControl := 'public, max-age=31536000'
       AResponse.ETag := IntToStr(FileAge(FlNm));
     end
-    else AResponse.CacheControl := 'no-store, no-cache, must-revalidate';
+    else
+      AResponse.CacheControl := 'no-store, no-cache, must-revalidate';
     Exit;
   end
   else if Pos('/.well-known/acme-challenge/', URI) = 1 then
@@ -1043,6 +1048,11 @@ begin
   else if LPm = 'formadd' then
   begin
     AResponse.Contents.Text := HS.FormAppend(ARequest.ContentFields);
+    AResponse.Code := HS.ResultCode;
+  end
+  else if LPm = 'formedit' then
+  begin
+    AResponse.Contents.Text := HS.FormEdit(ARequest.ContentFields);
     AResponse.Code := HS.ResultCode;
   end
   else if (LPm = 'rec') or (LPm = 'row') then

@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@ implementation
 uses
   ScriptFuncs, Math, exprfuncs, DateUtils, dxctrls, apputils, IniFiles,
   BGRABitmap, dxSQLQuery, HMAC, Variants, pivotgrid, dxtypes;
+
+type
+  TFileSetDateFunc = function (const FileName : RawByteString;Age : Int64) : Longint;
+  TFileAgeFunc = function (const FileName : RawByteString): Int64;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Std
@@ -1750,6 +1754,8 @@ procedure TdxShapePen_R(Self: TdxShape; var T: TdxPen); begin T := Self.Pen; end
 procedure TdxShapePen_W(Self: TdxShape; T: TdxPen); begin Self.Pen := T; end;
 procedure TdxShapeShape_R(Self: TdxShape; var T: TShapeType); begin T := Self.Shape; end;
 procedure TdxShapeShape_W(Self: TdxShape; T: TShapeType); begin Self.Shape := T; end;
+procedure TdxShapeShapeEx_R(Self: TdxShape; var T: TShapeTypeEx); begin T := Self.ShapeEx; end;
+procedure TdxShapeShapeEx_W(Self: TdxShape; T: TShapeTypeEx); begin Self.ShapeEx := T; end;
 
 procedure RIRegister_dxShape(Cl: TPSRuntimeClassImporter);
 begin
@@ -1758,6 +1764,7 @@ begin
     RegisterPropertyHelper(@TdxShapeBrush_R, @TdxShapeBrush_W, 'Brush');
     RegisterPropertyHelper(@TdxShapePen_R, @TdxShapePen_W, 'Pen');
     RegisterPropertyHelper(@TdxShapeShape_R, @TdxShapeShape_W, 'Shape');
+    RegisterPropertyHelper(@TdxShapeShapeEx_R, @TdxShapeShapeEx_W, 'ShapeEx');
   end;
 end;
 
@@ -2218,6 +2225,42 @@ begin
   SplitStr(S, D, SL);
 end;
 
+function RegFunctions86_64(Caller: TPSExec; p: TPSExternalProcRec; Global,
+  Stack: TPSStack): Boolean;
+var
+  R: TRect;
+  resData: Pointer;
+  val: TPSVariantIFC;
+  Obj: TObject;
+begin
+  Result := True;
+  case PtrUInt(p.Ext1) of
+    6:                                                                                        // Rect
+      begin
+        R := Rect(Stack.GetInt(-2), Stack.GetInt(-3), Stack.GetInt(-4), Stack.GetInt(-5));
+        resData := @PPSVariantData(Stack.Items[Stack.Count - 1])^.Data;
+        resData := Pointer(resData^);
+        TRect(resData^) := R; // или, что то же самое, Move(R, resData^, SizeOf(R));
+      end;
+    7:                                                                                        // FreeAndNil
+      begin
+        val := NewTPSVariantIFC(Stack[Stack.Count-1],true);
+        if val.aType.BaseType = 25 {btClass} then
+        begin
+          Obj := TObject(val.Dta^);
+          if Obj is TdxForm then MyDestroyForm(TdxForm(Obj))
+          else Obj.Free;
+          Stack.SetClass(-1, nil);
+        end
+        else
+          // Caller.CMD_Err(erInvalidType);
+          Result := False;                    // Сделал как в uPSRuntime
+      end
+    else
+      Result := False;
+  end;
+end;
+
 procedure RIRegister_Functions(Exec: TPSExec);
 begin
   Exec.RegisterDelphiFunction(@MyUTF8Length, 'Utf8Length', cdRegister);
@@ -2236,10 +2279,10 @@ begin
   Exec.RegisterDelphiFunction(@MyUTF16ToUTF8, 'Utf16ToUtf8', cdRegister);
 
   Exec.RegisterDelphiFunction(@FileExistsUtf8, 'FileExists', cdRegister);
-  Exec.RegisterDelphiFunction(@FileAgeUtf8, 'FileAge', cdRegister);
+  Exec.RegisterDelphiFunction(@MyFileAge, 'FileAge', cdRegister);
   Exec.RegisterDelphiFunction(@DirectoryExistsUtf8, 'DirectoryExists', cdRegister);
   Exec.RegisterDelphiFunction(@ExpandFileNameUtf8, 'ExpandFileName', cdRegister);
-  Exec.RegisterDelphiFunction(@FileSetDateUtf8, 'FileSetDate', cdRegister);
+  Exec.RegisterDelphiFunction(@MyFileSetDate, 'FileSetDate', cdRegister);
   Exec.RegisterDelphiFunction(@FileGetAttrUtf8, 'FileGetAttr', cdRegister);
   Exec.RegisterDelphiFunction(@FileSetAttrUtf8, 'FileSetAttr', cdRegister);
   Exec.RegisterDelphiFunction(@DeleteFileUtf8, 'DeleteFile', cdRegister);
@@ -2365,7 +2408,7 @@ begin
   Exec.RegisterDelphiFunction(@MySameValue, 'SameValue', cdRegister);
 
   Exec.RegisterDelphiFunction(@Point, 'Point', cdRegister);
-  Exec.RegisterDelphiFunction(@Rect, 'Rect', cdRegister);
+  //Exec.RegisterDelphiFunction(@Rect, 'Rect', cdRegister);
 
   {Exec.RegisterDelphiFunction(@GetId, 'GetComponentId', cdRegister);
   Exec.RegisterDelphiFunction(@ShowExprEditor, 'ShowExprEditor', cdRegister);   }
@@ -2407,6 +2450,9 @@ begin
   Exec.RegisterDelphiFunction(@IIF, 'IIF', cdRegister);
   Exec.RegisterDelphiFunction(@GenerateId, 'CreateGUIDString', cdRegister);
   Exec.RegisterDelphiFunction(@AppPath, 'GetAppDir', cdRegister);
+
+  Exec.RegisterFunctionName('RECT', @RegFunctions86_64, Pointer(6), nil);
+  Exec.RegisterFunctionName('FREEANDNIL', @RegFunctions86_64, Pointer(7), nil);
 end;
 
 procedure RIRegister_All(Cl: TPSRuntimeClassImporter);

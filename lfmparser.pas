@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -195,10 +195,23 @@ begin
   else Result := False;
 end;
 
+function StrToShapeEx(const S: String): TShapeTypeEx;
+const
+  St: array [0..6] of String = ('steNone', 'steVertLine', 'steHorzLine',
+      'steBDiagonal', 'steFDiagonal', 'steCross', 'steDiagCross');
+var
+  i: Integer;
+begin
+  Result := steNone;
+  for i := 0 to High(St) do
+    if S = St[i] then Exit(TShapeTypeEx(i));
+end;
+
 function StrToShape(const S: String): TShapeType;
 const
-  St: array [0..8] of String = ('stRectangle', 'stSquare', 'stRoundRect', 'stRoundSquare',
-      'stEllipse', 'stCircle', 'stSquaredDiamond', 'stDiamond', 'stTriangle');
+  St: array [0..13] of String = ('stRectangle', 'stSquare', 'stRoundRect', 'stRoundSquare',
+      'stEllipse', 'stCircle', 'stSquaredDiamond', 'stDiamond', 'stTriangle',
+      'stTriangleLeft', 'stTriangleRight', 'stTriangleDown', 'stStar', 'stStarDown');
 var
   i: Integer;
 begin
@@ -264,6 +277,18 @@ begin
   else if Style = 'psClear' then Pen.Style := psClear
   else if Style = 'psInsideFrame' then Pen.Style := psInsideFrame
   else if Style = 'psPattern' then Pen.Style := psPattern
+end;
+
+procedure ProcessBrushStyle(Brush: TdxBrush; const Style: String);
+begin
+  if Style = 'bsSolid' then Brush.Style := bsSolid
+  else if Style = 'bsClear' then Brush.Style := bsClear
+  else if Style = 'bsHorizontal' then Brush.Style := bsHorizontal
+  else if Style = 'bsVertical' then Brush.Style := bsVertical
+  else if Style = 'bsFDiagonal' then Brush.Style := bsFDiagonal
+  else if Style = 'bsBDiagonal' then Brush.Style := bsBDiagonal
+  else if Style = 'bsCross' then Brush.Style := bsCross
+  else if Style = 'bsDiagCross' then Brush.Style := bsDiagCross;
 end;
 
 procedure ProcessLockMode(Fm: TdxForm; const Value: String);
@@ -681,12 +706,12 @@ var
 begin
   S := ' ' + PropName + ' ';
   if FObj is TdxControl then
-    Result := Pos(S, ' Left Top Width Height Color Font.Name ' +
+    Result := Pos(S, ' Left Top Width Height Color Font.Name Hint ' +
       ' Font.Height Font.Color Font.Style TabOrder StopTab ParentFont Caption Hidden ') > 0;
   if (not Result) and (FObj is TdxField) then
-    Result := Pos(S, ' Id FieldName ') > 0;
+    Result := Pos(S, ' Id FieldName HintText ') > 0;
   if (not Result) and (FObj is TdxLabel) then
-    Result := Pos(S, ' Expression Alignment ') > 0;
+    Result := Pos(S, ' Expression Alignment Layout WordWrap AutoSize ') > 0;
   if (not Result) and (FObj is TdxEdit) then
     Result := Pos(S, ' Expression DefaultValue CheckExpression Required FieldSize Editable ') > 0;
   if (not Result) and (FObj is TdxCalcEdit) then
@@ -699,10 +724,12 @@ begin
     Result := Pos(S, ' Required FieldSize Expression DefaultValue CheckExpression Editable ') > 0;
   if (not Result) and (FObj is TdxCustomComboBox) then
     Result := Pos(S, ' Items.Strings SourceTId SourceFId Filter Style Required DefaultValue FieldSize Expression CheckExpression Editable DropDownCount ') > 0;
+  if (not Result) and (FObj is TdxComboBox) then
+    Result := Pos(S, ' ItemsOnly ') > 0;
   if not Result and (FObj is TdxLookupComboBox) then
-    Result := Pos(S, ' InsertedValues ListFields ListWidthExtra HideList HideButton ListSource ListKeyField ') > 0;
+    Result := Pos(S, ' InsertedValues ListFields ListWidthExtra HideList HideButton ListSource ListKeyField ShowAsTreeList ') > 0;
   if (not Result) and (FObj is TdxShape) then
-    Result := Pos(S, ' Brush.Color Pen.Color Pen.Style Pen.Width Shape ') > 0;
+    Result := Pos(S, ' Brush.Color Brush.Style Pen.Color Pen.Style Pen.Width Shape ShapeEx ') > 0;
   if (not Result) and (FObj is TdxImage) then
     Result := Pos(S, ' Data Center Proportional Stretch KeepSize ImageName ') > 0;
   if (not Result) and (FObj is TdxDBImage) then
@@ -1022,6 +1049,8 @@ begin
       FObj.Caption := PropValue
     else if PropName = 'Hidden' then
       FObj.Hidden := StrToBoolean(PropValue)
+    else if PropName = 'Hint' then
+      FObj.Hint := PropValue
   end;
   if FObj is TdxField then
     with TdxField(FObj) do
@@ -1029,7 +1058,9 @@ begin
       if PropName = 'Id' then
         Id := StrToInt(PropValue)
       else if PropName = 'FieldName' then
-        FieldName := PropValue;
+        FieldName := PropValue
+      else if PropName = 'HintText' then
+        TextHint := PropValue
     end;
   if FObj is TdxLabel then
     with TdxLabel(FObj) do
@@ -1039,7 +1070,13 @@ begin
       else if PropName = 'Expression' then
         Expression := PropValue
       else if PropName = 'Alignment' then
-        Alignment := StrToAlignment(PropValue);
+        Alignment := StrToAlignment(PropValue)
+      else if PropName = 'Layout' then
+        Layout := StrToTextLayout(PropValue)
+      else if PropName = 'WordWrap' then
+        WordWrap := StrToBoolean(PropValue)
+      else if PropName = 'AutoSize' then
+        AutoSize := StrToBoolean(PropValue)
     end
   else if FObj is TdxEdit then
     with TdxEdit(FObj) do
@@ -1175,6 +1212,14 @@ begin
             ListSource := StrToInt(PropValue)
           else if PropName = 'ListKeyField' then
             ListKeyField := PropValue
+          else if PropName = 'ShowAsTreeList' then
+            ShowAsTreeList := StrToBoolean(PropValue)
+        end
+      else if FObj is TdxComboBox then
+        with TdxComboBox(FObj) do
+        begin
+          if PropName = 'ItemsOnly' then
+            ItemsOnly := StrToBoolean(PropValue)
         end
     end
   else if FObj is TdxShape then
@@ -1182,6 +1227,8 @@ begin
     begin
       if PropName = 'Brush.Color' then
         Brush.Color:=StringToColor(PropValue)
+      else if PropName = 'Brush.Style' then
+        ProcessBrushStyle(Brush, PropValue)
       else if PropName = 'Pen.Color' then
         Pen.Color := StringToColor(PropValue)
       else if PropName = 'Pen.Style' then
@@ -1189,7 +1236,9 @@ begin
       else if PropName = 'Pen.Width' then
         Pen.Width := StrToInt(PropValue)
       else if PropName = 'Shape' then
-        Shape:=StrToShape(PropValue);
+        Shape:=StrToShape(PropValue)
+      else if PropName = 'ShapeEx' then
+        ShapeEx := StrToShapeEx(PropValue);
       ShapeToFile(TdxShape(FObj), FEmbeddedImagesDir + IntToStr(Form.Id) + FObj.Name + '.png');
       Modified := False;
     end

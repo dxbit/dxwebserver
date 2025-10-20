@@ -48,6 +48,8 @@ function goBack() {
 	let url = null;
 	if (document.referrer != '') url = new URL(document.referrer);
 	
+	showCurtain();
+	
 	if (url == null || url.pathname.toLowerCase() != location.pathname.toLowerCase() || window.history.length == 1) {
 		let params = new URLSearchParams(getCurrentUrl().slice(1));
 		if (params.has('fm')) {
@@ -69,6 +71,7 @@ function getParamsLength(params) {
 }
 
 function goUrl(url, gotoOption) {
+	if (gotoOption != gtoNewTab) showCurtain();
 	if (url == 'back') goBack() 
 	else if (url == getCurrentUrl) reloadPage();
 	else if (gotoOption == gtoDefault) location.href = url
@@ -108,7 +111,7 @@ function showImageMenu(cid) {
 	}
 }
 
-function getElementsByAttr(tagName, attrName) {
+/*function getElementsByAttr(tagName, attrName) {
   let matchingElements = [];
   let allElements = document.getElementsByTagName(tagName);
   for (let i = 0, n = allElements.length; i < n; i++)
@@ -119,7 +122,7 @@ function getElementsByAttr(tagName, attrName) {
     }
   }
   return matchingElements;
-}
+}*/
 
 function processJson(jsonRoot) {
 	if (jsonRoot.gotoUrl) {
@@ -148,8 +151,9 @@ function processJson(jsonRoot) {
 			
 		}
 	}
-	if (jsonRoot.labels.length > 0) {
-		let labels = getElementsByAttr('span', 'fieldname');
+	/*if (jsonRoot.labels.length > 0) {
+		//let labels = getElementsByAttr('span', 'fieldname');
+		let labels = document.querySelectorAll('span[fieldname]');
 		let lbl;
 		for (jsonObj of jsonRoot.labels) {
 			lbl = findElementByAttrValue(labels, 'fieldname', jsonObj.fieldName);
@@ -157,7 +161,18 @@ function processJson(jsonRoot) {
 				lbl.innerHTML = jsonObj.value;
 			}
 		}
-	}
+	}*/
+	/* Используем изменение свойства caption
+	if (jsonRoot.labels.length > 0) {
+		let lbl;
+		for (jsonObj of jsonRoot.labels) {
+			lbl = document.querySelector('span[fieldname="' + jsonObj.fieldName + '"]');
+			if (lbl) {
+				if (lbl.children.length == 0) lbl.innerHTML = jsonObj.value
+				else lbl.children[0].innerHTML = jsonObj.value;
+			}
+		}
+	}*/
 	for (jsonObj of jsonRoot.props) {
 		let ctrl = document.getElementById(jsonObj.name);
 		if (!ctrl) continue;
@@ -192,7 +207,7 @@ function processJson(jsonRoot) {
 				case 'tdxgrid':
 				case 'tdxquerygrid':
 					ctrl.style.display = (jsonObj.value == '1' ? '' : 'none');
-					if (ctrl.previousSibling.classList.contains('gridbns'))
+					if (ctrl.previousSibling.classList.contains('gridcmd'))
 						ctrl.previousSibling.style.display = ctrl.style.display;
 					break;
 				case 'tdxgroupbox':
@@ -245,16 +260,26 @@ function processJson(jsonRoot) {
 				case 'tdxquerygrid':
 					if (disabled) {
 						ctrl.setAttribute('disabled', '');
-						if (ctrl.previousSibling.classList.contains('gridbns'))
+						if (ctrl.previousSibling && ctrl.previousSibling.classList.contains('gridcmd'))
 							ctrl.previousSibling.children[0].children[0].setAttribute('disabled', '')
-						else
-							ctrl.lastChild.setAttribute('disabled', '')
+						else {
+							let btns = ctrl.querySelectorAll('.gridbns-up button, .gridbns-down button');
+							if (btns)
+								for (let btn of btns) {
+									btn.setAttribute('disabled', '');
+								}
+						}
 					} else {
 						ctrl.removeAttribute('disabled');
-						if (ctrl.previousSibling.classList.contains('gridbns'))
+						if (ctrl.previousSibling && ctrl.previousSibling.classList.contains('gridcmd'))
 							ctrl.previousSibling.children[0].children[0].removeAttribute('disabled')
-						else
-							ctrl.lastChild.removeAttribute('disabled')
+						else {
+							let btns = ctrl.querySelectorAll('.gridbns-up button, .gridbns-down button');
+							if (btns) 
+								for (let btn of btns) {
+									btn.removeAttribute('disabled');
+								}
+						}
 					}
 					break;
 			}
@@ -381,7 +406,7 @@ function processJson(jsonRoot) {
 					break;
 				case 'tdxgrid':
 				case 'tdxquerygrid':
-					if (ctrl.previousSibling.classList.contains('gridbns')) {
+					if (ctrl.previousSibling.classList.contains('gridcmd')) {
 						ctrl.previousSibling.style.left = x + 'px';
 						ctrl.previousSibling.style.top = parseInt(ctrl.previousSibling.style.top) + (y - parseInt(ctrl.style.top)) + 'px';
 					}
@@ -394,7 +419,10 @@ function processJson(jsonRoot) {
 		} else if (jsonObj.prop == 'caption') {
 			switch (jsonObj.type) {
 				case 'tdxlabel':
-					ctrl.innerHTML = jsonObj.value;
+					if (ctrl.children.length == 0)
+						ctrl.innerHTML = jsonObj.value
+					else
+						ctrl.children[0].innerHTML = jsonObj.value;
 					break;
 				case 'tdxbutton':
 					ctrl.children[0].innerHTML = jsonObj.value;
@@ -443,7 +471,9 @@ function processJson(jsonRoot) {
 						}
 						i++;
 					}
-					let selRow = rows[jsonObj.value];
+					let recNo = jsonObj.value - parseInt(ctrl.children[0].dataset.offset);
+					if (rows[1].className == 'gridbns-up') recNo++
+					let selRow = rows[recNo];
 					if (selRow) {
 						if (selRow.className) 
 							selRow.dataset.oldClass = selRow.getAttribute('class');
@@ -465,6 +495,8 @@ function processJson(jsonRoot) {
 		if (qry) {
 			qry.removeChild(qry.firstChild);
 			qry.insertAdjacentHTML('afterbegin', jsonObj.html);
+			let r = qry.querySelector('tr.sel');
+			if (r) qry.scrollTop = r.offsetTop - qry.offsetHeight / 2;
 		}
 	}
 	for (jsonObj of jsonRoot.pivots) {
@@ -560,7 +592,7 @@ function tableClick(ev, isQuery) {
 		el = el.parentElement;
 	}
 	if (el.tagName == 'TD') {
-		if (el.parentElement.className == 'gridbns') {
+		if (el.parentElement.className == 'gridbns-up' || el.parentElement.className == 'gridbns-down') {
 			ev.preventDefault();
 			return;
 		}
@@ -588,20 +620,23 @@ function tableClick(ev, isQuery) {
 		}
 
 		let gridId = ev.currentTarget.parentElement.id.substring(1);
+		if (rows[1].className == 'gridbns-up') i--;
+		let recNo = parseInt(ev.currentTarget.dataset.offset) + i;
+		
 		if (editClicked) {
-			SendRequest('POST', getCurrentUrl() + (isQuery ? '&queryedit' : '&tableedit'), 'id=' + gridId + '&row=' + i + '&fresh=' + getFreshValue(), (Request) => {
+			SendRequest('POST', getCurrentUrl() + (isQuery ? '&queryedit' : '&tableedit'), 'id=' + gridId + '&row=' + recNo + '&fresh=' + getFreshValue(), (Request) => {
 				if (Request.status == rcAjaxOk) goUrl(Request.responseText, false)
 				else showAjaxError(Request);
 			})
 		} else if (delClicked) {
-			SendRequest('POST', getCurrentUrl() + (isQuery ? '&querydel' : '&tabledel'), 'id=' + gridId + '&row=' + i + '&fresh=' + getFreshValue(), (Request) => {
+			SendRequest('POST', getCurrentUrl() + (isQuery ? '&querydel' : '&tabledel'), 'id=' + gridId + '&row=' + recNo + '&fresh=' + getFreshValue(), (Request) => {
 				if (Request.status == rcAjaxOk) {
 					processJson(JSON.parse(Request.responseText));
 					getDataStateDS().modified = 1;
 				} else showAjaxError(Request);
 			})
 		} else {
-			SendRequest('POST', getCurrentUrl() + (isQuery ? '&queryscroll' : '&tablescroll'), 'id=' + gridId + '&row=' + i + '&fresh=' + getFreshValue(), (Request) => {
+			SendRequest('POST', getCurrentUrl() + (isQuery ? '&queryscroll' : '&tablescroll'), 'id=' + gridId + '&row=' + recNo + '&fresh=' + getFreshValue(), (Request) => {
 				if (Request.status == rcAjaxOk) processJson(JSON.parse(Request.responseText))
 				else showAjaxError(Request);
 			})
@@ -609,29 +644,55 @@ function tableClick(ev, isQuery) {
 	}
 }
 
-function tableFetch(id, isQuery) {
+function tableFetch(id, isQuery, skip, dir) {
 	let tblDiv = document.getElementById( (isQuery ? 'q' : 't') + id );
 	
 	let tbl = tblDiv.children[0];
 	let rows = tbl.getElementsByTagName('TR');
-	rows[rows.length - 1].remove();
-	let rowCount = rows.length - 1;
-	SendRequest('POST', getCurrentUrl() + (isQuery ? '&queryfetch' : '&tablefetch'), 'id=' + id + '&skip=' + rowCount + '&fresh=' + getFreshValue(), (Request) => {
+	let rowMoreHeight = 0;
+	if (dir == 1) {
+		rowMoreHeight = rows[1].offsetHeight;
+		rows[1].remove();
+	} else {
+		rows[rows.length - 1].remove();
+	}
+	//let rowCount = rows.length - 1;
+	SendRequest('POST', getCurrentUrl() + (isQuery ? '&queryfetch' : '&tablefetch'), 'id=' + id + '&skip=' + skip + '&dir=' + dir + '&fresh=' + getFreshValue(), (Request) => {
 			if (Request.status == rcAjaxOk) {
 				let html = Request.responseText;
-				let lastRow = rows[rows.length - 1];
-				lastRow.insertAdjacentHTML('afterend', html);
+				if (dir == 1) {
+					let r = rows[1];
+					r.insertAdjacentHTML('beforebegin', html);
+					tblDiv.scrollTop = r.offsetTop - rowMoreHeight;
+					let tmp = parseInt(tbl.dataset.offset) - 100;
+					if (tmp < 0) tmp = 0;
+					tbl.dataset.offset = tmp;
+				} else {
+					let lastRow = rows[rows.length - 1];
+					lastRow.insertAdjacentHTML('afterend', html);
+				}
 			}
 			else showAjaxError(Request);
 		})
 }
 
-function findElementByAttrValue(tags, attrName, attrValue) {
+function tableScroll() {
+	let tblDiv = event.currentTarget;
+	if (tblDiv.scrollTop == 0) {
+		let bn = tblDiv.querySelector('button.gridbns-more-up');
+		if (bn) bn.click();
+	} else if (tblDiv.scrollTop == tblDiv.scrollHeight - tblDiv.clientHeight) {
+		let bn = tblDiv.querySelector('button.gridbns-more-down');
+		if (bn) bn.click();
+	}
+}
+
+/*function findElementByAttrValue(tags, attrName, attrValue) {
 	for (let i = 0; i < tags.length; i++) {
 		if (tags[i].getAttribute(attrName) == attrValue) return tags[i];
 	}
 	return false;
-}
+}*/
 
 function fieldChange(el, sync = false) {
 
@@ -698,8 +759,10 @@ function cancelClick() {
 	if (ds.confirmCancel == 1 && ds.modified == 1) {
 		if (!confirm(rsConfirmCancelMsg)) return;
 	}
-	SendRequest('POST', getCurrentUrl() + '&cancel', '', null);
-	goBack();
+	SendRequest('POST', getCurrentUrl() + '&cancel', '', (Request) => {
+		if (Request.status == rcAjaxOk) goBack()
+		else showAjaxError(Request);
+	});
 }
 
 function okClick() {

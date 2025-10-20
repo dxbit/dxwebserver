@@ -1,6 +1,7 @@
 function goBack() {
 	let url = null;
 	if (document.referrer != '') url = new URL(document.referrer);
+	showCurtain();
 	if (url == null || url.pathname.toLowerCase() != location.pathname.toLowerCase() || url.search == '?login') {
 		let params = new URLSearchParams(getCurrentUrl().slice(1));
 		if (params.has('fm') && params.has('pg')) {
@@ -46,7 +47,7 @@ function formSubmit(fm) {
 		if (Request.status == rcAjaxOk) {
 			let args = new URLSearchParams(getCurrentUrl().slice(1));
 			if (args.has('fm'))
-				location.href = '?fm=' + args.get('fm') + '&pg=1';
+				gotoUrl('?fm=' + args.get('fm') + '&pg=1');
 		} else
 			showAjaxError(Request);
 	});

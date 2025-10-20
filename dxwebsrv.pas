@@ -99,6 +99,8 @@ begin
     ThousandSeparator:=' ';
   end;
 
+  InitDictionary;
+
   if ParamCount > 0 then
   begin
     RegisterDaemonClass(TMainDaemon);

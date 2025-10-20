@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ procedure CalcQuery(ARecordSet: TSsRecordSet);
 procedure FilterQuery(ARecordSet: TSsRecordSet);
 procedure BuildSortIndexes(RD: TReportData; DataSet: TDataSet);
 function MyStrToFloat(const S: String; out E: Double): Boolean;
-function MyStrToDate(const S: String; out D: TDateTime): Boolean;
+//function MyStrToDate(const S: String; out D: TDateTime): Boolean;
 function MyStrToTime(const S: String; out T: TDateTime): Boolean;
 function EscapeSQuotes(const S: String): String;
 function UnEscapeSemicolon(const S: String): String;
@@ -138,6 +138,8 @@ procedure SetDSFieldDisplayFormat(F: TField; Fmt: String);
 function GetFieldDisplayText(F: TField): String;
 function GetRpFieldComponent(SS: TSession; F: TRpField; aLow: Boolean): TdxComponent;
 procedure ConvertToDXMainVersion2(SS: TSession);
+function TryTextToDate(AText: String; out ResDate: TDateTime): Boolean;
+function TextToDate(AText: String): TDateTime;
 //procedure HideUnvisibleControls(Fm: TdxForm);
 
 implementation
@@ -862,7 +864,7 @@ begin
   end
   else if C is TdxDateEdit then
   begin
-    if TryStrToDate(Value, D) then Value := DateToStr(D)
+    if TryTextToDate(Value, D) then Value := Date2Str(D)
     else Result := False;
   end
   else if C is TdxTimeEdit then
@@ -1210,10 +1212,10 @@ begin
   Result := TryStrToFloat(StringReplace(S, ' ', DefaultFormatSettings.DecimalSeparator, []), E);
 end;
 
-function MyStrToDate(const S: String; out D: TDateTime): Boolean;
+{function MyStrToDate(const S: String; out D: TDateTime): Boolean;
 begin
   Result := TryStrToDate(StringReplace(S, ' ', DefaultFormatSettings.DateSeparator, [rfReplaceAll]), D);
-end;
+end;}
 
 function MyStrToTime(const S: String; out T: TDateTime): Boolean;
 begin
@@ -1600,7 +1602,7 @@ function CreateReportForm(SS: TSession; RD: TReportData; out SQL: String
     C.FieldName := FieldName;
     C.Parent := Fm;
     //Fm.Controls.Add(C);
-    if (Value > '') and TryStrToDate(Value, DT) then
+    if (Value > '') and TryTextToDate(Value, DT) then
       Result := Format('(CAST(''%s'' AS DATE)) as f%d,', [Date2Str(DT), n])
     else
       Result := Format('null as f%d,', [n]);
@@ -2842,6 +2844,227 @@ begin
       SS.Main.Tabs.AddValue(Fm.Id);
   end;
   SL.Free;
+end;
+
+// Немного измененный код из EditBtn.pas
+// Tries to parse string when DateOrder = doNone when string maybe contains
+// literal day or monthnames. For example when ShortDateFormat = 'dd-mmm-yyy'
+// Returns NullDate upon failure.
+function ParseDateNoPredefinedOrder(SDate: String; FS: TFormatSettings; out ResDate: TDateTime): Boolean;
+var
+  Fmt: String;
+  DPos, MPos, YPos: SizeInt;
+  DStr, MStr, YStr: String;
+  LD, LM, LY: LongInt;
+  DD, MM, YY: Word;
+const
+  Digits = ['0'..'9'];
+
+  procedure GetPositions(out DPos, MPos, YPos: SizeInt);
+  begin
+    DStr := '';
+    MStr := '';
+    YStr := '';
+    DPos := Pos('D', Fmt);
+    MPos := Pos('M', Fmt);
+    YPos := Pos('Y', Fmt);
+    if (YPos = 0) or (MPos = 0) or (DPos = 0) then Exit;
+    if (YPos > DPos) then YPos := 3 else YPos := 1;
+    if (DPos < MPos) then
+    begin
+      if (YPos = 3) then
+      begin
+        DPos := 1;
+        MPos := 2;
+      end
+      else
+      begin
+        DPos := 2;
+        MPos := 3;
+      end;
+    end
+    else
+    begin
+      if (YPos = 3) then
+      begin
+        DPos := 2;
+        MPos := 1;
+      end
+      else
+      begin
+        DPos := 3;
+        MPos := 2;
+      end;
+    end;
+  end;
+
+  procedure ReplaceLiterals;
+  var
+    i, P: Integer;
+    Sub: String;
+  begin
+    if (Pos('MMMM',Fmt) > 0) then
+    begin //long monthnames
+      //writeln('Literal monthnames');
+      for i := 1 to 12 do
+      begin
+        Sub := FS.LongMonthNames[i];
+        P := Pos(Sub, SDate);
+        if (P > 0) then
+        begin
+          Delete(SDate, P, Length(Sub));
+          Insert(IntToStr(i), SDate, P);
+          Break;
+        end;
+      end;
+    end
+    else
+    begin
+      if (Pos('MMM',Fmt) > 0) then
+      begin //short monthnames
+        for i := 1 to 12 do
+        begin
+          Sub := FS.ShortMonthNames[i];
+          P := Pos(Sub, SDate);
+          if (P > 0) then
+          begin
+            Delete(SDate, P, Length(Sub));
+            Insert(IntToStr(i), SDate, P);
+            Break;
+          end;
+        end;
+      end;
+    end;
+
+    if (Pos('DDDD',Fmt) > 0) then
+    begin  //long daynames
+      //writeln('Literal daynames');
+      for i := 1 to 7 do
+      begin
+        Sub := FS.LongDayNames[i];
+        P := Pos(Sub, SDate);
+        if (P > 0) then
+        begin
+          Delete(SDate, P, Length(Sub));
+          Break;
+        end;
+      end;
+    end
+    else
+    begin
+      if (Pos('DDD',Fmt) > 0) then
+      begin //short daynames
+        for i := 1 to 7 do
+        begin
+          Sub := FS.ShortDayNames[i];
+          P := Pos(Sub, SDate);
+          if (P > 0) then
+          begin
+            Delete(SDate, P, Length(Sub));
+            Break;
+          end;
+        end;
+      end;
+    end;
+    SDate := Trim(SDate);
+    //writeln('ReplaceLiterals -> ',SDate);
+  end;
+
+  procedure Split(out DStr, MStr, YStr: String);
+  var
+    i, P: Integer;
+    Sep: Set of Char;
+    Sub: String;
+  begin
+    DStr := '';
+    MStr := '';
+    YStr := '';
+    Sep := [];
+    for i :=  1 to Length(Fmt) do
+      if not (Fmt[i] in Digits) then Sep := Sep + [Fmt[i]];
+    //get fist part
+    P := 1;
+    while (P <= Length(SDate)) and (SDate[P] in Digits) do Inc(P);
+    Sub := Copy(SDate, 1, P-1);
+    Delete(SDate, 1, P);
+    if (DPos = 1) then DStr := Sub else if (MPos = 1) then MStr := Sub else YStr := Sub;
+    //get second part
+    if (SDate = '') then Exit;
+    while (Length(SDate) > 0) and (SDate[1] in Sep) do Delete(SDate, 1, 1);
+    if (SDate = '') then Exit;
+    P := 1;
+    while (P <= Length(SDate)) and (SDate[P] in Digits) do Inc(P);
+    Sub := Copy(SDate, 1, P-1);
+    Delete(SDate, 1, P);
+    if (DPos = 2) then DStr := Sub else if (MPos = 2) then MStr := Sub else YStr := Sub;
+    //get thirdpart
+    if (SDate = '') then Exit;
+    while (Length(SDate) > 0) and (SDate[1] in Sep) do Delete(SDate, 1, 1);
+    if (SDate = '') then Exit;
+    Sub := SDate;
+    if (DPos = 3) then DStr := Sub else if (MPos = 3) then MStr := Sub else YStr := Sub;
+  end;
+
+  procedure AdjustYear(var YY: Word);
+  var
+    CY, CM, CD: Word;
+  begin
+    DecodeDate(Date, CY, CM, CD);
+    LY := CY Mod 100;
+    CY := CY - LY;
+    if ((YY - LY) <= 50) then
+      YY := CY + YY
+    else
+      YY := CY + YY - 100;
+  end;
+
+begin
+  Result := False;
+  if (Length(SDate) < 5) then Exit; //y-m-d is minimum we support
+  Fmt := UpperCase(FS.ShortDateFormat); //only care about y,m,d so this will do
+  GetPositions(DPos, MPos, YPos);
+  ReplaceLiterals;
+  if (not (SDate[1] in Digits)) or (not (SDate[Length(SDate)] in Digits)) then Exit;
+  Split(Dstr, MStr, YStr);
+  if not TryStrToInt(DStr, LD) or
+     not TryStrToInt(Mstr, LM) or
+     not TryStrToInt(YStr, LY) then Exit;
+  DD := LD;
+  MM := LM;
+  YY := LY;
+  if (YY < 100) and (Pos('YYYY', UpperCase(Fmt)) = 0) then
+  begin
+    AdjustYear(YY);
+  end;
+  Result := TryEncodeDate(YY, MM, DD, ResDate);
+end;
+
+procedure FixDateSeparator(var aText: String; FS: TFormatSettings);
+var
+  i: Integer;
+begin
+  for i := 2 to Length(aText) - 1 do
+  begin
+    if (aText[i] = #32) and (aText[i - 1] in ['0'..'9']) and (aText[i + 1] in ['0'..'9']) then
+      aText[i] := FS.DateSeparator;
+  end;
+end;
+
+function TryTextToDate(AText: String; out ResDate: TDateTime): Boolean;
+var
+  FS: TFormatSettings;
+begin
+  FS := DefaultFormatSettings;
+  FixDateSeparator(AText, FS);
+  Result := TryStrToDate(AText, ResDate, FS);
+  if not Result then
+    Result := ParseDateNoPredefinedOrder(AText, FS, ResDate);
+end;
+
+function TextToDate(AText: String): TDateTime;
+begin
+  if not TryTextToDate(AText, Result) then
+    raise EConvertError.CreateFmt(rsInvalidDate, [AText]);
 end;
 
 (*procedure HideAllControls(WC: TdxWinControl);

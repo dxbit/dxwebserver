@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -46,6 +46,10 @@ const
   rcInvalidFreshValue = 9;
   rcConnectError = 10;
   rcAnyError = 99;
+
+  FetchDirectBoth = 0;
+  FetchDirectUp = 1;
+  FetchDirectDown = 2;
 
 type
 
@@ -114,9 +118,9 @@ type
     function ShowTabSheet(C: TdxTabSheet; Visible: Boolean): String;
     function ShowPageControl(C: TdxPageControl): String;
     function ShowGroup(C: TdxGroupBox): String;
-    function ShowQueryGridRecords(ARS: TSsRecordSet; Skip: Integer): String;
+    function ShowQueryGridRecords(ARS: TSsRecordSet; Skip: Integer; Direct: Integer): String;
     function ShowQueryGrid(C: TdxQueryGrid; GridOnly: Boolean): String;
-    function ShowGridRecords(ARS: TSsRecordSet; Skip: Integer): String;
+    function ShowGridRecords(ARS: TSsRecordSet; Skip: Integer; Direct: Integer): String;
     function ShowGrid(C: TdxGrid; GridOnly: Boolean): String;
     function ShowShape(C: TdxShape): String;
     function ShowLookupComboBox(C: TdxLookupComboBox): String;
@@ -173,6 +177,7 @@ type
     function PostEditForm(AParams: TStrings; DupParam: TDuplicateParam = dpNone; KeepRecordSet: Boolean = False): String;
     function FormDeleteRow: String;
     function FormAppend(AFields: TStrings): String;
+    function FormEdit(AFields: TStrings): String;
     function TableAppend(AFields: TStrings): String;
     function TableEdit(AFields: TStrings): String;
     function TableDeleteRow(AFields: TStrings): String;
@@ -388,12 +393,16 @@ begin
   else if F is TdxCalcEdit then
   begin
     Result := MyStrToFloat( DeleteThousandSeparators(Value), E );
+    if E = 2 then
+    begin
+      E := E;
+    end;
     if Result then V := E
     else V := Null;
   end
   else if F is TdxDateEdit then
   begin
-    Result := MyStrToDate(Value, D);
+    Result := TryTextToDate(Value, D);
     if Result then V := D
     else V := Null;
   end
@@ -457,6 +466,28 @@ begin
   end;
 end;
 
+function GetRandomVer: String;
+begin
+  Result := '?v=' + IntToStr(Random(100));
+end;
+
+procedure Abrakadabra(var S: String; Delim: Char; out Depth: Integer);
+var
+  i, n, p, Len: Integer;
+begin
+  n := 0; p := 1; Len := Length(S);
+  for i := 1 to Len do
+  begin
+    if S[i] = Delim then
+    begin
+      p := i + 1;
+      Inc(n);
+    end;
+  end;
+  S := Copy(S, p, Len - p + 1);
+  Depth := n;
+end;
+
 { TFormColors }
 
 function TFormColors.GetColors(Index: Integer): TFormColorData;
@@ -493,7 +524,7 @@ function THtmlShow.GetJsCode: String;
   begin
     Result := Fmt;
     for i := 1 to Length(Result) do
-      if Result[i] in ['a'..'z'] then
+      if Result[i] in ['a'..'z', ' '] then
       else Result[i] := NewSep;
   end;
 
@@ -777,14 +808,14 @@ begin
   begin
     if V1 <> '' then
     begin
-      if MyStrToDate(V1, D) then
+      if TryTextToDate(V1, D) then
         V1 := DateToStr(D)
       else
         Exit(False);
     end;
     if V2 <> '' then
     begin
-      if MyStrToDate(V2, D) then
+      if TryTextToDate(V2, D) then
         V2 := DateToStr(D)
       else
         Exit(False);
@@ -1525,7 +1556,7 @@ begin
   if QRS = nil then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil'));
   with QRS.RD.Grid do
   begin
-    Col := FindColumnByFieldName(DSFieldName);
+    Col := FindColumnByFieldNameDS(DSFieldName);
     if Col = nil then Exit;
     if Fields.Values['add'] <> '1' then SortCols.Clear;
     SC := SortCols.FindCol(Col);
@@ -1557,7 +1588,7 @@ begin
   SortOrder := Fields.Values['order'];
   with RS.RD.Grid do
   begin
-    Col := FindColumnByFieldName(DSFieldName);
+    Col := FindColumnByFieldNameDS(DSFieldName);
     if Col = nil then Exit;
     if Fields.Values['add'] <> '1' then SortCols.Clear;
     SC := SortCols.FindCol(Col);
@@ -1669,7 +1700,7 @@ begin
   for i := SL.Count - 1 downto 0 do
   begin
     S := S + '<a href="' + BuildHRef(1) + '&rec=' +
-      IntToStr(PtrInt(SL.Objects[i])) + '">' + StrToHtml(SL[i], False, False) + '</a>';
+      IntToStr(PtrInt(SL.Objects[i])) + '" onclick="formEdit()">' + StrToHtml(SL[i], False, False) + '</a>';
     {if i > 0 then
       S := S + '&nbsp;|&nbsp;';}
   end;
@@ -2092,7 +2123,7 @@ function THtmlShow.GetEvalChangesAsJson(Flags: TEvalFlags): String;
 var
   i, j: Integer;
   JsonRoot, JsonObj: TJSONObject;
-  JsonFields, JsonImages, JsonLabels, JsonQs, JsonErrs, JsonPivots,
+  JsonFields, JsonImages, {JsonLabels, }JsonQs, JsonErrs, JsonPivots,
     JsonProps, JsonTs: TJsonArray;
   F: TdxField;
   Lbl: TdxLabel;
@@ -2121,7 +2152,7 @@ begin
 
     JsonFields := TJsonArray.Create;
     JsonImages := TJsonArray.Create;
-    JsonLabels := TJsonArray.Create;
+    //JsonLabels := TJsonArray.Create;
     JsonProps := TJsonArray.Create;
     JsonTs := TJsonArray.Create;
     JsonQs := TJsonArray.Create;
@@ -2167,13 +2198,13 @@ begin
       end
     end;
 
-    for i := 0 to FRS.ChangedLabels.Count - 1 do
+    {for i := 0 to FRS.ChangedLabels.Count - 1 do
     begin
       Lbl := TdxLabel(FRS.ChangedLabels[i]);
       if not Lbl.ControlVisible then Continue;
       JsonLabels.Add(TJSONObject.Create(['fieldName', LbL.FieldName,
         'value', StrToHtml(Lbl.Caption, True)]));
-    end;
+    end;   }
 
     for i := 0 to FRS.ChangedProps.Count - 1 do
     begin
@@ -2240,7 +2271,7 @@ begin
 
     JsonRoot.Add('fields', JsonFields);
     JsonRoot.Add('images', JsonImages);
-    JsonRoot.Add('labels', JsonLabels);
+    //JsonRoot.Add('labels', JsonLabels);
     JsonRoot.Add('props', JsonProps);
     JsonRoot.Add('tables', JsonTs);
     JsonRoot.Add('queries', JsonQs);
@@ -2536,15 +2567,18 @@ var
 
 function CalcListColumnAutoWidth(C: TdxLookupComboBox): Integer;
 var
-  ZeroCount, W, i: Integer;
+  ZeroCount, W, i, W0: Integer;
 begin
   ZeroCount := 0;
   W := C.Width + C.ListWidthExtra;
   for i := 0 to C.ListFields.Count - 1 do
   begin
-    if C.ListFields[i].Width = 0 then Inc(ZeroCount);
-    W := W - C.ListFields[i].Width;
+    W0 := C.ListFields[i].Width;
+    if W0 < 0 then Continue;
+    if W0 = 0 then Inc(ZeroCount);
+    W := W - W0;
   end;
+  if C.ListSource = 0 then Inc(ZeroCount);
   if ZeroCount > 0 then
     Result := W div ZeroCount
   else
@@ -2568,29 +2602,47 @@ begin
   end;
 end;
 
+function LCbxGetVisibleColCount(C: TdxLookupComboBox): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 0 to C.ListFields.Count - 1 do
+    if C.ListFields[i].Width >= 0 then Inc(Result);
+  if C.ListSource = 0 then Inc(Result);
+end;
+
 function THtmlShow.GetLookupComboBoxListForm(C: TdxLookupComboBox;
   Skip: Integer; const Frags: String; FragList: TStrings): String;
 var
-  W, i: Integer;
+  W, i, Depth, VisibleColCount, W0: Integer;
   SrcFm: TdxForm;
   SrcF: TdxField;
   DS: TSQLQuery;
-  S, Attr: String;
+  S, Attr, Style: String;
+  IsTree: Boolean;
 begin
   Result := '';
   if (C.SourceTId = 0) or (C.SourceFId = 0) then Exit;
+  VisibleColCount := LCbxGetVisibleColCount(C);
   if Skip = 0 then
   begin
     // Ширина первой колонки
-    W := C.Width + C.ListWidthExtra;
+    W0 := CalcListColumnAutoWidth(C);
+    {W := C.Width + C.ListWidthExtra;
     for i := 0 to C.ListFields.Count - 1 do
-      W := W - C.ListFields[i].Width;
-    Result := Result + '<colgroup><col width=' + IntToStr(W) + '>';
+      W := W - C.ListFields[i].Width;  }
+    Result := Result + '<colgroup><col width=' + IntToStr(W0) + '>';
     //
     for i := 0 to C.ListFields.Count - 1 do
-      Result := Result + '<col width=' + IntToStr(C.ListFields[i].Width) + '>';
+    begin
+      W := C.ListFields[i].Width;
+      if W = 0 then W := W0;
+      if W > 0 then
+        Result := Result + '<col width=' + IntToStr(C.ListFields[i].Width) + '>';
+    end;
     Result := Result + '</colgroup>';
-    if C.ListFields.Count = 0 then
+    if (C.ListFields.Count = 0) or (VisibleColCount = 1) then
       Result := Result + '<tr style="display: none;"><th></th></tr>'
     else
     begin
@@ -2600,6 +2652,7 @@ begin
       Result := Result + '<th>' + SrcF.FieldName + '</th>';
       for i := 0 to C.ListFields.Count - 1 do
       begin
+        if C.ListFields[i].Width < 0 then Continue;
         SrcF := SrcFm.FindField(C.ListFields[i].FieldId);
         Result := Result + '<th>' + SrcF.FieldName + '</th>';
       end;
@@ -2610,20 +2663,28 @@ begin
   // Пустая строка для очистки поля
   if Skip = 0 then
   begin
-    Result := Result + '<tr key="">';
-    for i := 0 to C.ListFields.Count do       // + основное поле
-      Result := Result + '<td empty>&nbsp;</td>';
+    Result := Result + '<tr key=""><td empty>&nbsp;</td>';
+    for i := 0 to C.ListFields.Count - 1 do
+      if C.ListFields[i].Width >= 0 then
+        Result := Result + '<td empty>&nbsp;</td>';
     Result := Result + '</tr>';
   end;
 
   DS := FSS.DBase.OpenDataSet(SqlLCbxSelect(FRS, C, Frags, 100, Skip));
   LCbxSetDisplayFormat(FSS, C, DS);
 
+  IsTree := C.ShowAsTreeList;
+  Style := '';
   while not DS.Eof do
   begin
     S := StrToHtml(GetFieldDisplayText(DS.Fields[1]));
     if S <> '' then
     begin
+      if IsTree then
+      begin
+        Abrakadabra(S, #9, Depth);
+        Style := ' style="' + 'padding-left: ' + IntToStr(Depth * 10) + 'px;"';
+      end;
       S := MarkFragments(S, FragList);
       Attr := '';
     end
@@ -2632,10 +2693,11 @@ begin
       S := '&nbsp;';
       Attr := ' empty';
     end;
-    Result := Result + '<tr key=' + DS.Fields[0].AsString + '><td' + Attr + '>' +
-      S + '</td>';
+    Result := Result + '<tr key=' + DS.Fields[0].AsString + '><td' + Attr +
+      Style + '>' + S + '</td>';
     for i := 0 to C.ListFields.Count - 1 do
     begin
+      if C.ListFields[i].Width < 0 then Continue;
       Result := Result + '<td>';
       S := StrToHtml(GetFieldDisplayText(DS.Fields[i + 2]));
       if S <> '' then
@@ -2652,7 +2714,7 @@ begin
   end;
   if DS.RecordCount = 100 then
   begin
-    Result := Result + '<tr><td colspan=' + IntToStr(C.ListFields.Count + 1) +
+    Result := Result + '<tr><td colspan=' + IntToStr(VisibleColCount) + //IntToStr(C.ListFields.Count + 1) +
       '><input type=button value="' + rsMore + '"></td></tr>';
   end;
   DS.Free;
@@ -2694,13 +2756,16 @@ function THtmlShow.GetLookupComboBoxListSource(C: TdxLookupComboBox;
   end;
 
 var
-  W0, i, W, idx, n: Integer;
+  W0, i, W, idx, n, Depth, VisibleColCount: Integer;
   QRS: TSsRecordSet;
   DSFields: TList;
-  S, Attr: String;
+  S, Attr, Style: String;
+  IsTree: Boolean;
+  F: TField;
 begin
   Result := '';
   if (C.ListKeyField = '') or (C.ListFields.Count = 0) then Exit;
+  VisibleColCount := LCbxGetVisibleColCount(C);
 
   SetTypedText(FSS, Frags);
 
@@ -2715,7 +2780,8 @@ begin
     begin
       W := C.ListFields[i].Width;
       if W = 0 then W := W0;
-      Result := Result + '<col width=' + IntToStr(W) + '>';
+      if W > 0 then
+        Result := Result + '<col width=' + IntToStr(W) + '>';
     end;
     Result := Result + '</colgroup>';
     if C.ListFields.Count = 1 then
@@ -2725,6 +2791,7 @@ begin
       Result := Result + '<tr>';
       for i := 0 to C.ListFields.Count - 1 do
       begin
+        if C.ListFields[i].Width < 0 then Continue;
         idx := QRS.RD.IndexOfNameDS(C.ListFields[i].FieldName);
         Result := Result + '<th>' + QRS.RD.GetFieldName(idx) + '</th>';
       end;
@@ -2737,7 +2804,8 @@ begin
   begin
     Result := Result + '<tr key="">';
     for i := 0 to C.ListFields.Count - 1 do
-      Result := Result + '<td empty>&nbsp;</td>';
+      if C.ListFields[i].Width >= 0 then
+        Result := Result + '<td empty>&nbsp;</td>';
     Result := Result + '</tr>';
   end;
 
@@ -2760,28 +2828,40 @@ begin
   for i := 0 to C.ListFields.Count - 1 do
     DSFields.Add(QRS.DataSet.FieldByName(C.ListFields[i].FieldName));
 
+  IsTree := C.ShowAsTreeList;
+
+  if IsTree and (Skip = 0) then
+  begin
+    F := TField(DSFields[1]);
+    while not QRS.DataSet.Eof do
+    begin
+      QRS.DataSet.Edit;
+      F.AsString := StringReplace(F.AsString, '\', #9, [rfReplaceAll]);
+      QRS.DataSet.Post;
+      QRS.DataSet.Next;
+    end;
+    QRS.DataSet.First;
+    //QRS.DataSet.IndexFieldNames := F.FieldName;
+  end;
+
+  Style := '';
   for n := 1 to 100 do
   begin
     if QRS.DataSet.Eof then Break;
 
-    {S := StrToHtml(TField(DSFields[1]).AsString);
-    if S <> '' then
-    begin
-      S := MarkFragments(S, FragList);
-      Attr := '';
-    end
-    else
-    begin
-      S := '&nbsp;';
-      Attr := ' empty';
-    end;              }
-    Result := Result + '<tr key=' + TField(DSFields[0]).AsString + '>';{<td' + Attr + '>' +
-      S + '</td>'; }
+    Result := Result + '<tr key=' + TField(DSFields[0]).AsString + '>';
     for i := 0 to C.ListFields.Count - 1 do
     begin
+      if C.ListFields[i].Width < 0 then Continue;
+
       S := StrToHtml(GetFieldDisplayText(TField(DSFields[i + 1])));
       if S <> '' then
       begin
+        if IsTree and (i = 0) then
+        begin
+          Abrakadabra(S, #9, Depth);
+          Style := ' style="' + 'padding-left: ' + IntToStr(Depth * 10) + 'px;"';
+        end;
         if C.ListFields[i].Searchable then
           S := MarkFragments(S, FragList);
         Attr := '';
@@ -2791,7 +2871,7 @@ begin
         S := '&nbsp;';
         Attr := ' empty';
       end;
-      Result := Result + '<td' + IIF(i = 0, Attr, '') + '>';
+      Result := Result + '<td' + IIF(i = 0, Attr + Style, '') + '>';
       Result := Result + S + '</td>';
     end;
     Result := Result + '</tr>';
@@ -2800,7 +2880,7 @@ begin
 
   if not QRS.DataSet.Eof then
   begin
-    Result := Result + '<tr><td colspan=' + IntToStr(C.ListFields.Count + 1) +
+    Result := Result + '<tr><td colspan=' + IntToStr(VisibleColCount) + //IntToStr(C.ListFields.Count + 1) +
       '><input type=button value="' + rsMore + '"></td></tr>';
   end;
 
@@ -2852,24 +2932,6 @@ begin
   DS.Free;
 end;
 
-procedure Abrakadabra(var S: String; out Depth: Integer);
-var
-  i, n, p, Len: Integer;
-begin
-  n := 0; p := 1; Len := Length(S);
-  for i := 1 to Len do
-  begin
-    if S[i] = '\' then
-    begin
-      p := i + 1;
-      Inc(n);
-    end;
-  end;
-  //Result := DupeString('&nbsp;&nbsp;', n) + Copy(S, p, Len - p + 1);
-  S := Copy(S, p, Len - p + 1);
-  Depth := n;
-end;
-
 function THtmlShow.GetFilterLookupComboBoxList(C: TdxCustomComboBox;
   Skip: Integer; const Frags: String; FragList: TStrings): String;
 var
@@ -2898,7 +2960,7 @@ begin
     S := StrToHtml(DS.Fields[1].AsString);
     if IsHierarhy then
     begin
-      Abrakadabra(S, Depth);
+      Abrakadabra(S, #9, Depth);
       Style := ' style="' + 'padding-left: ' + IntToStr(Depth * 10) + 'px;"';
     end;
     if S <> '' then
@@ -3168,7 +3230,7 @@ begin
       S := S + '<td>';
       if Rp.Grid.ShowRowDeleteButton and Deleting then S := S + '<img src="/img/delrow.svg" class=del>';
       S := S + '<a href="?fm=' + IntToStr(EditFmId) +
-        '&rec=' + DS.FieldByName('id').AsString + '"><img src="/img/' + ImgName + '"></a></td>';
+        '&rec=' + DS.FieldByName('id').AsString + '" onclick="formEdit()"><img src="/img/' + ImgName + '"></a></td>';
     end
     else
       S := S + '<td></td>';
@@ -3489,6 +3551,7 @@ begin
     if NewRS = nil then
     begin
       NewRS := FSS.AddRecordSet(Fm);
+      NewRS.CallerRS := QRS;
       if QRS.QGrid.OnCreateForm <> nil then QRS.QGrid.OnCreateForm(QRS.QGrid, NewRS.Form);
       NewRS.OpenRecord(QRS.RecId, True);
     end;
@@ -3582,7 +3645,7 @@ end;
 function THtmlShow.QueryFetch(AParams: TStrings): String;
 var
   QRS: TSsRecordSet;
-  QId, FreshValue, SkipRecs: Longint;
+  QId, FreshValue, SkipRecs, FetchDirect: Longint;
 begin
   Result := '';
   FResultCode := rcAjaxError;
@@ -3590,6 +3653,9 @@ begin
     Exit(MakeJsonErrString(rcAnyError, 'Invalid query id'));
   if not TryStrToInt(AParams.Values['skip'], SkipRecs) then
     Exit(MakeJsonErrString(rcAnyError, 'Invalid skip value'));
+  if not TryStrToInt(AParams.Values['dir'], FetchDirect) or
+    (FetchDirect < 0) or (FetchDirect > 2) then
+    Exit(MakeJsonErrString(rcAnyError, 'Invalid dir value'));
   if not TryStrToInt(AParams.Values['fresh'], FreshValue) then
     Exit(MakeJsonErrString(rcAnyError, rsInvalidFreshValue));
 
@@ -3602,7 +3668,7 @@ begin
   QRS := FRS.Queries.FindRpById(QId);
   if (QRS = nil) or (QRS.RD.Sources.Count = 0) then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
   try
-    Result := ShowQueryGridRecords(QRS, SkipRecs);
+    Result := ShowQueryGridRecords(QRS, SkipRecs, FetchDirect);
     FResultCode := rcAjaxOk;
   except
     on E: Exception do
@@ -4008,6 +4074,38 @@ begin
   SL.Free;
 end;
 
+function GetStyleByControl(C: TdxControl): String;
+begin
+  if C is TdxEdit then Result := 'text'
+  else if C is TdxCalcEdit then Result := 'num'
+  else if C is TdxDateEdit then Result := 'dt'
+  else if C is TdxTimeEdit then Result := 'tm'
+  else if C is TdxMemo then Result := 'memo'
+  else if C is TdxCheckBox then Result := 'checkbox'
+  else if C is TdxComboBox then
+    with TdxComboBox(C) do
+    begin
+      if ((SourceTId = 0) or (SourceFId = 0)) and (Style = csDropDownList) then Result := 'fcbx'
+      else Result := 'cbx'
+    end
+  else if C is TdxLookupComboBox then Result := 'lcbx'
+  else if C is TdxObjectField then Result := 'objf'
+  else if C is TdxDBImage then Result := 'dbimg'
+  else if C is TdxFile then Result := 'file'
+  else if C is TdxRecordId then Result := 'recid'
+  else if C is TdxCounter then Result := 'counter'
+  else if (C is TdxGrid) or (C is TdxQueryGrid) then Result := 'grid'
+  else if C is TdxPivotGrid then Result := 'pgrid'
+  else if C is TdxChart then Result := 'chart'
+  else if C is TdxImage then Result := 'image'
+  else if C is TdxShape then Result := 'shape'
+  else if C is TdxButton then Result := 'bn'
+  else if C is TdxGroupBox then Result := 'groupbox'
+  else if C is TdxPageControl then Result := 'pages'
+  else if C is TdxTabSheet then Result := 'tabsheet'
+  else Result := '';
+end;
+
 function THtmlShow.GetStyleClass(C: TdxControl): String;
 var
   S: String;
@@ -4035,12 +4133,30 @@ begin
       else
         S := S + 'object-fit:none;'
     end
-  else if C is TdxDBImage then
-    Result := 'dbimg'
-    //S := S + 'object-position:center;object-fit:scale-down;'
+  //else if C is TdxDBImage then
+  //  Result := 'dbimg'
   else
     S := GetFontCSS(C.Font, C.Parent.Font) + GetColorCSS(C);
-  if C is TdxLabel then S := S + 'white-space:nowrap;';
+  if C is TdxLabel then
+    with TdxLabel(C) do
+    begin
+      if Layout <> tlTop then
+      begin
+        S := S + 'display:flex;align-items:' + IIF(Layout = tlCenter, 'center',
+          'flex-end') + ';';
+        if Alignment <> taLeftJustify then
+          S := S + 'justify-content:' + IIF(Alignment = taCenter, 'center', 'right') + ';';
+      end
+      else
+      begin
+        if Alignment <> taLeftJustify then
+          S := S + 'text-align:' + IIF(Alignment = taCenter, 'center', 'right') + ';';
+        if not WordWrap or AutoSize then
+          S := S + 'white-space:nowrap;'
+      end;
+      if not AutoSize then
+        S := S + 'overflow:clip;';
+    end;
 
   if S <> '' then
   begin
@@ -4049,6 +4165,8 @@ begin
       i := FCSS.Add(S);
     Result := 'c' + IntToStr(i);
   end;
+
+  Result := Result + ' ' + GetStyleByControl(C);
 
   if (C is TdxField) and (C.Form.Errs.IndexOfObject(TObject(PtrInt(TdxField(C).Id))) >= 0) then
     Result := Result + ' err';
@@ -4114,7 +4232,7 @@ begin
     '"><input class=two type=text value="' + V2 + '">';
 end;
 
-function AbrakadabraOld(S: String): String;
+{function AbrakadabraOld(S: String): String;
 var
   i, n, p, Len: Integer;
 begin
@@ -4128,7 +4246,7 @@ begin
     end;
   end;
   Result := DupeString('&nbsp;&nbsp;', n) + Copy(S, p, Len - p + 1);
-end;
+end;}
 
 function THtmlShow.ShowFilterObjectField(F: TdxObjectField; const Value: String
   ): String;
@@ -4472,7 +4590,8 @@ begin
     C.ActionEnabled := CheckActionEnabled(C); }
 
   Result := '<button id=' + C.Name + ' type=button class="' +
-    GetStyleClass(C) + ' bn" style="' + GetBoundsCSS(C) + GetVisible(C) + '" tabindex=' +
+    GetStyleClass(C) + '" style="' + GetBoundsCSS(C) + GetVisible(C) +
+    IIF(C.Hint <> '', '" title="' + StrToHtml(C.Hint), '') + '" tabindex=' +
     IntToStr(GetTabOrder(C)) + GetEnabled(C) + ' onclick="bnClick(''' + C.Name + ''')">' +
     //IIF(C.ActionEnabled = True, ' onclick="bnClick(''' + C.Name + ''')"', ' disabled') +
     IIF(FlNm <> '', '<img src="' + FlNm + '">', '') +
@@ -4494,7 +4613,7 @@ begin
     ' id=f' + IntToStr(C.Id) +
     ' type=text value="' + GetFieldValue(C) + '" style="' + GetBoundsCSS(C) +
     GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) + GetEnabled(C) +
-    GetReadOnly(C) + '>';
+    GetReadOnly(C) + IIF(C.TextHint <> '', ' placeholder="' + StrToHtml(C.TextHint) + '"', '') + '>';
   if not C.HideButton then
     Result := Result + '<button class=editbn type=button style="position: absolute; left: ' +
       IntToStr(C.Left + C.Width) + 'px; top: ' + IntToStr(C.Top) + 'px; width: ' +
@@ -4538,7 +4657,7 @@ begin
       IntToStr(C.Id) + '.png';
     try
       if SaveImageToFile(GetCachePath(FSS) + ImgName, Max(C.Width, C.Height), C, FRS.DataSet) then
-        ImgName := GetCachePath(FSS, True) + ImgName
+        ImgName := GetCachePath(FSS, True) + ImgName + GetRandomVer
       else
         ImgName := '/img/noimg.svg';
     except
@@ -4574,7 +4693,7 @@ begin
     IntToStr(C.Id) + 't.png';
   try
     if SaveThumbnailToFile(GetCachePath(FSS) + ImgName, C.Id, DS) then
-      ImgName := GetCachePath(FSS, True) + ImgName
+      ImgName := GetCachePath(FSS, True) + ImgName + GetRandomVer
     else
       ImgName := '';
   except
@@ -4583,8 +4702,8 @@ begin
   if FileNameOnly then
     Result := ImgName
   else
-    Result := '<img class="thumb" src="' + ImgName + '" width=' + IntToStr(C.ThumbSize) +
-      'px height=' + IntToStr(C.ThumbSize) + '>';
+    Result := '<img class="thumb" src="' + ImgName + '" width=' +
+      IntToStr(C.ThumbSize) + 'px height=' + IntToStr(C.ThumbSize) + '>';
 end;
 
 function THtmlShow.ShowQueryThumbnail(RD: TReportData; ColIndex: Integer;
@@ -4609,7 +4728,7 @@ begin
   begin
     try
       if SaveThumbnailToFile(GetCachePath(FSS) + ImgName, pF^.Id, DS) then
-        ImgName := GetCachePath(FSS, True) + ImgName
+        ImgName := GetCachePath(FSS, True) + ImgName + GetRandomVer
       else
         ImgName := '';
     except
@@ -4617,8 +4736,8 @@ begin
     end;
 
     if ImgName <> '' then
-      Result := '<img class="thumb" src="' + ImgName + '" width=' + IntToStr(Col.ThumbSize) +
-        'px height=' + IntToStr(Col.ThumbSize) + '>';
+      Result := '<img class="thumb" src="' + ImgName + '" width=' +
+        IntToStr(Col.ThumbSize) + 'px height=' + IntToStr(Col.ThumbSize) + '>';
 
   end;
 end;
@@ -4673,8 +4792,7 @@ begin
   Result := '<div id=' + C.Name;
   if not Visible then
     Result := Result + ' style="display: none;"';
-  Result := Result + ' class="tabsheet ' + GetStyleClass(C) + '">' +
-    ShowContainer(C) + '</div>';
+  Result := Result + ' class="' + GetStyleClass(C) + '">' + ShowContainer(C) + '</div>';
 end;
 
 (*function THtmlShow.ShowPageControl(C: TdxPageControl): String;
@@ -4730,7 +4848,7 @@ var
 begin
   idx := C.ActivePageIndex;
   if idx < 0 then idx := C.ActivePageIndex;
-  Result := '<div class="pages ' + GetStyleClass(C) + '" id=' + C.Name + ' data-tabindex=' + IntToStr(idx) +
+  Result := '<div class="' + GetStyleClass(C) + '" id=' + C.Name + ' data-tabindex=' + IntToStr(idx) +
     GetEnabled(C) + ' style="position: absolute; left: ' + IntToStr(C.Left) + 'px; top: ' +
     IntToStr(C.Top) + 'px; width: ' + IntToStr(C.Width) + 'px; ' +
     'height: ' + IntToStr(C.Height) + 'px;' + GetVisible(C) + '">';
@@ -4790,19 +4908,19 @@ begin
   Result := '<div id=' + C.Name + ' style="position:absolute;left: ' + IntToStr(C.Left) + 'px;top:' +
     IntToStr(C.Top) + 'px;width:' + IntToStr(C.Width) + 'px;' +
     'height:' + IntToStr(C.Height) + 'px;' + GetVisible(C) +
-    '" class="groupbox ' + GetStyleClass(C) + '">' +
+    '" class="' + GetStyleClass(C) + '">' +
     '<div class=groupframe><div class=groupcap>' + StrToHtml(C.Caption) +
     '</div><div class=grouparea>' + ShowContainer(C) +
     '</div></div></div>';
 end;
 
-function THtmlShow.ShowQueryGridRecords(ARS: TSsRecordSet; Skip: Integer
-  ): String;
+function THtmlShow.ShowQueryGridRecords(ARS: TSsRecordSet; Skip: Integer;
+  Direct: Integer): String;
 var
   B: TBookMark;
   TrCls, S, ImgName, TdCls: String;
   i, FmId, Row, RecCounter, RealColCount: Integer;
-  IsEditable, Deleting, DataSetEof, CanAppendBn: Boolean;
+  IsEditable, Deleting, DataSetEof, CanAppendBn, Editing: Boolean;
   RD: TReportData;
   Col: TRpGridColumn;
   QG: TdxQueryGrid;
@@ -4815,13 +4933,34 @@ begin
   IsEditable := RD.IsSimple and FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId);
   if IsEditable then
   begin
-    if FSS.UserMan.CheckFmEditing(FSS.RoleId, FmId) then ImgName := 'edit.svg'
+    Editing := (ARS.Parent.Editing = asOk) and FSS.UserMan.CheckFmEditing(FSS.RoleId, FmId);
+    if Editing then ImgName := 'edit.svg'
     else ImgName := 'view.svg';
-    Deleting := FSS.UserMan.CheckFmDeleting(FSS.RoleId, FmId);
+    Deleting := Editing and FSS.UserMan.CheckFmDeleting(FSS.RoleId, FmId);
   end;
   //
 
-  RecCounter := 1;
+  RecCounter := 100;
+
+  if (Direct in [FetchDirectUp, FetchDirectBoth]) and (Skip > 0) then
+  begin
+    if (Direct = FetchDirectUp) and (Skip - 100 <= 0) then
+    begin
+      RecCounter := Skip;
+      Skip := 0;
+    end
+    else
+    begin
+      if Direct = FetchDirectUp then Skip := Skip - 100;
+      RealColCount := RD.Grid.GetVisibleColumnCount;
+      if IsEditable then Inc(RealColCount);
+      S := S + '<tr class=gridbns-up><td colspan=' + IntToStr(RealColCount) + '>';
+      S := S + '<button class="gridbns-more-up" type=button' + ' onclick="tableFetch(' + IntToStr(QG.Id) +
+        ',true,' + IntToStr(Skip) + ',1)"' + GetEnabled(QG) + '>' + rsMore +        // fetch up
+        '</button></tr>';
+    end;
+  end;
+
   with ARS.DataSet do
     if Active then
     begin
@@ -4864,9 +5003,9 @@ begin
         end;
         S := S + '</tr>';
         // Подаем запрос порциями по 100 записей. Предотвращаем Next, чтобы не загрузилась очередная порция.
-        if RecCounter = 100 then Break;
+        if RecCounter = 1 then Break;
         Next;
-        Inc(RecCounter);
+        Dec(RecCounter);
       end;
       DataSetEof := Eof;
       GotoBookmark(B);
@@ -4876,22 +5015,27 @@ begin
   else
     DataSetEof := True;
 
-  CanAppendBn := not (QG.ShowButtons and (gbnAppend in QG.VisibleButtons)) and
-    IsEditable and FSS.UserMan.CheckFmAdding(FSS.RoleId, FmId) and (FRS.Editing = asOk);
-  if not DataSetEof or CanAppendBn then
+  if Direct in [FetchDirectDown, FetchDirectBoth] then
   begin
-    RealColCount := RD.Grid.GetVisibleColumnCount;
-    if IsEditable then Inc(RealColCount);
-    S := S + '<tr class=gridbns><td colspan=' + IntToStr(RealColCount) + '>';
-    if CanAppendBn then
-      S := S + '<button type=button' +
-        ' onclick="queryAdd(' + IntToStr(QG.Id) + ')"' + GetEnabled(QG) + '>' +
-        rsAppend + '</button>';
-    if not DataSetEof then
+    CanAppendBn := not (QG.ShowButtons and (gbnAppend in QG.VisibleButtons)) and
+      IsEditable and FSS.UserMan.CheckFmAdding(FSS.RoleId, FmId) and (FRS.Editing = asOk);
+    if not DataSetEof or CanAppendBn then
     begin
-      S := S + '<button type=button' +
-        ' onclick="tableFetch(' + IntToStr(QG.Id) + ',true)"' + GetEnabled(QG) + '>' +
-        rsMore + '</button>';
+      RealColCount := RD.Grid.GetVisibleColumnCount;
+      if IsEditable then Inc(RealColCount);
+      S := S + '<tr class=gridbns-down><td colspan=' + IntToStr(RealColCount) + '>';
+      if CanAppendBn then
+        S := S + '<button class=gridbns-add type=button' +
+          ' onclick="queryAdd(' + IntToStr(QG.Id) + ')"' + GetEnabled(QG) + '>' +
+          rsAppend + '</button>';
+      if not DataSetEof then
+      begin
+        S := S + '<button class=gridbns-more-down type=button' +
+          ' onclick="tableFetch(' + IntToStr(QG.Id) + ',true,' +
+          IntToStr(Skip + 100) + ',2)"' + GetEnabled(QG) + '>' +       // fetch down
+          rsMore + '</button>';
+      end;
+      S := S + '</tr>';
     end;
   end;
 
@@ -4908,6 +5052,7 @@ var
   si, FmId: Integer;
   RS: TSsRecordSet;
   Col: TRpGridColumn;
+  OffsetNo: LongInt;
 begin
   S := '';
   RS := FRS.Queries.FindRpById(C.Id);
@@ -4938,13 +5083,22 @@ begin
 
   if not GridOnly then
   begin
-    S := S + '<div id=q' + IntToStr(RD.Id) + GetEnabled(C) + ' class="grid ' +
+    S := S + '<div id=q' + IntToStr(RD.Id) + GetEnabled(C) + ' class="' +
       GetStyleClass(C) + IIF(IsEditable, '', ' gridro') +
-      '" style="' + GetBoundsCSS(C) + GetVisible(C) + '"' + GetEnabled(C) + '>';
+      '" style="' + GetBoundsCSS(C) + GetVisible(C) + '"' + GetEnabled(C) +
+      ' onscroll="tableScroll()">';
     if RD.Grid.ColumnCount = 0 then Exit(S + '</div>');
   end;
+
+  OffsetNo := RS.DataSet.RecNo - 50;
+  if OffsetNo < 0 then OffsetNo := 0;
+  {if RS.DataSet.RecNo mod 100 > 0 then
+    OffsetNo := RS.DataSet.RecNo div 100 * 100
+  else
+    OffsetNo := RS.DataSet.RecNo - 100;}
+
   S := S + '<table class=qgrid' + IntToStr(RD.Id) +
-    ' onclick="tableClick(event, true)">' +
+    ' onclick="tableClick(event, true)" data-offset=' + IntToStr(OffsetNo) + '>' +
     '<thead><tr>';
   //if IsEditable then
   begin
@@ -4989,7 +5143,7 @@ begin
 
   ColoringToCSS(RS, FCSS);
 
-  S := S + ShowQueryGridRecords(RS, 0);
+  S := S + ShowQueryGridRecords(RS, OffsetNo, FetchDirectBoth);
 
   S := S + '</tbody></table></div>';
 
@@ -5005,7 +5159,8 @@ begin
   end;
 end;
 
-function THtmlShow.ShowGridRecords(ARS: TSsRecordSet; Skip: Integer): String;
+function THtmlShow.ShowGridRecords(ARS: TSsRecordSet; Skip: Integer;
+  Direct: Integer): String;
 var
   S, TrCls, ImgName: String;
   Gr, GridCtrl: TdxGrid;
@@ -5026,9 +5181,28 @@ begin
   else ImgName := 'view.svg';
   //
 
+  RecCounter := 100;
+
+  if (Direct in [FetchDirectUp, FetchDirectBoth]) and (Skip > 0) then
+  begin
+    if (Direct = FetchDirectUp) and (Skip - 100 <= 0) then
+    begin
+      RecCounter := Skip;
+      Skip := 0;
+    end
+    else
+    begin
+      if Direct = FetchDirectUp then Skip := Skip - 100;
+      RealColCount := Gr.GetVisibleColumnCount + 1;
+      S := S + '<tr class=gridbns-up><td colspan=' + IntToStr(RealColCount) + '>';
+      S := S + '<button class="gridbns-more-up" type=button' + ' onclick="tableFetch(' + IntToStr(Fm.Id) +
+        ',false,' + IntToStr(Skip) + ',1)"' + GetEnabled(Gr) + '>' + rsMore +        // fetch up
+        '</button></tr>';
+    end;
+  end;
+
   with ARS.MemDS do
   begin
-    RecCounter := 1;
     First;
     MoveBy(Skip);
     while not Eof do
@@ -5050,6 +5224,8 @@ begin
         Col := Gr.Columns[i];
         if not Col.Visible or (Col.Width = 0) then Continue;
         F := Fm.FindField(Col.Id);
+        if not FSS.UserMan.CheckControlVisible(FSS.RoleId, Fm.Id, F.Name) then Continue;
+
         if F is TdxObjectField then
           FF := GetObjectFieldField(FSS, TdxObjectField(F))
         else
@@ -5082,30 +5258,34 @@ begin
       end;
       S := S + '</tr>';
 
-      if RecCounter = 100 then Break;
+      if RecCounter = 1 then Break;
       Next;
-      Inc(RecCounter);
+      Dec(RecCounter);
     end;
     DataSetEof := Eof;
   end;
 
-  GridCtrl := ARS.Parent.Form.FindTable(Fm.Id);
-  CanAppendBn := not (GridCtrl.ShowButtons and (gbnAppend in GridCtrl.VisibleButtons)) and
-    Editing and FSS.UserMan.CheckFmAdding(FSS.RoleId, Fm.Id);
-
-  if not DataSetEof or CanAppendBn then
+  if Direct in [FetchDirectDown, FetchDirectBoth] then
   begin
-    RealColCount := Gr.GetVisibleColumnCount + 1;
-    S := S + '<tr class=gridbns><td colspan=' + IntToStr(RealColCount) + '>';
-    if CanAppendBn then
-      S := S + '<button type=button' +
-        ' onclick="tableAdd(' + IntToStr(Fm.Id) + ')"' + GetEnabled(Gr) + '>' +
-        rsAppend + '</button>';
-    if not DataSetEof then
+    GridCtrl := ARS.Parent.Form.FindTable(Fm.Id);
+    CanAppendBn := not (GridCtrl.ShowButtons and (gbnAppend in GridCtrl.VisibleButtons)) and
+      Editing and FSS.UserMan.CheckFmAdding(FSS.RoleId, Fm.Id);
+
+    if not DataSetEof or CanAppendBn then
     begin
-      S := S + '<button type=button' +
-        ' onclick="tableFetch(' + IntToStr(Fm.Id) + ',false)"' + GetEnabled(Gr) + '>' +
-        rsMore + '</button>';
+      RealColCount := Gr.GetVisibleColumnCount + 1;
+      S := S + '<tr class=gridbns-down><td colspan=' + IntToStr(RealColCount) + '>';
+      if CanAppendBn then
+        S := S + '<button class=gridbns-add type=button' +
+          ' onclick="tableAdd(' + IntToStr(Fm.Id) + ')"' + GetEnabled(Gr) + '>' +
+          rsAppend + '</button>';
+      if not DataSetEof then
+      begin
+        S := S + '<button class=gridbns-more-down type=button' +
+          ' onclick="tableFetch(' + IntToStr(Fm.Id) + ',false,' +
+          IntToStr(Skip + 100) + ',2)"' + GetEnabled(Gr) + '>' + rsMore + '</button>';
+      end;
+      S := S + '</tr>'
     end;
   end;
 
@@ -5116,13 +5296,14 @@ function THtmlShow.ShowGrid(C: TdxGrid; GridOnly: Boolean): String;
 var
   Fm: TdxForm;
   i, si: Integer;
-  F, FF: TdxField;
+  F: TdxField;
   FlNm: String;
   Gr: TdxGrid;
   SC: TdxSortCol;
   RS: TSsRecordSet;
   Editing: Boolean;
   Col: TdxColumn;
+  OffsetNo: LongInt;
 begin
   Result := '';
   RS := FRS.Forms.FindFormById(C.Id);
@@ -5156,14 +5337,19 @@ begin
 
   if not GridOnly then
   begin
-    Result := Result + '<div id=t' + IntToStr(C.Id) + ' class="grid ' + GetStyleClass(C) +
-      '" style="' + GetBoundsCSS(C) + GetVisible(C) + '"' + GetEnabled(C) + '>';
+    Result := Result + '<div id=t' + IntToStr(C.Id) + ' class="' + GetStyleClass(C) +
+      '" style="' + GetBoundsCSS(C) + GetVisible(C) + '"' + GetEnabled(C) +
+      ' onscroll="tableScroll()">';
     // !!! Доступ
     if not FSS.UserMan.CheckFmVisible(FSS.RoleId, Fm.Id) then Exit(Result + '</div>');
     //
   end;
 
-  Result := Result + '<table class=grid' + IntToStr(Fm.Id) + ' onclick="tableClick(event, false)">';
+  OffsetNo := RS.DataSet.RecNo - 50;
+  if OffsetNo < 0 then OffsetNo := 0;
+
+  Result := Result + '<table class=grid' + IntToStr(Fm.Id) +
+    ' onclick="tableClick(event, false)" data-offset=' + IntToStr(OffsetNo) + '>';
   Result := Result + '<thead><tr><th></th>';
 
   for i := 0 to Gr.Columns.Count - 1 do
@@ -5171,6 +5357,8 @@ begin
     Col := Gr.Columns[i];
     if not Col.Visible or (Col.Width = 0) then Continue;
     F := Fm.FindField(Col.Id);
+    if not FSS.UserMan.CheckControlVisible(FSS.RoleId, Fm.Id, F.Name) then Continue;
+
     if Col.Caption <> ' ' then FlNm := StrToHtml(Col.Caption)
     else FlNm := F.FieldName;
     Result := Result + '<th><span';
@@ -5202,12 +5390,13 @@ begin
 
   ColoringToCSS(RS, FCSS);
 
-  Result := Result + ShowGridRecords(RS, 0) + '</tbody></table></div>';
+  Result := Result + ShowGridRecords(RS, OffsetNo, FetchDirectBoth) + '</tbody></table></div>';
 end;
 
 function THtmlShow.ShowShape(C: TdxShape): String;
 begin
-  Result := '<img id=' + C.Name + ' style="' + GetBoundsCSS(C) + GetVisible(C) + '" src="' + C.GetImagePath(True) + '">';
+  Result := '<img id=' + C.Name + ' class="shape" style="' + GetBoundsCSS(C) +
+    GetVisible(C) + '" src="' + C.GetImagePath(True) + '">';
 end;
 
 function THtmlShow.ShowLookupComboBox(C: TdxLookupComboBox): String;
@@ -5225,7 +5414,7 @@ begin
     if FSS.UserMan.CheckFmAdding(FSS.RoleId, C.SourceTId) then Inc(Access);
   end;
   Result := '<input type=hidden name=f' + IntToStr(C.Id) + ' value="' + GetFieldValue(C) +
-    '" onchange="fieldChange(this)"><input type=text class="lcbx ' + GetStyleClass(C) +
+    '" onchange="fieldChange(this)"><input type=text class="' + GetStyleClass(C) +
     '" id=f' + IntToStr(C.Id) + GetEnabled(C) +
     IIF(not RdOnly and (Access > 0), ' data-fm=' + IntToStr(C.SourceTId) +
     ' data-access=' + IntToStr(Access), '') +
@@ -5235,7 +5424,9 @@ begin
     '" tabindex=' + IntToStr(GetTabOrder(C)) +
     ' readonly value="' + StrToHtml(FRS.GetObjValue(C)) +
     IIF(not RdOnly, '" extra-width=' + IntToStr(C.ListWidthExtra) +
-    ' onclick="showList()" onkeydown="lcbxKeyDown()"', '"') + '>';
+    IIF(C.ShowAsTreeList, ' show-tree', '') +
+    ' onclick="showList()" onkeydown="lcbxKeyDown()"', '"') +
+    IIF(C.TextHint <> '', ' placeholder="' + StrToHtml(C.TextHint) + '"', '') + '>';
   if not C.HideList or not C.HideButton then
     Result := Result + '<button class=cbxbn type=button ' + GetEnabled(C) +
       ' style="position: absolute; left: ' +
@@ -5249,20 +5440,22 @@ end;
 
 function THtmlShow.ShowComboBox(C: TdxComboBox): String;
 var
-  sId, S, Attr: String;
+  sId, S, Attr, ItemsOnlyStr: String;
   i: Integer;
   FixedList, RdOnly: Boolean;
 begin
   FixedList := (C.SourceTId = 0) or (C.SourceFId = 0);
   sId := IntToStr(C.Id);
   RdOnly := ControlReadOnly(C);
+  if not RdOnly and C.ItemsOnly then ItemsOnlyStr := ' readonly '
+  else ItemsOnlyStr := '';
   Result := '<input type=text class="' +
-    IIF(FixedList and (C.Style = csDropDownList), 'fcbx ', 'cbx ') +
+    //IIF(FixedList and (C.Style = csDropDownList), 'fcbx ', 'cbx ') +
     GetStyleClass(C) + '" name=f' + sId +
     ' id=f' + sId + GetEnabled(C) + ' style="position: absolute; left: ' + IntToStr(C.Left) +
     'px; top: ' + IntToStr(C.Top) + 'px; width: ' + IntToStr(C.Width - 18) +
     'px; height: ' + IntToStr(C.Height) + 'px;' + GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) +
-    ' value="' + GetFieldValue(C) + '"' + GetMaxLength(C) + GetReadOnly(C) +
+    ' value="' + GetFieldValue(C) + '"' + GetMaxLength(C) + ItemsOnlyStr + GetReadOnly(C) +
     IIF((C.Style = csDropDownList) and FixedList and not RdOnly,
     ' readonly onclick="showFixedList(' + ')"', '') +
     IIF(not RdOnly, ' onkeydown="' +
@@ -5298,7 +5491,7 @@ var
   V: String;
 begin
   V := GetFieldValue(C);
-  Result := '<span class="checkbox ' + GetStyleClass(C) + '" style="' + GetBoundsCSS(C) +
+  Result := '<span class="' + GetStyleClass(C) + '" style="' + GetBoundsCSS(C) +
     GetVisible(C) + '">';
   Result := Result + '<input type=checkbox name=f' + IntToStr(C.Id) +
     ' id=f' + IntToStr(C.Id) + IIF(ControlReadOnly(C) or not C.Enabled,
@@ -5323,7 +5516,8 @@ begin
   Result := '<input class="' + GetStyleClass(C) + '" name=f' + IntToStr(C.Id) +
     ' id=f' + IntToStr(C.Id) + GetEnabled(C) +
     ' type=text value="' + GetFieldValue(C) + '" style="' + GetBoundsCSS(C) +
-    GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) + GetReadOnly(C) + '>';
+    GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) + GetReadOnly(C) +
+    IIF(C.TextHint <> '', ' placeholder="' + StrToHtml(C.TextHint) + '"', '') + '>';
   if not C.HideButton then
     Result := Result + '<button class=editbn type=button style="position: absolute; left: ' +
       IntToStr(C.Left + C.Width) + 'px; top: ' + IntToStr(C.Top) + 'px; width: ' +
@@ -5339,7 +5533,8 @@ begin
   Result := '<input class="' + GetStyleClass(C) + '" name=f' + IntToStr(C.Id) +
     ' id=f' + IntToStr(C.Id) + GetEnabled(C) +
     ' type=text value="' + GetFieldValue(C) + '" style="' + GetBoundsCSS(C) +
-    GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) + GetReadOnly(C) + '>';
+    GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) + GetReadOnly(C) +
+    IIF(C.TextHint <> '', ' placeholder="' + StrToHtml(C.TextHint) + '"', '') + '>';
 end;
 
 function THtmlShow.ShowEdit(C: TdxEdit): String;
@@ -5347,7 +5542,8 @@ begin
   Result := '<input class="' + GetStyleClass(C) + '" name=f' + IntToStr(C.Id) +
     ' id=f' + IntToStr(C.Id) + GetEnabled(C) +
     ' type=text value="' + GetFieldValue(C) + '" style="' + GetBoundsCSS(C) +
-    GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) + GetReadOnly(C) + '>';
+    GetVisible(C) + '" tabindex=' + IntToStr(GetTabOrder(C)) + GetReadOnly(C) +
+    IIF(C.TextHint <> '', ' placeholder="' + StrToHtml(C.TextHint) + '"', '') + '>';
 end;
 
 function THtmlShow.ShowForm: String;
@@ -5369,7 +5565,7 @@ begin
   if FSS.FormId = 0 then Exit(ShowNullForm);
 
   Fm := FSs.FormMan.FindForm(FSs.FormId);
-  if Fm = nil then
+  if (Fm = nil) or (Fm.PId > 0) then
   begin
     FResultCode := rcPageNotFound;
     Exit(ShowFormNotFound);
@@ -5446,6 +5642,8 @@ begin
     Col := Gr.Columns[i];
     if not Col.Visible or (Col.Width = 0) then Continue;
     F := Fm.FindField(Col.Id);
+    if not FSS.UserMan.CheckControlVisible(FSS.RoleId, Fm.Id, F.Name) then Continue;
+
     if Col.Caption <> ' ' then FlNm := StrToHtml(Col.Caption)
     else FlNm := F.FieldName;
     Buf := Buf + '<th><span data-fid=' + IntToStr(F.Id) + IIF(Gr.AllowChangeSort,
@@ -5492,6 +5690,7 @@ begin
   end;
   Deleting := FSS.UserMan.CheckFmDeleting(FSS.RoleId, Fm.Id);
 
+  RS.InitColoring;
   ColoringToCSS(RS, CSS);
 
   with RS.DataSet do
@@ -5504,12 +5703,14 @@ begin
       if Gr.ShowRowDeleteButton and Deleting then
         Buf := Buf + '<img src="/img/delrow.svg" class=del>';
       Buf := Buf + '<a href="' + BuildHRef(1) + '&rec=' +
-        Fields[0].AsString + '"><img src="/img/' + ImgName + '"></a></td>';
+        Fields[0].AsString + '" onclick="formEdit()"><img src="/img/' + ImgName + '"></a></td>';
       for i := 0 to Gr.Columns.Count - 1 do
       begin
         Col := Gr.Columns[i];
         if not Col.Visible or (Col.Width = 0) then Continue;
         F := Fm.FindField(Gr.Columns[i].Id);
+        if not FSS.UserMan.CheckControlVisible(FSS.RoleId, Fm.Id, F.Name) then Continue;
+
         if F is TdxObjectField then
           FF := GetObjectFieldField(FSS, TdxObjectField(F))
         else
@@ -5555,6 +5756,7 @@ begin
     Result := StringReplace(Result, '[pages]', Pgs, []);
     Result := StringReplace(Result, '[content]', Buf, []);
     Result := StringReplace(Result, '[debug]', ShowDebug, []);
+    RS.DoneColoring;
     RS.Free;
   end;
 end;
@@ -5648,7 +5850,7 @@ begin
   //if C is TdxLabel then
     //Result := Result + 'width: ' + IntToStr(C.Width + 10) + 'px; '
   //else
-  if not (C is TdxLabel) then
+  if not (C is TdxLabel) or not TdxLabel(C).AutoSize then
   begin
     Result := Result + 'width:' + IntToStr(C.Width) + 'px;';
     Result := Result + 'height:' + IntToStr(C.Height) + 'px;';
@@ -5700,14 +5902,22 @@ end;
 
 function THtmlShow.ShowLabel(C: TdxLabel): String;
 begin
-  Result := '<span id=' + C.Name + ' class="' + GetStyleClass(C) + '" style="' + GetBoundsCSS(C);
-  if C.Alignment = taCenter then
-    Result := Result + 'text-align:center;'
-  else if C.Alignment = taRightJustify then
-    Result := Result + 'text-align:right;';
-  Result := Result + GetVisible(C);
-  if Trim(C.Expression) <> '' then Result := Result + '" fieldname="' + C.FieldName;
-  Result := Result + '">' + StrToHtml(C.Caption, True) + '</span>';
+  Result := '<span id=' + C.Name + ' class="' + GetStyleClass(C) + '" style="' +
+    GetBoundsCSS(C) + GetVisible(C) +  IIF(C.Hint <> '', '" title="' +
+    StrToHtml(C.Hint), '') + '">';
+  //if Trim(C.Expression) <> '' then Result := Result + '" fieldname="' + C.FieldName;
+  //Result := Result + '">';
+  if C.Layout = tlTop then
+    Result := Result + StrToHtml(C.Caption, True) + '</span>'
+  else
+  begin
+    Result := Result + '<span style="';
+    if C.Alignment <> taLeftJustify then
+      Result := Result + 'text-align:' + IIF(C.Alignment = taCenter, 'center',
+        'right') + ';';
+    if not C.WordWrap or C.AutoSize then Result := Result + 'white-space:nowrap;';
+    Result := Result + '">' + StrToHtml(C.Caption, True) + '</span></span>';
+  end;
 end;
 
 { Если на форме только одно поле ввода, то всегда происходит отправка данных по
@@ -5909,7 +6119,12 @@ begin
       Exit(ShowErrorPage(rsRecordNotFound, rsRecordNotFoundMsg));
     end;
 
-    if FRS.Editing = asOk then FRS.Edit;
+    if FRS.Editing = asOk then
+    begin
+      if (FRS.CallerRS = nil) or (FRS.CallerObj <> nil) or
+        (FRS.CallerRS.Parent <> nil) and
+        (FRS.CallerRS.Parent.DataSet.State in [dsInsert, dsEdit]) then FRS.Edit;
+    end;
     FRS.RequeryAllQueries;
   end;
   Fm := FRS.Form;
@@ -6205,16 +6420,19 @@ end;
 
 function THtmlShow.TableFetch(AFields: TStrings): String;
 var
-  SkipRows, TId, FreshValue: Longint;
+  SkipRows, TId, FreshValue, FetchDirect: Longint;
 begin
   Result := '';
   FResultCode := rcAjaxError;
   if not TryStrToInt(AFields.Values['id'], TId) then
-   Exit(MakeJsonErrString(rcAnyError, 'Invalid table id'));
+    Exit(MakeJsonErrString(rcAnyError, 'Invalid table id'));
   if not TryStrToInt(AFields.Values['skip'], SkipRows) then
-   Exit(MakeJsonErrString(rcAnyError, 'Invalid skip value'));
+    Exit(MakeJsonErrString(rcAnyError, 'Invalid skip value'));
+  if not TryStrToInt(AFields.Values['dir'], FetchDirect) or
+    (FetchDirect < 0) or (FetchDirect > 2) then
+    Exit(MakeJsonErrString(rcAnyError, 'Invalid dir value'));
   if not TryStrToInt(AFields.Values['fresh'], FreshValue) then
-   Exit(MakeJsonErrString(rcAnyError, rsInvalidFreshValue));
+    Exit(MakeJsonErrString(rcAnyError, rsInvalidFreshValue));
 
   FRS := FSS.FindRecordSet(FSS.FormId, FSS.RecId, TId);
   if FRS = nil then
@@ -6223,7 +6441,7 @@ begin
     Exit(MakeJsonErrString(rcInvalidFreshValue, rsInvalidFreshValueMsg));
 
   try
-    Result := ShowGridRecords(FRS, SkipRows);
+    Result := ShowGridRecords(FRS, SkipRows, FetchDirect);
     FResultCode := rcAjaxOk;
   except
     on E: Exception do
@@ -6368,6 +6586,12 @@ begin
       Result := ShowErrorPage(rsError, E.Message);
     end;
   end;
+end;
+
+function THtmlShow.FormEdit(AFields: TStrings): String;
+begin
+  Result := 'dummy';
+  FResultCode := rcAjaxOk;
 end;
 
 function THtmlShow.TableAppend(AFields: TStrings): String;

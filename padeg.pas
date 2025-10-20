@@ -47,6 +47,10 @@ function GetF(aName: String): String;
 function GetI(aName: String): String;
 function GetO(aName: String): String;
 
+{$ifdef linux}
+procedure InitDictionary;
+{$endif}
+
 implementation
 
 {type
@@ -122,16 +126,6 @@ var
 procedure DoError(const Msg: String);
 begin
   raise Exception.Create(Msg);
-end;
-
-function WideSetDictionary(const FileName: UnicodeString): Boolean;
-begin
-  Result := _SetDictionary( PWideChar(FileName) );
-end;
-
-function SetDictionary(const FileName: String): Boolean;
-begin
-  Result := WideSetDictionary( Utf8ToUtf16(FileName) );
 end;
 
 procedure InitPadeg;
@@ -220,6 +214,17 @@ procedure CheckForms(i: Byte);
 begin
   if not (i in [0..3]) then
     raise Exception.Create('Параметр "Форма" может принимать значения от 0 до 3');
+end;
+
+function WideSetDictionary(const FileName: UnicodeString): Boolean;
+begin
+  InitPadeg;
+  Result := _SetDictionary( PWideChar(FileName) );
+end;
+
+function SetDictionary(const FileName: String): Boolean;
+begin
+  Result := WideSetDictionary( Utf8ToUtf16(FileName) );
 end;
 
 function WideGetFIOPadeg(aName: UnicodeString; aSex: Byte; aPadeg: LongInt
@@ -602,6 +607,17 @@ begin
   CutStr(aName, Tmp);
   CutStr(aName, Result);
 end;
+
+{$ifdef linux}
+procedure InitDictionary;
+var
+  LibPath, AppPath: String;
+begin
+  AppPath := ExtractFilePath(ParamStr(0));
+  if not FileExists(AppPath + 'libPadeg.so') then Exit;
+  SetDictionary(AppPath + 'except.dic');
+end;
+{$endif}
 
 end.
 

@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ type
     FCallerObj: TdxLookupComboBox;
     FCallerRS: TSsRecordSet;
     FChangedFields: TUniList;
-    FChangedLabels: TUniList;
+    //FChangedLabels: TUniList;
     FChangedQueries: TUniList;
     FChangedProps: TUniPropList;
     FChangedTables: TUniList;
@@ -80,6 +80,7 @@ type
     FIsNewRecord: Boolean;
     FOldRecId: Integer;
     FActionList: TList;
+    FFreeCallerList: TList;
     procedure ChangeObjectFields(Obj: TdxField);
     procedure ControlPropertyChange(Sender: TObject; const PropName: String);
     procedure DataSetAfterCancel(DataSet: TDataSet);
@@ -101,6 +102,7 @@ type
     procedure FieldChange(Sender: TField);
     procedure InsertObjectValues(F: TdxField);
     function GetRecId: Integer;
+    procedure SetCallerRS(AValue: TSsRecordSet);
     procedure SetNeedRequeryLinkedQueries(AChangedQuery: TSsRecordSet);
     procedure RequeryQueries(const AChangedField: String);
     procedure EvalAggLabels(const AFormName: String);
@@ -113,7 +115,6 @@ type
     function CheckAccess(IsEdit: Boolean): Boolean;
     procedure SetQGrid(AValue: TdxQueryGrid);
     procedure UpdateAccessState;
-    procedure InitColoring;
     procedure InitRpGrid;
     procedure ParentFormSetModified;
   public
@@ -177,6 +178,8 @@ type
     procedure EndDuplicate;
     function GetCurrentForm: TdxForm;
     function GetTopParent: TSsRecordSet;
+    procedure InitColoring;
+    procedure DoneColoring;
     property Session: TSession read FSS;
     property Form: TdxForm read FForm write FForm;
     property QGrid: TdxQueryGrid read FQGrid write SetQGrid;
@@ -189,7 +192,7 @@ type
     property RecId: Integer read GetRecId;
     property NeedRequery: Boolean read FNeedRequery write FNeedRequery;
     property ChangedFields: TUniList read FChangedFields;
-    property ChangedLabels: TUniList read FChangedLabels;
+    //property ChangedLabels: TUniList read FChangedLabels;
     property ChangedTables: TUniList read FChangedTables;
     property ChangedQueries: TUniList read FChangedQueries;
     property ChangedProps: TUniPropList read FChangedProps;
@@ -203,7 +206,7 @@ type
     property Deleting: TAccessStatus read FDeleting write FDeleting;
     property OldState: TDataSetState read FOldState write FOldState;
     property OldRecId: Integer read FOldRecId write FOldRecId;
-    property CallerRS: TSsRecordSet read FCallerRS write FCallerRS;
+    property CallerRS: TSsRecordSet read FCallerRS write SetCallerRS;
     property CallerObj: TdxLookupComboBox read FCallerObj write FCallerObj;
     property QryRecId: Integer read FQryRecId write FQryRecId;
     property FreshValue: Integer read FFreshValue write FFreshValue;
@@ -1822,6 +1825,16 @@ begin
   Result := FDataSet.FieldByName('id').AsInteger;
 end;
 
+procedure TSsRecordSet.SetCallerRS(AValue: TSsRecordSet);
+begin
+  if FCallerRS=AValue then Exit;
+  if AValue <> nil then
+    AValue.FFreeCallerList.Add(Self)
+  else
+    FCallerRS.FFreeCallerList.Remove(Self);
+  FCallerRS:=AValue;
+end;
+
 procedure TSsRecordSet.SetNeedRequeryLinkedQueries(AChangedQuery: TSsRecordSet);
 var
   i: Integer;
@@ -1895,12 +1908,12 @@ begin
     end;
   end;
 
-  for i := 0 to FCalcLabels.Count - 1 do
+  {for i := 0 to FCalcLabels.Count - 1 do
   begin
     ED := TExprData(FCalcLabels[i]);
     if ED.L.Value <> Unassigned then
       FChangedLabels.AddItem(ED.L);
-  end;
+  end;}
 end;
 
 procedure TSsRecordSet.EvalAggFields(const AChangedForm: String);
@@ -1927,7 +1940,7 @@ end;
 procedure TSsRecordSet.ClearChanges;
 begin
   FChangedFields.Clear;
-  FChangedLabels.Clear;
+  //FChangedLabels.Clear;
   FChangedTables.Clear;
   FChangedQueries.Clear;
   FChangedProps.Clear;
@@ -2228,12 +2241,12 @@ var
       end;
     end;
 
-    for i := 0 to FCalcLabels.Count - 1 do
+    {for i := 0 to FCalcLabels.Count - 1 do
     begin
       ED := TExprData(FCalcLabels[i]);
       if ED.L.Value <> Unassigned then
         FChangedLabels.AddItem(ED.L);
-    end;
+    end;  }
 
     Dec(CalcCounter);
   end;
@@ -2375,7 +2388,7 @@ begin
       end
       else if C is TdxRecordId then Break;
 
-      Tmp := SqlSelectGroups(FSS, Fm.Id, True);
+      Tmp := SqlSelectGroups(FSS, Fm.Id, True, False);
       if Tmp <> '' then Tmp := '(' + Tmp + ')'
       else Tmp := TableStr(Fm.Id);
 
@@ -2493,7 +2506,7 @@ end;
 
 procedure TSsRecordSet.LabelChanged(L: TdxLabel);
 begin
-  ChangedLabels.AddItem(L);
+  //ChangedLabels.AddItem(L);
   EvalLabels(L.FieldName);
 end;
 
@@ -2566,8 +2579,9 @@ begin
   FFields := TList.Create;
   FExprs := TList.Create;
   FCalcLabels := TList.Create;
+  FFreeCallerList := TList.Create;
   FChangedFields := TUniList.Create;
-  FChangedLabels := TUniList.Create;
+  //FChangedLabels := TUniList.Create;
   FChangedTables := TUniList.Create;
   FChangedQueries := TUniList.Create;
   FChangedProps := TUniPropList.Create;
@@ -2630,11 +2644,14 @@ begin
   FRunScript.Free;
   FChangedQueries.Free;
   FChangedTables.Free;
-  FChangedLabels.Free;
+  //FChangedLabels.Free;
   FChangedFields.Free;
   FChangedProps.Free;
   ClearList(FCalcLabels);
   FCalcLabels.Free;
+  for i := 0 to FFreeCallerList.Count - 1 do
+    TSsRecordSet(FFreeCallerList[i]).FCallerRS := nil;
+  FFreeCallerList.Free;
   ClearList(FExprs);
   FExprs.Free;
   FFields.Free;
@@ -2644,6 +2661,7 @@ begin
   FForms.Free;
   if FFormAssigned then FForm.Free;
   if FReportAssigned then FRD.Free;
+  if FCallerRS <> nil then CallerRS := nil;
   inherited Destroy;
 end;
 
@@ -3067,6 +3085,20 @@ begin
   EB.Free;
 end;
 
+procedure TSsRecordSet.DoneColoring;
+var
+  i: Integer;
+  CD: TColoringData;
+begin
+  if FForm = nil then Exit;
+  for i := 0 to FForm.Coloring.Count - 1 do
+  begin
+    CD := FForm.Coloring[i];
+    CD.E.Free;
+    CD.E := nil;
+  end;
+end;
+
 procedure TSsRecordSet.InitRpGrid;
 var
   i: Integer;
@@ -3078,7 +3110,7 @@ begin
   begin
     if FRD.GetFieldType(i) <> flImage then Continue;
 
-    Col := FRD.Grid.FindColumnByFieldName(FRD.GetFieldNameDS(i));
+    Col := FRD.Grid.FindColumnByFieldNameDS(FRD.GetFieldNameDS(i));
 
     pF := FRD.TryGetRpField(i);
     if pF <> nil then
@@ -3193,7 +3225,8 @@ begin
   for i := 0 to FFields.Count - 1 do
   begin
     F := TdxField(FFields[i]);
-    if GetRequired(F) and (GetComponentFieldValue(FDataSet, F) = Null) and not (F is TdxCounter) then
+    if GetRequired(F) and (GetComponentFieldValue(FDataSet, F) = Null) and
+      not (F is TdxCounter) and not IsHierarchyObj(FSS, F) then
     begin
       Result := False;
       FForm.Errs.AddObject(Format(rsRequiredMsg, [F.FieldName]), TObject(PtrInt(F.Id)));

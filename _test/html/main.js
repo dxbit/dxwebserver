@@ -124,9 +124,15 @@ function getCurrentUrl() {
 	return location.search;//document.URL.substring(document.URL.indexOf('?'));
 }
 
+function gotoUrl(url) {
+	showCurtain();
+	location.href = url;
+}
+
 function reloadPage() {
-	let waitEl = new Curtain();
-	waitEl.show();
+	/*let waitEl = new Curtain();
+	waitEl.show();*/
+	showCurtain();
 	location.reload();
 }
 
@@ -168,7 +174,7 @@ function parseDate(date) {
 		if (Math.abs((2000 + y) - dt.getFullYear()) >= 50) y = 1900 + y
 		else y = 2000 + y;
 	}
-	let dt = new Date(y + '-' + m + '-' + d);
+	let dt = new Date(y, m - 1, d);
 	if (dt.getDate() != d) dt = false;
 	return dt;
 }
@@ -281,6 +287,14 @@ function indexNodeOf(parentEl, child) {
 // Объект и список с источником
 /////////////////////////////////////////////////////////////////////////////////////////
 
+function listScroll() {
+	let div = event.currentTarget;
+	if (div.scrollTop + div.clientHeight == div.scrollHeight) {
+		let bn = div.querySelector('input[type=button]');
+		if (bn) bn.click();
+	}
+}
+
 class ListCbx {
 	
 	constructor (cbx, cid) {
@@ -291,6 +305,7 @@ class ListCbx {
 		this.isLCbx = (this.key && this.key.type == 'hidden');
 		this.isMobile = window.matchMedia('(pointer:coarse)').matches;
 		this.isFilter = !this.cbx.hasAttribute('id');
+		this.showAsTree = this.cbx.hasAttribute('show-tree');
 		this.row = 0;
 		this.onHide = null;
 		this.onSelect = null;
@@ -305,9 +320,6 @@ class ListCbx {
 	}
 	
 	getMoreList = (ev) => {
-		let lastRow = this.tbl.rows[this.tbl.rows.length - 1];
-		let startRow = this.tbl.rows.length - 1;
-		
 		SendRequest('POST', getCurrentUrl() + '&getlist', this.getParams(false, true), (Request) => {
 			if (Request.status != rcAjaxOk) {
 				showAjaxError(Request);
@@ -315,6 +327,10 @@ class ListCbx {
 				return;
 			}
 			if (!this.lst.parentNode) return;
+
+			let lastRow = this.tbl.rows[this.tbl.rows.length - 1];
+			let startRow = this.tbl.rows.length - 1;
+
 			let lastRowSel = (lastRow.className == 'sel');
 			let prevRow = lastRow.previousSibling;
 			lastRow.insertAdjacentHTML('beforebegin', Request.responseText);
@@ -462,6 +478,7 @@ class ListCbx {
 	setValue (td) {
 		let indent = ' '.repeat(parseInt(td.style.paddingLeft) / 10);
 		if (td.hasAttribute('empty')) this.cbx.value = indent
+		else if (this.isLCbx && this.showAsTree) { }		// Чтобы текст в поле не мельтешил, все равно сервер вернет правильное значение
 		else this.cbx.value = indent + td.textContent;
 		if (this.isLCbx) {
 			this.key.value = td.parentNode.getAttribute('key');
@@ -512,16 +529,16 @@ class ListCbx {
 		if (el.tagName != 'BUTTON') return;
 		if (el == el.parentElement.children[0]) {
 			SendRequest('POST', getCurrentUrl() + '&objadd', 'id=' + this.cid, (Request) => {
-				if (Request.status == rcAjaxOk) location.href = Request.responseText
+				if (Request.status == rcAjaxOk) gotoUrl(Request.responseText)
 				else showAjaxError(Request);
 			})
 		} else if (el == el.parentElement.children[1] && this.key.value) {
 			SendRequest('POST', getCurrentUrl() + '&objedit', 'id=' + this.cid + '&rec=' + this.key.value, (Request) => {
-				if (Request.status == rcAjaxOk) location.href = Request.responseText
+				if (Request.status == rcAjaxOk) gotoUrl(Request.responseText)
 				else showAjaxError(Request);
 			})
 		} else if (el == el.parentElement.children[2]) {
-			location.href = '?fm=' + this.cbx.dataset.fm;
+			gotoUrl('?fm=' + this.cbx.dataset.fm);
 		} else if (el == el.parentElement.children[3]) {
 			this.hide();
 		}
@@ -534,7 +551,7 @@ class ListCbx {
 		this.lst.style.zIndex = 10000;
 		this.lst.style.background = 'white';
 		this.lst.innerHTML = '<div style="padding: 4px; background: #eee;"><input type=text style="width: 100%; padding: 4px;" ></div>' +
-			'<div style="width: 100%; overflow-x: hidden; overflow-y: auto;"><table class=list></table></div>' +
+			'<div style="width: 100%; overflow-x: hidden; overflow-y: auto;" onscroll="listScroll()"><table class=list></table></div>' +
 			'<div class=listbtns><button type=button><img src="/img/add.svg"></button><button type=button><img src="/img/editobj.svg"></button>' +
 			'<button type=button><img src="/img/table.svg"></button><button type=button><img src="/img/cancel.svg"></button></div>';
 		this.lst.style.visibility = 'hidden';
@@ -1039,7 +1056,7 @@ class Calendar {
 		d = this.daysEl.querySelector('.sel').innerHTML.substr(-2).trim();
 		m = this.monthsEl.querySelector('.sel').innerHTML.substr(-2).trim();
 		y = this.yearsEl.querySelector('.sel').innerHTML;
-		let dt = new Date(y + '-' + m + '-' + d);
+		let dt = new Date(y, m - 1, d);
 		if (dt && dt.getDate() == d) {
 			this.date = dt;
 		} else {
@@ -1108,7 +1125,7 @@ class Calendar {
 	}
 	
 	updateDays(m, y) {
-		let beginMonth = new Date(y + '-' + m + '-1');
+		let beginMonth = new Date(y, m - 1, 1);
 		let weekDay = beginMonth.getDay();
 		for (let i = 1; i <= 31; i++) {
 			let el = this.daysEl.children[i - 1];
@@ -1465,6 +1482,7 @@ let	cal = null;
 let tms = null;
 let curtain = null;
 let curtainImg = null;
+let curtainCounter = 0;
 
 function showList() {
 	let cbx = (event.currentTarget.tagName == 'BUTTON' ? event.currentTarget.previousSibling : event.currentTarget);
@@ -1562,12 +1580,16 @@ function closeSidebarClick(el) {
 }
 
 function showCurtain() {
-	curtain = new Curtain();
-	curtain.show();
+	if (curtainCounter == 0) {
+		curtain = new Curtain();
+		curtain.show();
+	}
+	curtainCounter++;
 }
 
 function hideCurtain() {
-	if (curtain) {
+	curtainCounter--;
+	if (curtain && curtainCounter == 0) {
 		curtain.hide();
 		curtain = null;
 	}

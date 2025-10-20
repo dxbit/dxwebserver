@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -1317,12 +1317,14 @@ begin
     RegisterProperty('StorageType', 'Integer', iptR);
     RegisterProperty('StoredFileName', 'String', iptR);
   end;
-  Cl.AddTypeS('TShapeType', '(stRectangle, stSquare, stRoundRect, stRoundSquare, stEllipse, stCircle)');
+  Cl.AddTypeS('TShapeType', '(stRectangle, stSquare, stRoundRect, stRoundSquare, stEllipse, stCircle, stSquaredDiamond, stDiamond, stTriangle, stTriangleLeft, stTriangleRight, stTriangleDown, stStar, stStarDown, stPolygon)');
+  Cl.AddTypeS('TShapeTypeEx', '(steNone, steVertLine, steHorzLine, steBDiagonal, steFDiagonal, steCross, steDiagCross)');
   with Cl.AddClassN(Cl.FindClass('TControl'), 'TdxShape') do
   begin
     RegisterProperty('Brush', 'TBrush', iptRW);
 	  RegisterProperty('Pen', 'TPen', iptRW);
 	  RegisterProperty('Shape', 'TShapeType', iptRW);
+    RegisterProperty('ShapeEx', 'TShapeTypeEx', iptRW);
   end;
   Cl.AddClassN(Cl.FindClass('TControl'), 'TdxGrid');
   SIRegister_dxQueryGrid(Cl);
@@ -1383,6 +1385,7 @@ end;
 procedure SIRegister_Consts(Cl: TPSPascalCompiler);
 begin
   Cl.AddConstantN('LineEnding', 'String').SetString(LineEnding);
+  Cl.AddConstantN('PathDelim', 'Char').SetChar( {$IFDEF WINDOWS}'\'{$ELSE}'/'{$ENDIF} );
 
   Cl.AddConstantN('faReadOnly', 'LongInt').SetInt(faReadOnly);
   Cl.AddConstantN('faHidden', 'LongInt').SetInt(faHidden);
@@ -1427,10 +1430,10 @@ begin
   Cl.AddTypeS('TCopyFileFlag', '(cffOverwriteFile, cffCreateDestDirectory, cffPreserveTime)');
   Cl.AddTypeS('TCopyFileFlags', 'set of TCopyFileFlag');
   Cl.AddDelphiFunction('function FileExists(const Filename: string): boolean;');
-  Cl.AddDelphiFunction('function FileAge(const FileName: string): Longint;');
+  Cl.AddDelphiFunction('function FileAge(const FileName: string): int64;');
   Cl.AddDelphiFunction('function DirectoryExists(const Directory: string): Boolean;');
   Cl.AddDelphiFunction('function ExpandFileName(const FileName, BaseDir: string): string;');
-  Cl.AddDelphiFunction('function FileSetDate(const FileName: String; Age: Longint): Longint;');
+  Cl.AddDelphiFunction('function FileSetDate(const FileName: String; Age: int64): Longint;');
   Cl.AddDelphiFunction('function FileGetAttr(const FileName: String): Longint;');
   Cl.AddDelphiFunction('function FileSetAttr(const Filename: String; Attr: longint): Longint;');
   Cl.AddDelphiFunction('function DeleteFile(const FileName: String): Boolean;');
@@ -1454,8 +1457,8 @@ begin
   Cl.AddDelphiFunction('function GetTempFileName: String');
   Cl.AddDelphiFunction('function GetTempDir: String');
   Cl.AddDelphiFunction('function ShellExecute(const Operation, FileName, Params, WorkDir: String; ShowCmd: LongInt): Boolean');
-  Cl.AddDelphiFunction('Function DateTimeToFileDate(DateTime : TDateTime) : Longint');
-	Cl.AddDelphiFunction('Function FileDateToDateTime (Filedate : Longint) :TDateTime');
+  Cl.AddDelphiFunction('Function DateTimeToFileDate(DateTime : TDateTime) : int64');
+	Cl.AddDelphiFunction('Function FileDateToDateTime (Filedate : int64) :TDateTime');
   Cl.AddDelphiFunction('function FileSize(const Filename: string): int64');
   Cl.AddDelphiFunction('function Random(n: LongInt): LongInt');
   Cl.AddDelphiFunction('function DCount(DataSet: TObject): Integer');
@@ -1555,7 +1558,7 @@ begin
   Cl.AddDelphiFunction('function GetComponentFieldName(C: TComponent): String');
 
   Cl.AddDelphiFunction('function GetFormatSettings: TFormatSettings');
-  Cl.AddDelphiFunction('procedure SetFormatSettings(Settings: TFormatSettings)');
+  Cl.AddDelphiFunction('procedure SetFormatSettings(var Settings: TFormatSettings)');
 
   Cl.AddDelphiFunction('function VarArrayOf(const Values: array of Variant): Variant');
   Cl.AddDelphiFunction('function VarArrayDimCount(const A: Variant) : LongInt');
@@ -1589,6 +1592,13 @@ begin
 
   Cl.AddDelphiFunction('function SetExprVar(const aName: String; aValue: Variant): Variant');
   Cl.AddDelphiFunction('function GetExprVar(const aName: String): Variant');
+
+  with Cl.AddFunction('procedure FreeAndNil;').Decl do
+    with AddParam do
+    begin
+      OrgName := 'x';
+      Mode := pmInOut;
+    end;
 end;
 
 //!!!

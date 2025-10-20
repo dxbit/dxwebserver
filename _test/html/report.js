@@ -141,8 +141,17 @@ function headerClick() {
 
 function formAdd(fmId) {
 	SendRequest('POST', '?formadd', 'id=' + fmId, (Request) => {
-		if (Request.status == rcAjaxOk) location.href = Request.responseText; 
+		if (Request.status == rcAjaxOk) gotoUrl(Request.responseText); 
 		else showAjaxError(Request);
+	});
+}
+
+// После перехода по ссылке и возврате назад страница не обновляется (перестало работать). Поэтому делаем такой трюк - отправляем фиктивный POST-запрос.
+function formEdit() {
+	let el = event.currentTarget;
+	event.preventDefault();
+	SendRequest('POST', '?formedit', '', (Request) => {
+		gotoUrl(el.href);
 	});
 }
 
@@ -161,7 +170,16 @@ function reportFetch() {
 	});
 }
 
+/*function scrollWindow() {
+	let body = document.body;
+	if (window.pageYOffset + window.innerHeight == body.scrollHeight) {
+		let bn = document.querySelector('.gridbns button');
+		if (bn) bn.click();
+	}
+}*/
+
 function bodyLoad() {
 	let item = document.querySelector('div.sidebar a.sel');
 	if (item) item.scrollIntoView({block: "center"});
+	//window.addEventListener('scroll', scrollWindow);
 }

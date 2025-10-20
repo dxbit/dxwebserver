@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -161,6 +161,7 @@ type
     FAutoLayout: Boolean;
     FCaption: String;
     FColor: TColor;
+    FFieldName: String;
     FFieldNameDS: String;
     FFixedColor: TColor;
     FFont: TdxFont;
@@ -183,6 +184,7 @@ type
     property TitleFont: TdxFont read FTitleFont write FTitleFont;
     property FixedColor: TColor read FFixedColor write FFixedColor;
     property Caption: String read FCaption write FCaption;
+    property FieldName: String read FFieldName write FFieldName;
     property FieldNameDS: String read FFieldNameDS write FFieldNameDS;
     property FieldId: Integer read GetFieldId;
     property Width: Integer read FWidth write FWidth;
@@ -258,8 +260,8 @@ type
     destructor Destroy; override;
     function ColumnCount: Integer;
     function AddColumn: TRpGridColumn;
-    function FindColumnByFieldName(const FieldName: String): TRpGridColumn;
-    function FindColumnByTitle(const S: String): TRpGridColumn;
+    function FindColumnByFieldNameDS(const FieldName: String): TRpGridColumn;
+    function FindColumnByFieldName(const S: String): TRpGridColumn;
     function FindColumnIndex(Col: TRpGridColumn): Integer;
     //procedure DeleteColumn(Col: TRpGridColumn);
     procedure SortColumns;//(L: TList);
@@ -908,7 +910,7 @@ begin
   FColumns.Add(Result);
 end;
 
-function TRpGrid.FindColumnByFieldName(const FieldName: String): TRpGridColumn;
+function TRpGrid.FindColumnByFieldNameDS(const FieldName: String): TRpGridColumn;
 var
   i: Integer;
   C: TRpGridColumn;
@@ -921,7 +923,7 @@ begin
   end;
 end;
 
-function TRpGrid.FindColumnByTitle(const S: String): TRpGridColumn;
+function TRpGrid.FindColumnByFieldName(const S: String): TRpGridColumn;
 var
   i: Integer;
   C: TRpGridColumn;
@@ -930,7 +932,7 @@ begin
   for i := 0 to ColumnCount - 1 do
   begin
     C := Columns[i];
-    if MyUtf8CompareText(C.Caption, S) = 0 then Exit(C);
+    if MyUtf8CompareText(C.FieldName, S) = 0 then Exit(C);
   end;
 end;
 
@@ -1049,9 +1051,9 @@ begin
       Delete(S, 1, 1);
     end;
     if S[1] in ['0'..'9'] then S := 'f' + S;
-    Col := RD.Grid.FindColumnByFieldName(S);
+    Col := RD.Grid.FindColumnByFieldNameDS(S);
     //n := StrToInt(S);
-    //Col := RD.Grid.FindColumnByFieldName('f' + IntToStr(n));
+    //Col := RD.Grid.FindColumnByFieldNameDS('f' + IntToStr(n));
     if Col <> nil then
       RD.Grid.SortCols.AddCol(Col, Desc);
   end;
@@ -1167,7 +1169,9 @@ begin
     C.FixedColor:=GetColor(Atts, 'fixedcolor', clSilver);
     C.Width:=GetInt(Atts, 'width');
     C.FieldNameDS:=GetStr(Atts, 'fieldname');
+    C.FieldName := GetStr(Atts, 'name');
     C.Caption := GetStr(Atts, 'caption');
+    if C.FieldName = '' then C.FieldName := C.Caption;
     C.Index := GetInt(Atts, 'index');
     if GetStr(Atts, 'visible') <> '' then
       C.Visible:=GetBool(Atts, 'visible');
@@ -1450,6 +1454,7 @@ procedure TReportData.SaveToStream(St: TStream);
   begin
     WrStr('<column color="' + ColorToString(C.Color) + '" fixedcolor="' +
       ColorToString(C.FixedColor) + '" caption="' + C.Caption +
+      '" name="' + C.FieldName +
       '" width="' + IntToStr(C.Width) + '" fieldname="' + C.FieldNameDS +
       '" index="' + IntToStr(C.Index) + '" visible="' + Bool2Str(C.Visible));
     if not C.AutoAlignment then

@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ function VarIsNothing(V: Variant): Boolean;
 
 function GetFieldName(C: TdxComponent): String;
 function GetFormatSettings: TFormatSettings;
-procedure SetFormatSettings(Settings: TFormatSettings);
+procedure SetFormatSettings(var Settings: TFormatSettings);
 
 function ReadXmlFromFile(const FileName: String; Flags: TXMLReaderFlags): TXmlDocument;
 function ReadXmlFromStream(Stream: TStream; Flags: TXMLReaderFlags): TXmlDocument;
@@ -118,6 +118,9 @@ procedure StringToUtf8Char(const S: String; out Utf8Char: TUtf8Char); }
 
 function MyRandom(l:longint):longint;
 function MyFormat (Const Fmt : String; const Args : Array of const) : String;
+
+function MyFileAge(const FileName: String): Int64;
+function MyFileSetDate(const FileName: String; Age: Int64): LongInt;
 
 
 implementation
@@ -167,7 +170,7 @@ begin
   else if C is TdxQueryGrid then
   begin
     RD := ReportMan.FindReport(TdxQueryGrid(DataSet).Id);
-    Col := RD.Grid.FindColumnByTitle(FieldName);
+    Col := RD.Grid.FindColumnByFieldName(FieldName);
     if Col = nil then raise Exception.CreateFmt(rsFieldNotFound, [FieldName]);
     Result := DS.FieldByName(Col.FieldNameDS);
   end  }
@@ -657,7 +660,7 @@ begin
   Result := DefaultFormatSettings;
 end;
 
-procedure SetFormatSettings(Settings: TFormatSettings);
+procedure SetFormatSettings(var Settings: TFormatSettings);
 begin
   DefaultFormatSettings := Settings;
 end;
@@ -782,6 +785,16 @@ end;
 function MyFormat(const Fmt: String; const Args: array of const): String;
 begin
   Result := Format(Fmt, Args);
+end;
+
+function MyFileAge(const FileName: String): Int64;
+begin
+  Result := FileAge(FileName);
+end;
+
+function MyFileSetDate(const FileName: String; Age: Int64): LongInt;
+begin
+  Result := FileSetDate(FileName, Age);
 end;
 
 end.

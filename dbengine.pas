@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -219,6 +219,8 @@ begin
   Result := 0;
   for i := 0 to RD.GetRpSQLFieldCount - 1 do
   begin
+    if not RD.GetFieldVisible(i) then Continue;
+
     if RD.GetFieldType(i) in [flFile, flImage] then Inc(Result, 4)
     else Inc(Result);
   end;
@@ -490,6 +492,7 @@ begin
   Result.UpdateTransaction := FUpdateTrans;
   Result.DataBase := FConn;
   Result.SQL.Text := SQL;
+  Result.DeleteSQL.Text := 'delete id from rdb$database';
   try
     Result.Open;
     KeyField := Result.FindField('id');

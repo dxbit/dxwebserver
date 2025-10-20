@@ -23,7 +23,7 @@ function formSubmit(fm) {
 		}
 		else if (Request.status == rcAjaxOk) {
 			let jsonObj = JSON.parse(Request.responseText);
-			location.href = jsonObj.url;
+			gotoUrl(jsonObj.url);
 		} else if (Request.status == rcAjaxError) {
 			let jsonObj = JSON.parse(Request.responseText);
 			if (jsonObj.code == 7) {

@@ -154,16 +154,15 @@ msgid "Invalid connection type : \"%s\""
 msgstr ""
 
 #: strconsts.rsabouttext
-#, object-pascal-format
-msgid "DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2024 Pavel Duborkin<br><br><a href=\"https://mydataexpress.ru\">Project Website</a> | <a href=\"https://forum.mydataexpress.ru\">Forum</a> | <a href=\"https://wiki.mydataexpress.ru\">Wiki</a>"
-msgstr "DataExpress Web Server<br>работает...<br><br>Версия: %s<br><br>Copyright &#169; 2016-2024 Павел Дуборкин<br><br><a href=\"https://mydataexpress.ru\">Сайт проекта</a> | <a href=\"https://forum.mydataexpress.ru\">Форум</a> | <a href=\"https://wiki.mydataexpress.ru\">Вики</a>"
+msgid "DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2025 Pavel Duborkin<br><br><a href=\"https://mydataexpress.ru\">Project Website</a> | <a href=\"https://forum.mydataexpress.ru\">Forum</a> | <a href=\"https://wiki.mydataexpress.ru\">Wiki</a>"
+msgstr "DataExpress Web Server<br>работает...<br><br>Версия: %s<br><br>Copyright &#169; 2016-2025 Павел Дуборкин<br><br><a href=\"https://mydataexpress.ru\">Сайт проекта</a> | <a href=\"https://forum.mydataexpress.ru\">Форум</a> | <a href=\"https://wiki.mydataexpress.ru\">Вики</a>"
 
 #: strconsts.rsabouttextconsole
 #, object-pascal-format
 msgid ""
 "DataExpress Web Server is working...\n"
 "Version: %s\n"
-"Copyright (c) 2016-2024 Pavel Duborkin"
+"Copyright (c) 2016-2025 Pavel Duborkin"
 msgstr ""
 
 #: strconsts.rsaccessdenied
@@ -555,6 +554,11 @@ msgstr "Недопустимая операция сравнения"
 #, object-pascal-format
 msgid "%s - invalid connection name. The name can only include the following characters: a-z, 0-9, _"
 msgstr "%s - некорректное имя подключения. Имя подключения может включать только следующие символы: a-z, 0-9, _"
+
+#: strconsts.rsinvaliddate
+#, object-pascal-format
+msgid "Invalid date %s"
+msgstr ""
 
 #: strconsts.rsinvalidfreshvalue
 msgid "Invalid fresh value."
