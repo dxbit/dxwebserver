@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -1444,7 +1444,7 @@ begin
     RegisterPropertyHelper(@TdxCalcEditId_R, nil, 'Id');
     RegisterPropertyHelper(@TdxCalcEditMaxValue_R, nil, 'MaxValue');
     RegisterPropertyHelper(@TdxCalcEditMinValue_R, nil, 'MinValue');
-    RegisterPropertyHelper(@TdxCalcEditPrecision_R, nil, 'Precission');
+    RegisterPropertyHelper(@TdxCalcEditPrecision_R, nil, 'Precision');
     RegisterPropertyHelper(@TdxCalcEditRequired_R, nil, 'Required');
   end;
 end;
@@ -2203,6 +2203,7 @@ begin
     RegisterMethod(@TSession.GetCurrentUser, 'GetCurrentUser');
     RegisterMethod(@TSession.GetCurrentRole, 'GetCurrentRole');
     RegisterMethod(@TSession.GetCurrentDatabase, 'GetCurrentDatabase');
+    RegisterMethod(@TSession.GetTemplatesPath, 'GetTemplatesDir');
     RegisterMethod(@TSession.GetExprVar, 'GetExprVar');
     RegisterMethod(@TSession.SetExprVar, 'SetExprVar');
 
@@ -2410,8 +2411,8 @@ begin
   Exec.RegisterDelphiFunction(@Point, 'Point', cdRegister);
   //Exec.RegisterDelphiFunction(@Rect, 'Rect', cdRegister);
 
-  {Exec.RegisterDelphiFunction(@GetId, 'GetComponentId', cdRegister);
-  Exec.RegisterDelphiFunction(@ShowExprEditor, 'ShowExprEditor', cdRegister);   }
+  Exec.RegisterDelphiFunction(@GetComponentId, 'GetComponentId', cdRegister);
+  {Exec.RegisterDelphiFunction(@ShowExprEditor, 'ShowExprEditor', cdRegister);   }
   Exec.RegisterDelphiFunction(@GetFieldName, 'GetComponentFieldName', cdRegister);
   Exec.RegisterDelphiFunction(@GetFormatSettings, 'GetFormatSettings', cdRegister);
   Exec.RegisterDelphiFunction(@SetFormatSettings, 'SetFormatSettings', cdRegister);

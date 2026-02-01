@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -177,7 +177,8 @@ type
     procedure BeginDuplicate;
     procedure EndDuplicate;
     function GetCurrentForm: TdxForm;
-    function GetTopParent: TSsRecordSet;
+    //function GetTopParent: TSsRecordSet;
+    function GetFormRecordset: TSsRecordSet;
     procedure InitColoring;
     procedure DoneColoring;
     property Session: TSession read FSS;
@@ -2191,15 +2192,27 @@ begin
 end;
 
 function TSsRecordSet.GetCurrentForm: TdxForm;
+var
+  RS: TSsRecordSet;
 begin
-  Result := FForm;
-  if (Result = nil) and (Parent <> nil) then Result := Parent.Form;
+  RS := GetFormRecordSet;
+  if RS <> nil then Result := RS.Form
+  else Result := nil;
+  //Result := FForm;
+  //if (Result = nil) and (Parent <> nil) then Result := Parent.Form;
 end;
 
-function TSsRecordSet.GetTopParent: TSsRecordSet;
+{function TSsRecordSet.GetTopParent: TSsRecordSet;
 begin
   Result := Parent;
   if (Result <> nil) and (Result.Parent <> nil) then Result := Result.Parent;
+end;}
+
+function TSsRecordSet.GetFormRecordset: TSsRecordSet;
+begin
+  if Form <> nil then Exit(Self)
+  else if Parent <> nil then Result := Parent.GetFormRecordSet
+  else Result := nil;
 end;
 
 procedure TSsRecordSet.EvalLabels(const AChangedField: String);

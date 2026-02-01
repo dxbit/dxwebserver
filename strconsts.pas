@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -238,8 +238,8 @@ resourcestring
   rsType = 'Type';
   rsWeb = 'Web';
   rsDesktop = 'Desktop';
-  rsAboutText = 'DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2025 Pavel Duborkin<br><br><a href="https://mydataexpress.ru">Project Website</a> | <a href="https://forum.mydataexpress.ru">Forum</a> | <a href="https://wiki.mydataexpress.ru">Wiki</a>';
-  rsAboutTextConsole = 'DataExpress Web Server is working...' + LineEnding + 'Version: %s' + LineEnding + 'Copyright (c) 2016-2025 Pavel Duborkin';
+  rsAboutText = 'DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2026 Pavel Duborkin<br><br><a href="https://mydataexpress.ru">Project Website</a> | <a href="https://forum.mydataexpress.ru">Forum</a> | <a href="https://wiki.mydataexpress.ru">Wiki</a>';
+  rsAboutTextConsole = 'DataExpress Web Server is working...' + LineEnding + 'Version: %s' + LineEnding + 'Copyright (c) 2016-2026 Pavel Duborkin';
   rsLoopDetectedCalc = 'A loop was detected while modifying the field or label [%s].';
   rsRecordNotFound = 'Record not found or access denied';
   rsRecordNotFoundMsg = 'Possible reasons:<ol><li>The record has been deleted.</li><li>The new record has not been saved.</li><li>An error was made in the URL.</li><li>Access denied by record selection condition.</li></ol>';
@@ -279,6 +279,9 @@ resourcestring
   rsFieldNotImage = 'Field is not a image: %s';
   rsFuncNotImageFiles = 'The function cannot be applied to files and images.';
   rsInvalidDate = 'Invalid date %s';
+  rsObjectFieldCantUsedAsObjectField = 'The "Object field" component cannot be used as an object field.';
+  rsUseTagsInsideGroupError = 'It is not allowed to use the %s tag inside the group tag.';
+
   //rsRecordModifiedAnotherUser = 'The record has been modified by another user.';
   //rsRecordHasBeenDeleted = 'The record has been deleted.';
 

@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -122,6 +122,8 @@ function MyFormat (Const Fmt : String; const Args : Array of const) : String;
 function MyFileAge(const FileName: String): Int64;
 function MyFileSetDate(const FileName: String; Age: Int64): LongInt;
 
+function GetComponentId(C: TdxComponent): Integer;
+
 
 implementation
 
@@ -155,25 +157,26 @@ end;
 
 function GetField(DataSet: TObject; const FieldName: String; DS: TDataSet): TField;
 var
-  C: TComponent;
-  RD: TReportData;
+  C: TdxField;
   Col: TRpGridColumn;
-  //pF: PRpField;
 begin
   Result := nil;
-  {if DataSet is TdxForm then
-  begin
-    C := FindComponentByFieldName(TdxForm(DataSet), FieldName);
-    if C = nil then raise Exception.CreateFmt(rsFieldNotFound, [FieldName]);
-    Result := DS.FieldByName(FieldStr(C));
-  end
-  else if C is TdxQueryGrid then
-  begin
-    RD := ReportMan.FindReport(TdxQueryGrid(DataSet).Id);
-    Col := RD.Grid.FindColumnByFieldName(FieldName);
-    if Col = nil then raise Exception.CreateFmt(rsFieldNotFound, [FieldName]);
-    Result := DS.FieldByName(Col.FieldNameDS);
-  end  }
+  if DataSet is TdxForm then
+    with TdxForm(DataSet) do
+    begin
+      C := TdxField(FindComponentByFieldName(FieldName));
+      Result := TSsRecordSet(RecordSet).DataSet.FieldByName(FieldStr(C.Id));
+    end
+  else if DataSet is TdxQueryGrid then
+    with TdxQueryGrid(DataSet) do
+    begin
+      Col := TSsRecordSet(RecordSet).RD.Grid.FindColumnByFieldName(FieldName);
+      if Col = nil then raise Exception.CreateFmt(rsFieldNotFound, [FieldName]);
+      Result := TSsRecordSet(RecordSet).DataSet.FieldByName(Col.FieldNameDS);
+    end
+  else if DataSet is TdxSQLQuery then
+    with TdxSQLQuery(DataSet) do
+      Result := DataSet.FieldByName(FieldName);
 end;
 
 procedure DisableDataSetScroll(DS: TDataSet; var BeforeScroll, AfterScroll: TDataSetNotifyEvent;
@@ -795,6 +798,14 @@ end;
 function MyFileSetDate(const FileName: String; Age: Int64): LongInt;
 begin
   Result := FileSetDate(FileName, Age);
+end;
+
+function GetComponentId(C: TdxComponent): Integer;
+begin
+  if C is TdxField then Result := TdxField(C).Id
+  else if C is TdxForm then Result := TdxForm(C).Id
+  else if C is TdxQueryGrid then Result := TdxQueryGrid(C).Id
+  else Result := 0;
 end;
 
 end.

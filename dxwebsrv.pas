@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -37,17 +37,21 @@ uses
 
 var
   FBLoader: TSQLDBLibraryLoader;
+  {$IFDEF HeapTrc} HeapTrcFile: String; {$ENDIF}
 
 begin
+  ForceDirectories(AppPath + 'logs');
+
   {$IFDEF HeapTrc}
-  if FileExists(AppPath + 'heap.trc') then
-    DeleteFile(AppPath + 'heap.trc');
-  SetHeapTraceOutput(AppPath + 'heap.trc');
+  HeapTrcFile := AppPath + 'logs' + DirectorySeparator + 'heap.trc';
+  if FileExists(HeapTrcFile) then
+    DeleteFile(HeapTrcFile);
+  SetHeapTraceOutput(HeapTrcFile);
   {$ENDIF}
 
   Randomize;
 
-  MyLog.FileName := AppPath + 'dxwebsrv.log';
+  MyLog.FileName := AppPath + 'logs' + DirectorySeparator + 'dxwebsrv.log';
 
   AppSet := TAppSettings.Create;
   AppSet.Load;

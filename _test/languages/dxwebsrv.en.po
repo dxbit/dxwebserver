@@ -155,7 +155,7 @@ msgstr ""
 
 #: strconsts.rsabouttext
 #, object-pascal-format
-msgid "DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2025 Pavel Duborkin<br><br><a href=\"https://mydataexpress.ru\">Project Website</a> | <a href=\"https://forum.mydataexpress.ru\">Forum</a> | <a href=\"https://wiki.mydataexpress.ru\">Wiki</a>"
+msgid "DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2026 Pavel Duborkin<br><br><a href=\"https://mydataexpress.ru\">Project Website</a> | <a href=\"https://forum.mydataexpress.ru\">Forum</a> | <a href=\"https://wiki.mydataexpress.ru\">Wiki</a>"
 msgstr ""
 
 #: strconsts.rsabouttextconsole
@@ -163,7 +163,7 @@ msgstr ""
 msgid ""
 "DataExpress Web Server is working...\n"
 "Version: %s\n"
-"Copyright (c) 2016-2025 Pavel Duborkin"
+"Copyright (c) 2016-2026 Pavel Duborkin"
 msgstr ""
 
 #: strconsts.rsaccessdenied
@@ -696,6 +696,10 @@ msgstr ""
 msgid "Number or Text"
 msgstr ""
 
+#: strconsts.rsobjectfieldcantusedasobjectfield
+msgid "The \"Object field\" component cannot be used as an object field."
+msgstr ""
+
 #: strconsts.rsobjectfieldnotfound
 #, object-pascal-format
 msgid "Object field not found: %s"
@@ -896,6 +900,11 @@ msgstr ""
 
 #: strconsts.rsusername
 msgid "Username"
+msgstr ""
+
+#: strconsts.rsusetagsinsidegrouperror
+#, object-pascal-format
+msgid "It is not allowed to use the %s tag inside the group tag."
 msgstr ""
 
 #: strconsts.rsweb

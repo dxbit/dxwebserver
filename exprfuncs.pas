@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ begin
     RS := AMainRecordSet.Parent.FindRecordSetByName(FormName);
   if RS = nil then raise Exception.Create(Format(rsFormQryNotFound, [FormName]))
   else if (RS.RD <> nil) and RS.QGrid.ManualRefresh and
-    (rstRecalculate in RS.GetTopParent.RecordSetState) {not RS.DataSet.Active} then Exit(False);
+    (rstRecalculate in RS.GetFormRecordSet.RecordSetState) {not RS.DataSet.Active} then Exit(False);
 
   Fl := nil; Col := nil;
   if RS.Form <> nil then

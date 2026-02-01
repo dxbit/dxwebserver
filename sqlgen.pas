@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -988,12 +988,14 @@ var
 begin
   SS := ARecordSet.Session;
   EB := TExpressionBuilder.Create;
-  // Запрос
+  {// Запрос
   if ARecordSet.Parent <> nil then
     EB.RecordSet := ARecordSet.Parent
   // Отчет
   else
-    EB.RecordSet := ARecordSet;
+    EB.RecordSet := ARecordSet;}
+  EB.RecordSet := ARecordset.GetFormRecordset;
+  if EB.RecordSet = nil then EB.RecordSet := ARecordSet;
   EB.SkipLabels:=True;
   P := TSQLSourceFilterParser.Create;
   P.Session := SS;

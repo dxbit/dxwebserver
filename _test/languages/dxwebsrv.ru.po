@@ -154,15 +154,15 @@ msgid "Invalid connection type : \"%s\""
 msgstr ""
 
 #: strconsts.rsabouttext
-msgid "DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2025 Pavel Duborkin<br><br><a href=\"https://mydataexpress.ru\">Project Website</a> | <a href=\"https://forum.mydataexpress.ru\">Forum</a> | <a href=\"https://wiki.mydataexpress.ru\">Wiki</a>"
-msgstr "DataExpress Web Server<br>работает...<br><br>Версия: %s<br><br>Copyright &#169; 2016-2025 Павел Дуборкин<br><br><a href=\"https://mydataexpress.ru\">Сайт проекта</a> | <a href=\"https://forum.mydataexpress.ru\">Форум</a> | <a href=\"https://wiki.mydataexpress.ru\">Вики</a>"
+msgid "DataExpress Web Server<br>is working...<br><br>Version: %s<br><br>Copyright &#169; 2016-2026 Pavel Duborkin<br><br><a href=\"https://mydataexpress.ru\">Project Website</a> | <a href=\"https://forum.mydataexpress.ru\">Forum</a> | <a href=\"https://wiki.mydataexpress.ru\">Wiki</a>"
+msgstr "DataExpress Web Server<br>работает...<br><br>Версия: %s<br><br>Copyright &#169; 2016-2026 Павел Дуборкин<br><br><a href=\"https://mydataexpress.ru\">Сайт проекта</a> | <a href=\"https://forum.mydataexpress.ru\">Форум</a> | <a href=\"https://wiki.mydataexpress.ru\">Вики</a>"
 
 #: strconsts.rsabouttextconsole
 #, object-pascal-format
 msgid ""
 "DataExpress Web Server is working...\n"
 "Version: %s\n"
-"Copyright (c) 2016-2025 Pavel Duborkin"
+"Copyright (c) 2016-2026 Pavel Duborkin"
 msgstr ""
 
 #: strconsts.rsaccessdenied
@@ -558,7 +558,7 @@ msgstr "%s - некорректное имя подключения. Имя по
 #: strconsts.rsinvaliddate
 #, object-pascal-format
 msgid "Invalid date %s"
-msgstr ""
+msgstr "Недопустимая дата %s"
 
 #: strconsts.rsinvalidfreshvalue
 msgid "Invalid fresh value."
@@ -694,6 +694,10 @@ msgstr "Число"
 #: strconsts.rsnumberortext
 msgid "Number or Text"
 msgstr "Число или Текст"
+
+#: strconsts.rsobjectfieldcantusedasobjectfield
+msgid "The \"Object field\" component cannot be used as an object field."
+msgstr "Недопустимо использовать компонент \"поле объекта\" в качестве поля объекта."
 
 #: strconsts.rsobjectfieldnotfound
 #, object-pascal-format
@@ -896,6 +900,11 @@ msgstr "Монитор пользователей"
 #: strconsts.rsusername
 msgid "Username"
 msgstr "Имя пользователя"
+
+#: strconsts.rsusetagsinsidegrouperror
+#, object-pascal-format
+msgid "It is not allowed to use the %s tag inside the group tag."
+msgstr "Недопустимо использование тега %s внутри тега group."
 
 #: strconsts.rsweb
 msgid "Web"

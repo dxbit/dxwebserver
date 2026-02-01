@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ type
     CertFileAge, PrivateKeyFileAge: LongInt;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    property Address;
   end;
 
   { TMainServerThread }
@@ -166,6 +167,7 @@ begin
     MainSrv := TMainServer.Create(nil);
     MainSrv.ServerBanner := 'DataExpress Web Server';
     MainSrv.LookupHostNames := False;
+    MainSrv.Address := AppSet.Address;
     MainSrv.Port := AppSet.Port;
     MainSrv.Threaded := True;
     MainSrv.AcceptIdleTimeout := 1000;
@@ -608,6 +610,12 @@ var
   HandleOk, IsService: Boolean;
   DBItem: TDBItem;
 
+  function GetRealIP: String;
+  begin
+    Result := ARequest.CustomHeaders.Values['X-REAL-IP'];
+    if Result = '' then Result := ARequest.RemoteAddress;
+  end;
+
   procedure RunMainAction(const ActionData: String);
   var
     DummyRS: TSsRecordSet;
@@ -646,7 +654,7 @@ begin
   SetPrecisionMode(pmExtended);
   {$endif}
 
-  DebugStr(ARequest.RemoteAddress + ' ' + ARequest.Method + ': ' + ARequest.URI);
+  DebugStr(GetRealIP + ' ' + ARequest.Method + ': ' + ARequest.URI);
   if not FirstCleanCacheDir then CleanCacheDir;
 
   SS := nil;

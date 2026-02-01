@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -611,11 +611,11 @@ end;
 {$ifdef linux}
 procedure InitDictionary;
 var
-  LibPath, AppPath: String;
+  AppPath: String;
 begin
   AppPath := ExtractFilePath(ParamStr(0));
-  if not FileExists(AppPath + 'libPadeg.so') then Exit;
-  SetDictionary(AppPath + 'except.dic');
+  if FileExists(AppPath + 'libPadeg.so') and FileExists(AppPath + 'except.dic') then
+    SetDictionary(AppPath + 'except.dic');
 end;
 {$endif}
 

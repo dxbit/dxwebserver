@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -1548,9 +1548,11 @@ begin
 
   if C is TdxObjectField then
   begin
+    if i > 0 then
+      raise ECalcError.Create(rsObjectFieldCantUsedAsObjectField, [FieldName], P);
     C := LookupObjectField(FRecordSet.Session, TdxObjectField(C), True);
-    if C = nil then raise ECalcError.Create(rsObjectFieldNotFound, [
-      FieldName], P);
+    if C = nil then
+      raise ECalcError.Create(rsObjectFieldNotFound, [FieldName], P);
   end;
 
   if (C = nil) and (SL.Count = 1) and (not FSkipLabels) then

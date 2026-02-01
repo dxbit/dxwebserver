@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ unit DBEngine;
 interface
 
 uses
-  Classes, SysUtils, Db, IBConnection, SQLDb, SQLDbLib, DXReports, MemDs;
+  Classes, SysUtils, Db, IBConnection, SQLDb, DXReports, MemDs;
 
 type
 

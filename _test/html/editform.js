@@ -472,7 +472,7 @@ function processJson(jsonRoot) {
 						i++;
 					}
 					let recNo = jsonObj.value - parseInt(ctrl.children[0].dataset.offset);
-					if (rows[1].className == 'gridbns-up') recNo++
+					if (rows.length > 1 && rows[1].className == 'gridbns-up') recNo++
 					let selRow = rows[recNo];
 					if (selRow) {
 						if (selRow.className) 

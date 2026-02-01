@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2024 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ type
 
   TAppSettings = class
   private
+    FAddress: String;
     FCertificate: String;
     FDebugMode: Boolean;
     FFirebirdVer: String;
@@ -67,6 +68,7 @@ type
     //procedure Save;
     procedure Load;
     property Port: Integer read FPort write FPort;
+    property Address: String read FAddress write FAddress;
     //property Password: String read FPassword;
     property Language: String read FLanguage;
     property DebugMode: Boolean read FDebugMode;
@@ -84,7 +86,7 @@ var
 implementation
 
 uses
-  IniFiles, apputils, LazUtf8, dxtypes;
+  IniFiles, apputils, LazUtf8;
 
 //const
 //  Langs: array [0..1] of String = ('', 'ru');
@@ -184,6 +186,7 @@ begin
   try
     FLanguage:=ReadString('Server', 'Language', 'ru');
     FPort := ReadInteger('Server', 'Port', 80);
+    FAddress := ReadString('Server', 'Address', '');
     FUseSSL := ReadBool('Server', 'UseSSL', False);
     FPrivateKey := GetAbsolutePath( ReadString('Server', 'PrivateKey', '') );
     FCertificate := GetAbsolutePath( ReadString('Server', 'Certificate', '') );

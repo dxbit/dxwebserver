@@ -12,6 +12,7 @@ DEMO_DB.FDB
 lib
 backup
 cache
+tools
 /_dist
 
 
