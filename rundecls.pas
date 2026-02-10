@@ -2458,6 +2458,9 @@ begin
   Exec.RegisterDelphiFunction(@GenerateId, 'CreateGUIDString', cdRegister);
   Exec.RegisterDelphiFunction(@AppPath, 'GetAppDir', cdRegister);
 
+  Exec.RegisterDelphiFunction(@CommandExecute, 'CommandExecute', cdRegister);
+  Exec.RegisterDelphiFunction(@FileExecute, 'FileExecute', cdRegister);
+
   Exec.RegisterFunctionName('RECT', @RegFunctions86_64, Pointer(6), nil);
   Exec.RegisterFunctionName('FREEANDNIL', @RegFunctions86_64, Pointer(7), nil);
 end;

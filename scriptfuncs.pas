@@ -25,7 +25,7 @@ interface
 uses
   Classes, SysUtils, Dialogs, dxctrls, strconsts, FileUtil,
   db, dxreports, laz2_dom, laz2_xmlread, laz2_xmlwrite,
-  fpjson, dxtypes, dxsqlquery;
+  fpjson, dxtypes, dxsqlquery, Process, Utf8Process;
 
 function DCount(DataSet: TObject): Integer;
 function DSum(DataSet: TObject; const FieldName: String): Double;
@@ -124,6 +124,8 @@ function MyFileSetDate(const FileName: String; Age: Int64): LongInt;
 
 function GetComponentId(C: TdxComponent): Integer;
 
+function CommandExecute(const FileName, Params, WorkDir: String; out OutputString: String; out ExitStatus: Integer): Integer;
+function FileExecute(const FileName, Params, WorkDir: String): Integer;
 
 implementation
 
@@ -806,6 +808,43 @@ begin
   else if C is TdxForm then Result := TdxForm(C).Id
   else if C is TdxQueryGrid then Result := TdxQueryGrid(C).Id
   else Result := 0;
+end;
+
+function CommandExecute(const FileName, Params, WorkDir: String; out
+  OutputString: String; out ExitStatus: Integer): Integer;
+var
+  p: TProcessUtf8;
+  ErrorString: String;
+begin
+  p := TProcessUtf8.Create(nil);
+  p.Options := [poNoConsole];
+  p.ParseCmdLine(FileName + ' ' + Params);
+  if WorkDir <> '' then p.CurrentDirectory := WorkDir;
+  try
+    Result := p.RunCommandLoop(OutputString, ErrorString, ExitStatus);
+  finally
+    p.free;
+  end;
+end;
+
+function FileExecute(const FileName, Params, WorkDir: String): Integer;
+var
+  p: TProcessUtf8;
+begin
+  p := TProcessUtf8.Create(nil);
+  p.Options := [poNoConsole, poWaitOnExit];
+  p.ParseCmdLine(FileName + ' ' + Params);
+  if WorkDir <> '' then p.CurrentDirectory := WorkDir;
+  try try
+    p.Execute;
+    Result := p.ExitCode;
+  except
+    on E: Exception do
+      Result := 1;
+  end;
+  finally
+    p.free;
+  end;
 end;
 
 end.

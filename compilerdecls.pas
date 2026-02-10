@@ -1596,6 +1596,9 @@ begin
   Cl.AddDelphiFunction('function SetExprVar(const aName: String; aValue: Variant): Variant');
   Cl.AddDelphiFunction('function GetExprVar(const aName: String): Variant');
 
+  Cl.AddDelphiFunction('function CommandExecute(const FileName, Params, WorkDir: String; out OutputString: String; out ExitStatus: Integer): Integer');
+  Cl.AddDelphiFunction('function FileExecute(const FileName, Params, WorkDir: String): Integer');
+
   with Cl.AddFunction('procedure FreeAndNil;').Decl do
     with AddParam do
     begin
