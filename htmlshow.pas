@@ -167,7 +167,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    //function ShowLogin(Fail: Boolean): String;
+    //function ShowTestForm: String;
+    function SetSize(AFields: TStrings; FormResize: Boolean): String;
     function ShowFormNotFound: String;
     function ShowLoginUser: String;
     function ShowConnectionProgress(const UserName: String): String;
@@ -1934,6 +1935,50 @@ destructor THtmlShow.Destroy;
 begin
   FCSS.Free;
   inherited Destroy;
+end;
+
+{function THtmlShow.ShowTestForm: String;
+var
+  Btns: String;
+begin
+  Btns := '<button type=button><img src="/img/ok.svg"></button>';
+  Result := LoadString(GetHtmlPath + 'editform.html');
+  Result := StringReplace(Result, '[lng]', AppSet.Language, []);
+  Result := StringReplace(Result, '[css]', '', []);
+  Result := StringReplace(Result, '[javascript]', '', []);
+  Result := StringReplace(Result, '[title]', '', []);
+  Result := StringReplace(Result, '[user]', ShowUser, []);
+  Result := StringReplace(Result, '[sidebar]', ShowSideBar, []);
+  Result := StringReplace(Result, '[tabs]', ShowTabs, []);
+  Result := StringReplace(Result, '[buttons]', Btns, []);
+  Result := StringReplace(Result, '[errors]', '', []);
+  Result := StringReplace(Result, '[content]', '', []);
+  Result := StringReplace(Result, '[debug]', '', []);
+  FResultCode := 200;
+end;   }
+
+function THtmlShow.SetSize(AFields: TStrings; FormResize: Boolean): String;
+var
+  W, H: Integer;
+begin
+  Result := '';
+  if TryStrToInt(AFields.Values['w'], W) and TryStrToInt(AFields.Values['h'], H) then
+  begin
+    FSS.ClientWidth := W;
+    FSS.ClientHeight := H;
+  end;
+
+  if FormResize then
+  begin
+    FRS := FSS.FindRecordSet(FSS.FormId, FSS.RecId, FSS.TableId);
+    if FRS <> nil then
+    begin
+      FRS.ClearChanges;
+      FRS.Form.SetBounds(FRS.Form.Left, FRS.Form.Top, W, H);
+      Result := GetEvalChangesAsJson();
+    end;
+  end;
+  FResultCode := rcAjaxOk;
 end;
 
 function THtmlShow.ShowFormNotFound: String;
@@ -6188,6 +6233,8 @@ begin
 
   FTabOrderList := TList.Create;
   Fm.GetTabOrderList(FTabOrderList);
+
+  Fm.SetBounds(Fm.Left, Fm.Top, FSS.ClientWidth, FSS.ClientHeight);
 
   Btns := '';
   if Fm.ViewType <> vtSimpleForm then

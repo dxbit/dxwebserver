@@ -1604,3 +1604,4 @@ function clearDebug() {
 	SendRequest('POST', '?cleardbg', '', null);
 	document.getElementById('debug-body').innerHTML = '';
 }
+

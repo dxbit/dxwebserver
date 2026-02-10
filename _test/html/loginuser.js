@@ -10,7 +10,11 @@ function formSubmit(fm) {
 	fm.user.disabled = true;
 	fm.pwd.disabled = true;
 	
-	SendRequest('POST', location.pathname + '?login', 'user=' + encodeURIComponent(fm.user.value) +  '&pwd=' + encodeURIComponent(fm.pwd.value), (Request) => {
+	let w = window.localStorage.getItem('clientWidth');
+	let h = window.localStorage.getItem('clientHeight');
+	let params = 'user=' + encodeURIComponent(fm.user.value) +  '&pwd=' + encodeURIComponent(fm.pwd.value);
+	if (w && h) params = params + '&w=' + w + '&h=' + h;
+	SendRequest('POST', location.pathname + '?login', params, (Request) => {
 		bn.className = '';
 		loader.className = 'hide';
 		fm.user.disabled = false;

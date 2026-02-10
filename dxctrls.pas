@@ -47,6 +47,8 @@ type
     paBeforeOpenFile, paAfterOpenFile, paPrintError);
   TPrintEvent = procedure (Sender: TObject; Action: TPrintActionType;
   	const SourceName, FieldName: String; var Value: String; var Accept: Boolean) of object;
+  TAnchorKind = (akTop, akLeft, akRight, akBottom);
+  TAnchors = set of TAnchorKind;
 
 
   TdxComponent = class;
@@ -167,6 +169,7 @@ type
 
   TdxControl = class(TdxComponent)
   private
+    FAnchors: TAnchors;
     FCaption: String;
     FColor: TColor;
     FControlVisible: Boolean;
@@ -177,7 +180,9 @@ type
     FHeight: Integer;
     FHint: String;
     FLeft: Integer;
+    FOnChangeBounds: TNotifyEvent;
     FOnPropertyChange: TPropertyChangeEvent;
+    FOnResize: TNotifyEvent;
     FParent: TdxWinControl;
     FParentFont: Boolean;
     FTabOrder: Integer;
@@ -185,6 +190,9 @@ type
     FTop: Integer;
     FVisible: Boolean;
     FWidth: Integer;
+    procedure DoResize;
+    procedure DoChangeBounds;
+    procedure ProcessResize(dw, dh: Integer);
     procedure FontChange(Sender: TObject);
     function GetBoundsRect: TRect;
     procedure SetBoundsRect(AValue: TRect);
@@ -222,12 +230,15 @@ type
     property Enabled: Boolean read FEnabled write SetEnabled;
     property BoundsRect: TRect read GetBoundsRect write SetBoundsRect;
     property Caption: String read FCaption write SetCaption;
-    property OnPropertyChange: TPropertyChangeEvent read FOnPropertyChange
-      write FOnPropertyChange;
     property Hidden: Boolean read FHidden write FHidden;
     property FontStyleParsed: Boolean read FFontStyleParsed write FFontStyleParsed;
     property ControlVisible: Boolean read FControlVisible write FControlVisible;
     property Hint: String read FHint write FHint;
+    property Anchors: TAnchors read FAnchors write FAnchors;
+    property OnPropertyChange: TPropertyChangeEvent read FOnPropertyChange
+      write FOnPropertyChange;
+    property OnChangeBounds: TNotifyEvent read FOnChangeBounds write FOnChangeBounds;
+    property OnResize: TNotifyEvent read FOnResize write FOnResize;
   end;
 
   { TControlList }
@@ -2190,9 +2201,15 @@ begin
 end;
 
 procedure TdxControl.SetHeight(AValue: Integer);
+var
+  dh: Integer;
 begin
   if FHeight=AValue then Exit;
+  dh := AValue - FHeight;
   FHeight:=AValue;
+  ProcessResize(0, dh);
+  DoChangeBounds;
+  DoResize;
   DoPropertyChange('bounds');
 end;
 
@@ -2200,12 +2217,56 @@ procedure TdxControl.SetLeft(AValue: Integer);
 begin
   if FLeft=AValue then Exit;
   FLeft:=AValue;
+  DoChangeBounds;
   DoPropertyChange('bounds');
 end;
 
 function TdxControl.GetBoundsRect: TRect;
 begin
-  Result := Rect(Left, Top, Width, Height);
+  Result := Rect(Left, Top, Left + Width, Top + Height);
+end;
+
+procedure TdxControl.DoResize;
+begin
+  if FOnResize <> nil then FOnResize(Self);
+end;
+
+procedure TdxControl.DoChangeBounds;
+begin
+  if FOnChangeBounds <> nil then FOnChangeBounds(Self);
+end;
+
+procedure TdxControl.ProcessResize(dw, dh: Integer);
+var
+  i: Integer;
+  WC: TdxWinControl;
+  C: TdxControl;
+  R: TRect;
+begin
+  if not (Self is TdxWinControl) then Exit;
+
+  WC := TdxWinControl(Self);
+  for i := 0 to WC.ControlCount - 1 do
+  begin
+    C := WC.Controls[i];
+    if C.Anchors = [akLeft, akTop] then Continue;
+    R := C.BoundsRect;
+    if akRight in C.Anchors then
+    begin
+      if akLeft in C.Anchors then
+        R.Right := R.Right + dw
+      else
+        R.Offset(dw, 0);
+    end;
+    if akBottom in C.Anchors then
+    begin
+      if akTop in C.Anchors then
+        R.Bottom := R.Bottom + dh
+      else
+        R.Offset(0, dh);
+    end;
+    C.BoundsRect := R;
+  end;
 end;
 
 procedure TdxControl.FontChange(Sender: TObject);
@@ -2257,7 +2318,7 @@ end;
 procedure TdxControl.SetBoundsRect(AValue: TRect);
 begin
   SetBounds(AValue.Left, AValue.Top, AValue.Width, AValue.Height);
-  DoPropertyChange('bounds');
+  //DoPropertyChange('bounds');
 end;
 
 procedure TdxControl.SetCaption(AValue: String);
@@ -2306,6 +2367,7 @@ procedure TdxControl.SetTop(AValue: Integer);
 begin
   if FTop=AValue then Exit;
   FTop:=AValue;
+  DoChangeBounds;
   DoPropertyChange('bounds');
 end;
 
@@ -2317,9 +2379,15 @@ begin
 end;
 
 procedure TdxControl.SetWidth(AValue: Integer);
+var
+  dw: Integer;
 begin
   if FWidth=AValue then Exit;
+  dw := FWidth - AValue;
   FWidth:=AValue;
+  ProcessResize(dw, 0);
+  DoChangeBounds;
+  DoResize;
   DoPropertyChange('bounds');
 end;
 
@@ -2334,6 +2402,7 @@ begin
   FVisible := True;
   FEnabled := True;
   FControlVisible := True;
+  FAnchors := [akLeft, akTop];
 end;
 
 destructor TdxControl.Destroy;
@@ -2371,9 +2440,16 @@ begin
 end;
 
 procedure TdxControl.SetBounds(X, Y, W, H: Integer);
+var
+  dw, dh: Integer;
 begin
+  dw := W - FWidth;
+  dh := H - FHeight;
   FLeft := X; FTop := Y;
   FWidth := W; FHeight := H;
+  ProcessResize(dw, dh);
+  DoChangeBounds;
+  if (dw <> 0) or (dh <> 0) then DoResize;
   DoPropertyChange('bounds');
 end;
 

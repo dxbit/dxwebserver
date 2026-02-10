@@ -271,6 +271,8 @@ type
   TSession = class
   private
     FBrowserId: String;
+    FClientHeight: Integer;
+    FClientWidth: Integer;
     FConnectName: String;
     FDebugMsg: String;
     FDebugShow: Boolean;
@@ -389,6 +391,8 @@ type
     function GetExprVar(const AName: String): Variant;
     property Request: TFPHTTPConnectionRequest read FRequest write FRequest;
     property IsService: Boolean read FIsService write FIsService;
+    property ClientWidth: Integer read FClientWidth write FClientWidth;
+    property ClientHeight: Integer read FClientHeight write FClientHeight;
     property OnCreateForm: TCreateFormEvent read FOnCreateForm write FOnCreateForm;
     property OnDestroyForm: TCreateFormEvent read FOnDestroyForm write FOnDestroyForm;
     property OnDatabaseClose: TNotifyEvent read FOnDatabaseClose write FOnDatabaseClose;

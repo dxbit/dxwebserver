@@ -74,7 +74,7 @@ implementation
 
 uses
   htmlshow, LazUtf8, apputils, DateUtils, appsettings, FileUtil, dxusers, md5,
-  scriptmanager, dxctrls, HTTPDefs, base64;
+  scriptmanager, dxctrls, HTTPDefs;
 
 
 {function LoadCertificate(const FileName: String; out Buf: TBytes): Boolean;
@@ -294,6 +294,7 @@ begin
                   else if Fields[4] = 'msgbnclick' then
                   else if Fields[4] = 'objadd' then
                   else if Fields[4] = 'objedit' then
+                  else if Fields[4] = 'resize' then
                   else Exit;
                 end;
               end
@@ -341,6 +342,7 @@ begin
           else if Fields[2] = 'tablefetch' then
           else if Fields[2] = 'objadd' then
           else if Fields[2] = 'objedit' then
+          else if Fields[2] = 'resize' then
           else Exit;
         end;
       end
@@ -393,6 +395,8 @@ begin
   else if Fields[0] = 'cleardbg' then
   else if Fields[0] = 'compileerror' then
   else if Fields[0] = 'runtimeerror' then
+  //else if Fields[0] = 'testfm' then
+  //else if Fields[0] = 'setsize' then
   begin
   end;
   if Fields.Count > n then Exit;
@@ -609,6 +613,7 @@ var
   U: TdxUser;
   HandleOk, IsService: Boolean;
   DBItem: TDBItem;
+  W, H: Longint;
 
   function GetRealIP: String;
   begin
@@ -918,7 +923,7 @@ begin
             MD.Unlock;
           end;
 
-          SS.IP := ARequest.RemoteAddr;
+          SS.IP := GetRealIP;
           SS.LastTime := Now;
 
           if not IsService then
@@ -927,6 +932,13 @@ begin
             else if MD.ScriptMan.HasErrors then StartUrl := '?compileerror'
             else if StartUrl = '' then StartUrl := HS.GetFirstForm;
             AResponse.Contents.Text := MakeJsonObjectString(['url', StartUrl]);
+
+            if TryStrToInt(ARequest.ContentFields.Values['w'], W) and
+              TryStrToInt(ARequest.ContentFields.Values['h'], H) then
+            begin
+              SS.ClientWidth := W;
+              SS.ClientHeight := H;
+            end;
           end;
 
           if not DirectoryExists(GetCachePath(SS)) then
@@ -1324,6 +1336,21 @@ begin
   else if LPm = 'runtimeerror' then
   begin
     AResponse.Contents.Text := HS.ShowErrorPage(rsRuntimeError, SS.MainErrorMsg);
+    AResponse.Code := HS.ResultCode;
+  end
+  {else if LPm = 'testfm' then
+  begin
+    AResponse.Contents.Text := HS.ShowTestForm;
+    AResponse.Code := HS.ResultCode;
+  end
+  else if LPm = 'setsize' then
+  begin
+    AResponse.Contents.Text := HS.SetSize(ARequest.ContentFields, False);
+    AResponse.Code := HS.ResultCode;
+  end }
+  else if LPm = 'resize' then
+  begin
+    AResponse.Contents.Text := HS.SetSize(ARequest.ContentFields, True);
     AResponse.Code := HS.ResultCode;
   end
   else

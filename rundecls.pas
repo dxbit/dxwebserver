@@ -412,6 +412,10 @@ procedure TControlParent_R(Self: TdxControl; var T: TdxWinControl); begin T := S
 procedure TControlParent_W(Self: TdxControl; T: TdxWinControl); begin Self.Parent := T; end;
 procedure TControlCaption_R(Self: TdxControl; var T: String); begin T := Self.Caption; end;
 procedure TControlCaption_W(Self: TdxControl; T: String); begin Self.Caption := T; end;
+procedure TControlOnChangeBounds_R(Self: TdxControl; var T: TNotifyEvent); begin T := Self.OnChangeBounds; end;
+procedure TControlOnChangeBounds_W(Self: TdxControl; T: TNotifyEvent); begin Self.OnChangeBounds := T; end;
+procedure TControlOnResize_R(Self: TdxControl; var T: TNotifyEvent); begin T := Self.OnResize; end;
+procedure TControlOnResize_W(Self: TdxControl; T: TNotifyEvent); begin Self.OnResize := T; end;
 
 procedure RIRegisterTControl(Cl: TPSRuntimeClassImporter);
 begin
@@ -434,6 +438,8 @@ begin
     RegisterPropertyHelper(@TControlTabStop_R, @TControlTabStop_W, 'TabStop');
     RegisterPropertyHelper(@TControlParent_R, @TControlParent_W, 'Parent');
     RegisterPropertyHelper(@TControlCaption_R, @TControlCaption_W, 'Caption');
+    RegisterEventPropertyHelper(@TControlOnChangeBounds_R, @TControlOnChangeBounds_W, 'OnChangeBounds');
+    RegisterEventPropertyHelper(@TControlOnResize_R, @TControlOnResize_W, 'OnResize');
   end;
 end;
 

@@ -367,6 +367,9 @@ begin
 
     RegisterProperty('TabOrder', 'Integer', iptRW);
     RegisterProperty('TabStop', 'Boolean', iptRW);
+
+    RegisterProperty('OnChangeBounds', 'TNotifyEvent', iptRW);
+    RegisterProperty('OnResize', 'TNotifyEvent', iptRW);
   end;
 end;
 

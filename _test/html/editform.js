@@ -2,6 +2,7 @@ let fieldChanging = false;
 let imgMnu = null;
 let fileMnu = null;
 let dupMnu = null;
+let resizeTimer = null;
 
 function getDataStateDS() {
 	return document.getElementById('datastate').dataset;
@@ -939,4 +940,30 @@ function bodyLoad() {
 			tab.scrollIntoView({inline: "center"});
 		}
 	}
+	
+	let ro = new ResizeObserver(entries => {
+		if (!resizeTimer) {
+			resizeTimer = setTimeout(() => {
+				let fm = document.querySelector('div.fm');
+				let x = fm.offsetLeft;
+				let y = fm.offsetTop;
+				let w = document.documentElement.clientWidth;
+				let h = document.documentElement.clientHeight;
+				let store = window.localStorage;
+				if (store.getItem('clientWidth') != (w - x) || store.getItem('clientHeight') != (h - y)) {
+					SendRequest('POST', getCurrentUrl() + '&resize', 'w=' + (w - x) + '&h=' + (h - y), (Request) => {
+						if (Request.status == rcAjaxOk) {
+							processJson(JSON.parse(Request.responseText));
+							store.setItem('clientWidth', (w - x));
+							store.setItem('clientHeight', (h - y));
+						}
+					});
+				}
+				clearTimeout(resizeTimer);
+				resizeTimer = null;
+			}, 400);
+		}
+	});
+	ro.observe(document.body);
+	ro.observe(document.querySelector('div.sidebar'));
 }

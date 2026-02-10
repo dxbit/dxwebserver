@@ -247,6 +247,28 @@ begin
   else Result := tlBottom;
 end;
 
+function StrToAnchors(const Value: String): TAnchors;
+var
+  SL: TStrings;
+  S: String;
+  i: Integer;
+  A: TAnchors;
+begin
+  SL := TStringList.Create;
+  SplitStr(Value, ',', SL);
+  A := [];
+  for i := 0 to SL.Count - 1 do
+  begin
+    S := Trim(SL[i]);
+    if S = 'akLeft' then A := A + [akLeft]
+    else if S = 'akTop' then A := A + [akTop]
+    else if S = 'akRight' then A := A + [akRight]
+    else if S = 'akBottom' then A := A + [akBottom]
+  end;
+  SL.Free;
+  Result := A;
+end;
+
 procedure ProcessFontStyle(Fnt: TdxFont; const Styles: String);
 var
   SL: TStrings;
@@ -707,7 +729,7 @@ begin
   S := ' ' + PropName + ' ';
   if FObj is TdxControl then
     Result := Pos(S, ' Left Top Width Height Color Font.Name Hint ' +
-      ' Font.Height Font.Color Font.Style TabOrder StopTab ParentFont Caption Hidden ') > 0;
+      ' Font.Height Font.Color Font.Style TabOrder StopTab ParentFont Caption Hidden Anchors ') > 0;
   if (not Result) and (FObj is TdxField) then
     Result := Pos(S, ' Id FieldName HintText ') > 0;
   if (not Result) and (FObj is TdxLabel) then
@@ -1051,6 +1073,8 @@ begin
       FObj.Hidden := StrToBoolean(PropValue)
     else if PropName = 'Hint' then
       FObj.Hint := PropValue
+    else if PropName = 'Anchors' then
+      FObj.Anchors := StrToAnchors(PropValue)
   end;
   if FObj is TdxField then
     with TdxField(FObj) do
