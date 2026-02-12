@@ -3,6 +3,7 @@ let imgMnu = null;
 let fileMnu = null;
 let dupMnu = null;
 let resizeTimer = null;
+let msgBox = null;
 
 function getDataStateDS() {
 	return document.getElementById('datastate').dataset;
@@ -552,7 +553,7 @@ function processJson(jsonRoot) {
 	}
 
 	if (jsonRoot.msgInfo) {
-		let msgBox = new MessageBox(jsonRoot.msgInfo);
+		msgBox = new MessageBox(jsonRoot.msgInfo);
 		msgBox.onButtonClick = function(id) {
 			SendRequest('POST', getCurrentUrl() + '&msgbnclick', 'bn=' + id + '&fresh=' + getFreshValue(), (Request) => {
 				msgBox = null;
@@ -562,6 +563,14 @@ function processJson(jsonRoot) {
 					processJson(JSON.parse(Request.responseText));
 				}
 			});
+		}
+	}
+	
+	for (jsonObj of jsonRoot.timers) {
+		if (jsonObj.int < 0) {
+			delTimer(jsonObj.tId);
+		} else {
+			addTimer(jsonObj.tId, jsonObj.int);
 		}
 	}
 	
@@ -900,6 +909,55 @@ function bnClick(bnName) {
 	});
 }
 
+function timerHandler(timerId) {
+	if (msgBox) {
+		restartTimer(timerId);
+		return;
+	}
+	
+	SendRequest('POST', getCurrentUrl() + '&timer', 'timer=' + timerId + '&fresh=' + getFreshValue(), (Request) => {
+		if (Request.status == rcAjaxOk) {
+			processJson(JSON.parse(Request.responseText));
+			restartTimer(timerId);
+		} else {
+			showAjaxError(Request);
+		}
+	});
+}
+
+function addTimer(timerId, interval) {
+	delTimer(timerId);
+	let t = {id: null, tId: timerId, int: interval};
+	timers.push(t);
+	t.id = setTimeout(timerHandler, t.int, t.tId);
+}
+
+function delTimer(timerId) {
+	for (let i = 0; i < timers.length; i++) {
+		let t = timers[i];
+		if (t.tId == timerId) {
+			if (t.id != null) clearTimeout(t.id);
+			timers.splice(i, 1);
+			return;
+		}
+	}
+}
+
+function restartTimer(timerId) {
+	for (let t of timers) {
+		if (t.tId == timerId) {
+			t.id = setTimeout(timerHandler, t.int, t.tId);
+			return;
+		}
+	}		
+}
+
+function startTimers() {
+	for (let t of timers) {
+		t.id = setTimeout(timerHandler, t.int, t.tId);
+	}		
+}
+
 function bodyLoad() {
 	let checks = document.querySelectorAll('input[type=checkbox]');
 	for (let chk of checks) {
@@ -920,7 +978,7 @@ function bodyLoad() {
 	
 	let msgInfo = document.getElementById('$msginfo');
 	if (msgInfo) {
-		let msgBox = new MessageBox(JSON.parse(msgInfo.innerHTML));
+		msgBox = new MessageBox(JSON.parse(msgInfo.innerHTML));
 		msgBox.onButtonClick = function(id) {
 			SendRequest('POST', getCurrentUrl() + '&msgbnclick', 'bn=' + id + '&fresh=' + getFreshValue(), (Request) => {
 				msgBox = null;
@@ -959,11 +1017,12 @@ function bodyLoad() {
 						}
 					});
 				}
-				clearTimeout(resizeTimer);
 				resizeTimer = null;
 			}, 400);
 		}
 	});
 	ro.observe(document.body);
 	ro.observe(document.querySelector('div.sidebar'));
+	
+	startTimers();
 }

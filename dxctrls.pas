@@ -190,6 +190,7 @@ type
     FTop: Integer;
     FVisible: Boolean;
     FWidth: Integer;
+    procedure DoPropertyChange(const PropName: String);
     procedure DoResize;
     procedure DoChangeBounds;
     procedure ProcessResize(dw, dh: Integer);
@@ -202,7 +203,6 @@ type
     procedure SetHeight(AValue: Integer);
     procedure SetLeft(AValue: Integer);
     procedure SetParent(AValue: TdxWinControl);
-    procedure DoPropertyChange(const PropName: String);
     procedure SetParentFont(AValue: Boolean);
     procedure SetTop(AValue: Integer);
     procedure SetVisible(AValue: Boolean);
@@ -235,10 +235,10 @@ type
     property ControlVisible: Boolean read FControlVisible write FControlVisible;
     property Hint: String read FHint write FHint;
     property Anchors: TAnchors read FAnchors write FAnchors;
-    property OnPropertyChange: TPropertyChangeEvent read FOnPropertyChange
-      write FOnPropertyChange;
     property OnChangeBounds: TNotifyEvent read FOnChangeBounds write FOnChangeBounds;
     property OnResize: TNotifyEvent read FOnResize write FOnResize;
+    property OnPropertyChange: TPropertyChangeEvent read FOnPropertyChange
+      write FOnPropertyChange;
   end;
 
   { TControlList }
@@ -959,6 +959,38 @@ type
     property Colorings[Index: Integer]: TColoringData read GetColorings; default;
   end;
 
+  { TdxTimer }
+
+  TdxTimer = class(TdxComponent)
+  private
+    FEnabled: Boolean;
+    FId: Integer;
+    FInterval: Integer;
+    FOnTimer: TNotifyEvent;
+    procedure SetEnabled(AValue: Boolean);
+    procedure SetInterval(AValue: Integer);
+  public
+    constructor Create(AOwner: TdxComponent); override;
+    destructor Destroy; override;
+    procedure DoTimer;
+    property Id: Integer read FId write FId;
+    property Enabled: Boolean read FEnabled write SetEnabled;
+    property Interval: Integer read FInterval write SetInterval;
+    property OnTimer: TNotifyEvent read FOnTimer write FOnTimer;
+  end;
+
+  { TdxTimerList }
+
+  TdxTimerList = class(TList)
+  private
+    function GetTimers(Index: Integer): TdxTimer;
+    function GetMaxId: Integer;
+  public
+    procedure AddTimer(T: TdxTimer);
+    function FindTimer(aId: Integer): TdxTimer;
+    property Timers[Index: Integer]: TdxTimer read GetTimers; default;
+  end;
+
   { TdxForm }
 
   TMsgButtonClickEvent = procedure (Sender: TObject; Button: TMsgDlgBtn) of object;
@@ -1018,6 +1050,7 @@ type
     FTemplates: TStrings;
     FUseSelectCondition: Boolean;
     FViewType: TViewType;
+    FTimers: TdxTimerList;
     //FScrollEventsCounter: Integer;
     //FOldBeforeScroll, FOldAfterScroll: TDataSetNotifyEvent;
     function GetAsDT(AIndex: String): TDateTime;
@@ -1098,6 +1131,7 @@ type
 
     property RecordSet: TObject read FRS write FRS;
     property Errs: TStringList read FErrs;
+    property Timers: TdxTimerList read FTimers;
   public
     function Append: TAccessStatus;
     function Insert: TAccessStatus;
@@ -2226,6 +2260,11 @@ begin
   Result := Rect(Left, Top, Left + Width, Top + Height);
 end;
 
+procedure TdxControl.DoPropertyChange(const PropName: String);
+begin
+  if FOnPropertyChange <> nil then FOnPropertyChange(Self, PropName);
+end;
+
 procedure TdxControl.DoResize;
 begin
   if FOnResize <> nil then FOnResize(Self);
@@ -2318,7 +2357,6 @@ end;
 procedure TdxControl.SetBoundsRect(AValue: TRect);
 begin
   SetBounds(AValue.Left, AValue.Top, AValue.Width, AValue.Height);
-  //DoPropertyChange('bounds');
 end;
 
 procedure TdxControl.SetCaption(AValue: String);
@@ -2349,11 +2387,6 @@ begin
   FParent := AValue;
   if FParent <> nil then FParent.FControls.Add(Self);
   if ParentFont then Font := GetRealFont;
-end;
-
-procedure TdxControl.DoPropertyChange(const PropName: String);
-begin
-  if FOnPropertyChange <> nil then FOnPropertyChange(Self, PropName);
 end;
 
 procedure TdxControl.SetParentFont(AValue: Boolean);
@@ -2687,6 +2720,68 @@ end;
 procedure TdxButton.SetClickHandler(ClickHandler: TNotifyEvent);
 begin
   FOnClick := ClickHandler;
+end;
+
+{ TdxTimer }
+
+procedure TdxTimer.SetEnabled(AValue: Boolean);
+begin
+  if FEnabled=AValue then Exit;
+  FEnabled:=AValue;
+  TSsRecordSet(TdxForm(Owner).RecordSet).ChangedTimers.Add(Self);
+end;
+
+procedure TdxTimer.SetInterval(AValue: Integer);
+begin
+  if FInterval=AValue then Exit;
+  FInterval:=AValue;
+  TSsRecordSet(TdxForm(Owner).RecordSet).ChangedTimers.Add(Self);
+end;
+
+constructor TdxTimer.Create(AOwner: TdxComponent);
+begin
+  inherited Create(AOwner);
+  if not (AOwner is TdxForm) then raise Exception.Create('Owner is not a form.');
+  TdxForm(AOwner).Timers.AddTimer(Self);
+end;
+
+destructor TdxTimer.Destroy;
+begin
+  if (Owner <> nil) and (TdxForm(Owner).Timers <> nil) then TdxForm(Owner).Timers.Remove(Self);
+  inherited Destroy;
+end;
+
+procedure TdxTimer.DoTimer;
+begin
+  if FOnTimer <> nil then FOnTimer(Self);
+end;
+
+{ TdxTimerList }
+
+function TdxTimerList.GetTimers(Index: Integer): TdxTimer;
+begin
+  Result := TdxTimer(Items[Index]);
+end;
+
+function TdxTimerList.GetMaxId: Integer;
+begin
+  Result := 0;
+  if Count = 0 then Exit;
+  Result := Timers[Count - 1].Id;
+end;
+
+procedure TdxTimerList.AddTimer(T: TdxTimer);
+begin
+  T.Id := GetMaxId + 1;
+  Add(T);
+end;
+
+function TdxTimerList.FindTimer(aId: Integer): TdxTimer;
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+    if Timers[i].Id = aId then Exit(Timers[i]);
 end;
 
 { TdxCounter }
@@ -4082,10 +4177,12 @@ begin
   FParams := TParamList.Create;
   FFilter := TFilterObject.Create(Self);
   FActionResult := Null;
+  FTimers := TdxTimerList.Create;
 end;
 
 destructor TdxForm.Destroy;
 begin
+  FreeAndNil(FTimers);
   FFilter.Free;
   FParams.Free;
   FErrs.Free;

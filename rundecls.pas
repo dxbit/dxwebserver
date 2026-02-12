@@ -462,6 +462,23 @@ begin
   RIRegisterTWinControl(Cl);
 end;
 
+procedure TTimerEnabled_R(Self: TdxTimer; var T: Boolean); begin T := Self.Enabled; end;
+procedure TTimerEnabled_W(Self: TdxTimer; T: Boolean); begin Self.Enabled := T; end;
+procedure TTimerInterval_R(Self: TdxTimer; var T: Integer); begin T := Self.Interval; end;
+procedure TTimerInterval_W(Self: TdxTimer; T: Integer); begin Self.Interval := T; end;
+procedure TTimerOnTimer_R(Self: TdxTimer; var T: TNotifyEvent); begin T := Self.OnTimer; end;
+procedure TTimerOnTimer_W(Self: TdxTimer; T: TNotifyEvent); begin Self.OnTimer := T; end;
+
+procedure RIRegister_Timer(Cl: TPSRuntimeClassImporter);
+begin
+  with Cl.Add2(TdxTimer, 'TTIMER') do
+  begin
+    RegisterPropertyHelper(@TTimerEnabled_R, @TTimerEnabled_W, 'Enabled');
+    RegisterPropertyHelper(@TTimerInterval_R, @TTimerInterval_W, 'Interval');
+    RegisterEventPropertyHelper(@TTimerOnTimer_R, @TTimerOnTimer_W, 'OnTimer');
+  end;
+end;
+
 ////////////////////////////////////////////////////////////////////////////////
 // DateTime
 ////////////////////////////////////////////////////////////////////////////////
@@ -2471,6 +2488,7 @@ begin
   RIRegister_Classes(Cl);
   RIRegister_Graphics(Cl);
   RIRegister_Controls(Cl);
+  RIRegister_Timer(Cl);
   RIRegister_IniFiles(Cl);
   RIRegister_TField(Cl);
   RIRegister_dxTypes(Cl);

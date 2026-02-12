@@ -51,6 +51,7 @@ type
     FChangedQueries: TUniList;
     FChangedProps: TUniPropList;
     FChangedTables: TUniList;
+    FChangedTimers: TUniList;
     FFreshValue: Integer;
     FDeleting: TAccessStatus;
     FDocUrl: String;
@@ -197,6 +198,7 @@ type
     property ChangedTables: TUniList read FChangedTables;
     property ChangedQueries: TUniList read FChangedQueries;
     property ChangedProps: TUniPropList read FChangedProps;
+    property ChangedTimers: TUniList read FChangedTimers;
     property GotoUrl: String read FGotoUrl write FGotoUrl;
     property GotoOption: TGotoOption read FGotoOption write FGotoOption;
     property DocUrl: String read FDocUrl write FDocUrl;
@@ -1944,8 +1946,8 @@ end;
 
 procedure TSsRecordSet.ClearChanges;
 begin
+  FChangedTimers.Clear;
   FChangedFields.Clear;
-  //FChangedLabels.Clear;
   FChangedTables.Clear;
   FChangedQueries.Clear;
   FChangedProps.Clear;
@@ -2602,6 +2604,7 @@ begin
   FChangedTables := TUniList.Create;
   FChangedQueries := TUniList.Create;
   FChangedProps := TUniPropList.Create;
+  FChangedTimers := TUniList.Create;
   FNeedRequery := True;
   FDataSet := TdxDataSet.Create(nil);
   FDataSet.PacketRecords := 100;
@@ -2659,6 +2662,7 @@ begin
   end;
   //FreeAndNil(FActions);
   FRunScript.Free;
+  FChangedTimers.Free;
   FChangedQueries.Free;
   FChangedTables.Free;
   //FChangedLabels.Free;

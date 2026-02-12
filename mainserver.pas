@@ -295,6 +295,7 @@ begin
                   else if Fields[4] = 'objadd' then
                   else if Fields[4] = 'objedit' then
                   else if Fields[4] = 'resize' then
+                  else if Fields[4] = 'timer' then
                   else Exit;
                 end;
               end
@@ -343,6 +344,7 @@ begin
           else if Fields[2] = 'objadd' then
           else if Fields[2] = 'objedit' then
           else if Fields[2] = 'resize' then
+          else if Fields[2] = 'timer' then
           else Exit;
         end;
       end
@@ -1351,6 +1353,11 @@ begin
   else if LPm = 'resize' then
   begin
     AResponse.Contents.Text := HS.SetSize(ARequest.ContentFields, True);
+    AResponse.Code := HS.ResultCode;
+  end
+  else if LPm = 'timer' then
+  begin
+    AResponse.Contents.Text := HS.TimerTimer(ARequest.ContentFields);
     AResponse.Code := HS.ResultCode;
   end
   else

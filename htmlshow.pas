@@ -68,7 +68,7 @@ type
     FTabOrderList: TList;
     FTopCtrl: TdxComponent;
     FRecordCopies: array of TdxMemDataSet;
-    function GetJsCode: String;
+    function GetJsCode(IsEditForm: Boolean): String;
     function BuildHRef(Level: Integer): String;
     function GetHRef(FmId, RecId: Integer; TblId: Integer = 0; Row: Integer = 0): String;
     function GetColorCSS(C: TdxControl): string;
@@ -228,6 +228,7 @@ type
     function DuplicateRecord(AParams: TStrings; DupParam: TDuplicateParam): String;
     function BnClick(AParams: TStrings): String;
     function MsgBnClick(AParams: TStrings): String;
+    function TimerTimer(AParams: TStrings): String;
     function ShowDebugAjax: String;
     function CloseDebug: String;
     function ClearDebug: String;
@@ -517,7 +518,7 @@ end;
 
 { THtmlShow }
 
-function THtmlShow.GetJsCode: String;
+function THtmlShow.GetJsCode(IsEditForm: Boolean): String;
 
   function ReplaceSeparator(const Fmt: String; NewSep: Char): String;
   var
@@ -531,13 +532,30 @@ function THtmlShow.GetJsCode: String;
 
 var
   FS: TFormatSettings;
+  S: String;
+  i: Integer;
+  T: TdxTimer;
 begin
   FS := DefaultformatSettings;
   Result := 'const formatSettings = {' +
     'shortDateFormat: "' + ReplaceSeparator(LowerCase(FS.ShortDateFormat), FS.DateSeparator) + '", ' +
     'dateSeparator: "' + FS.DateSeparator + '", ' +
     'longTimeFormat: "' + ReplaceSeparator(LowerCase(FS.LongTimeFormat), FS.TimeSeparator) + '", ' +
-    'timeSeparator: "' + FS.TimeSeparator + '" }';
+    'timeSeparator: "' + FS.TimeSeparator + '" };';
+  if IsEditForm then
+  begin
+    S := '';
+    for i := 0 to FRS.Form.Timers.Count - 1 do
+    begin
+      T := FRS.Form.Timers[i];
+      if T.Enabled then
+        S := S + '{id:null,tId:' + IntToStr(T.Id) + ',int:' + IntToStr(T.Interval) + '},';
+    end;
+    SetLength(S, Length(S) - 1);
+    S := 'let timers = [' + S + '];';
+
+    Result := Result + LineEnding + S;
+  end;
 end;
 
 function THtmlShow.BuildHRef(Level: Integer): String;
@@ -782,7 +800,7 @@ begin
   Result := LoadString(GetHtmlPath + 'filterform.html');
   Result := StringReplace(Result, '[lng]', AppSet.Language, []);
   Result := StringReplace(Result, '[title]', Fm.GetRecordsCaption, []);
-  Result := StringReplace(Result, '[javascript]', GetJsCode, []);
+  Result := StringReplace(Result, '[javascript]', GetJsCode(False), []);
   //Result := StringReplace(Result, '[resourcestrings]', Res, []);
   Result := StringReplace(Result, '[user]', ShowUser, []);
   Result := StringReplace(Result, '[sidebar]', ShowSideBar, []);
@@ -1417,7 +1435,7 @@ begin
   Result := StringReplace(Result, '[css]', CSS, []);
   Result := StringReplace(Result, '[tabs]', ShowTabs, []);
   Result := StringReplace(Result, '[title]', Rp.Name, []);
-  Result := StringReplace(Result, '[javascript]', GetJsCode, []);
+  Result := StringReplace(Result, '[javascript]', GetJsCode(False), []);
   Result := StringReplace(Result, '[user]', ShowUser, []);
   Result := StringReplace(Result, '[sidebar]', ShowSideBar, []);
   Result := StringReplace(Result, '[buttons]', Btns, []);
@@ -2166,16 +2184,16 @@ end;
 
 function THtmlShow.GetEvalChangesAsJson(Flags: TEvalFlags): String;
 var
-  i, j: Integer;
+  i, j, Int: Integer;
   JsonRoot, JsonObj: TJSONObject;
-  JsonFields, JsonImages, {JsonLabels, }JsonQs, JsonErrs, JsonPivots,
-    JsonProps, JsonTs: TJsonArray;
+  JsonFields, JsonImages, JsonQs, JsonErrs, JsonPivots,
+    JsonProps, JsonTs, JsonTimers: TJsonArray;
   F: TdxField;
-  Lbl: TdxLabel;
   QRS, TRS: TSsRecordSet;
   L: TList;
   Prp: TUniPropData;
   TblGrid: TdxGrid;
+  Tmr: TdxTimer;
 begin
   JsonRoot := TJsonObject.Create;
 
@@ -2197,11 +2215,11 @@ begin
 
     JsonFields := TJsonArray.Create;
     JsonImages := TJsonArray.Create;
-    //JsonLabels := TJsonArray.Create;
     JsonProps := TJsonArray.Create;
     JsonTs := TJsonArray.Create;
     JsonQs := TJsonArray.Create;
     JsonPivots := TJsonArray.Create;
+    JsonTimers := TJsonArray.Create;
     JsonErrs := TJsonArray.Create;
 
     for i := 0 to FRS.ChangedFields.Count - 1 do
@@ -2231,25 +2249,15 @@ begin
       end
       else if F is TdxFile then
       begin
-        //JsonObj.Nulls['key'] := True;
         JsonObj.Add('value', FRS.DataSet.FieldByName(FieldStr(F.Id) + 'd').AsString);
         JsonFields.Add(JsonObj);
       end
       else
       begin
-        //JsonObj.Nulls['key'] := True;
         JsonObj.Add('value', FRS.DataSet.FieldByName(FieldStr(F.Id)).AsString);
         JsonFields.Add(JsonObj);
       end
     end;
-
-    {for i := 0 to FRS.ChangedLabels.Count - 1 do
-    begin
-      Lbl := TdxLabel(FRS.ChangedLabels[i]);
-      if not Lbl.ControlVisible then Continue;
-      JsonLabels.Add(TJSONObject.Create(['fieldName', LbL.FieldName,
-        'value', StrToHtml(Lbl.Caption, True)]));
-    end;   }
 
     for i := 0 to FRS.ChangedProps.Count - 1 do
     begin
@@ -2301,6 +2309,15 @@ begin
     end;
     L.Free;
 
+    for i := 0 to FRS.ChangedTimers.Count - 1 do
+    begin
+      Tmr := TdxTimer(FRS.ChangedTimers[i]);
+      if Tmr.Enabled then Int := Tmr.Interval
+      else Int := -1;
+      JsonObj := TJsonObject.Create(['tId', Tmr.Id, 'int', Int]);
+      JsonTimers.Add(JsonObj);
+    end;
+
     for i := 0 to FRS.Form.Errs.Count - 1 do
     begin
       JsonObj := TJsonObject.Create(['msg', FRS.Form.Errs[i], 'id', PtrInt(FRS.Form.Errs.Objects[i])]);
@@ -2308,7 +2325,6 @@ begin
     end;
     FRS.Form.Errs.Clear;
 
-    //if FRS.Actions <> nil then
     if FRS.MsgInfo.Visible then
     begin
       JsonRoot.Add('msgInfo', FRS.MsgInfoToJson);
@@ -2316,11 +2332,11 @@ begin
 
     JsonRoot.Add('fields', JsonFields);
     JsonRoot.Add('images', JsonImages);
-    //JsonRoot.Add('labels', JsonLabels);
     JsonRoot.Add('props', JsonProps);
     JsonRoot.Add('tables', JsonTs);
     JsonRoot.Add('queries', JsonQs);
     JsonRoot.Add('pivots', JsonPivots);
+    JsonRoot.Add('timers', JsonTimers);
     JsonRoot.Add('errors', JsonErrs);
     if FSS.DebugShow then
     begin
@@ -4005,6 +4021,46 @@ begin
       FRS.Actions := nil;
     end;
   end;  }
+end;
+
+function THtmlShow.TimerTimer(AParams: TStrings): String;
+var
+  TimerId, FreshValue: Longint;
+  Timer: TdxTimer;
+begin
+  Result := '';
+  FResultCode := rcAjaxError;
+  if not TryStrToInt(AParams.Values['fresh'], FreshValue) then
+    Exit(MakeJsonErrString(rcAnyError, rsInvalidFreshValue));
+  if not TryStrToInt(AParams.Values['timer'], TimerId) then
+    Exit(MakeJsonErrString(rcAnyError, 'Invalid timer id'));
+
+  FRS := FSS.FindRecordSet(FSS.FormId, FSS.RecId, FSS.TableId);
+  if FRS = nil then
+    Exit(MakeJsonErrString(rcRecordSetNotFound, rsNoLinkForm))
+  else if FRS.FreshValue <> FreshValue then
+    Exit(MakeJsonErrString(rcInvalidFreshValue, rsInvalidFreshValueMsg));
+
+  Timer := FRS.Form.Timers.FindTimer(TimerId);
+  if Timer = nil then Exit(MakeJsonErrString(rcAnyError, 'Timer not found'));
+  FResultCode := rcAjaxOk;
+
+  try
+    FRS.ClearChanges;
+    if Timer.Enabled then Timer.DoTimer;
+    Result := GetEvalChangesAsJson;
+  except
+    on E: EPSException do
+    begin
+      FResultCode := rcAjaxError;
+      Result := MakeJsonErrString(rcAnyError, EPSExceptionToString(E));
+    end;
+    on E: Exception do
+    begin
+      FResultCode := rcAjaxError;
+      Result := MakeJsonErrString(rcAnyError, E.Message);
+    end;
+  end;
 end;
 
 function THtmlShow.ShowUserMonitor: String;
@@ -6304,7 +6360,7 @@ begin
   Result := LoadString(GetHtmlPath + 'editform.html');
   Result := StringReplace(Result, '[lng]', AppSet.Language, []);
   Result := StringReplace(Result, '[css]', CreateCSS, []);
-  Result := StringReplace(Result, '[javascript]', GetJsCode, []);
+  Result := StringReplace(Result, '[javascript]', GetJsCode(True), []);
   {Result := StringReplace(Result, '[fieldchange]', FlChange, []);
   Result := StringReplace(Result, '[queryscroll]', FlChange, []);
   Result := StringReplace(Result, '[getlist]', FlChange, []);

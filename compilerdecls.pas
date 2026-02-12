@@ -393,6 +393,16 @@ begin
   SIRegisterTWinControl(CL);
 end;
 
+procedure SIRegister_Timer(Cl: TPSPascalCompiler);
+begin
+  with Cl.AddClassN(cl.FindClass('TComponent'), 'TTimer') do
+  begin
+    RegisterProperty('Enabled', 'Boolean', iptRW);
+    RegisterProperty('Interval', 'Integer', iptRW);
+    RegisterProperty('OnTimer', 'TNotifyEvent', iptRW);
+  end;
+end;
+
 //!!!
 procedure RegisterDatetimeLibrary_C(S: TPSPascalCompiler);
 begin
@@ -1614,6 +1624,7 @@ begin
   SIRegister_Classes(Cl);
   SIRegister_Graphics(Cl);
   SIRegister_Controls(Cl);
+  SIRegister_Timer(Cl);
   RegisterDatetimeLibrary_C(Cl);
   RegisterDll_Compiletime(Cl);
 
