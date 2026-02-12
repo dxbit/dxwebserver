@@ -2477,6 +2477,7 @@ begin
 
   Exec.RegisterDelphiFunction(@CommandExecute, 'CommandExecute', cdRegister);
   Exec.RegisterDelphiFunction(@FileExecute, 'FileExecute', cdRegister);
+  Exec.RegisterDelphiFunction(@Sleep, 'Delay', cdRegister);
 
   Exec.RegisterFunctionName('RECT', @RegFunctions86_64, Pointer(6), nil);
   Exec.RegisterFunctionName('FREEANDNIL', @RegFunctions86_64, Pointer(7), nil);
