@@ -2210,7 +2210,7 @@ begin
     end;
   end;
 
-  if FRS.GotoUrl = '' then
+  if (FRS.GotoUrl = '') or (FRS.GotoOption = gtoNewTab) then
   begin
 
     JsonFields := TJsonArray.Create;
@@ -2343,8 +2343,9 @@ begin
       JsonRoot.Add('debug', StrToHtml(FSS.DebugMsg, True));
       FSS.DebugMsg := '';
     end;
-  end
-  else
+  end;
+
+  if FRS.GotoUrl <> '' then
   begin
     JsonRoot.Add('gotoUrl', FRS.GotoUrl);
     JsonRoot.Add('gotoOption', Ord(FRS.GotoOption));

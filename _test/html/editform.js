@@ -113,23 +113,10 @@ function showImageMenu(cid) {
 	}
 }
 
-/*function getElementsByAttr(tagName, attrName) {
-  let matchingElements = [];
-  let allElements = document.getElementsByTagName(tagName);
-  for (let i = 0, n = allElements.length; i < n; i++)
-  {
-    if (allElements[i].hasAttribute(attrName))
-    {
-      matchingElements.push(allElements[i]);
-    }
-  }
-  return matchingElements;
-}*/
-
 function processJson(jsonRoot) {
 	if (jsonRoot.gotoUrl) {
 		goUrl(jsonRoot.gotoUrl, jsonRoot.gotoOption);
-		return;
+		if (jsonRoot.gotoOption != gtoNewTab) return;
 	}
 	
 	for (jsonObj of jsonRoot.fields) {
@@ -153,28 +140,7 @@ function processJson(jsonRoot) {
 			
 		}
 	}
-	/*if (jsonRoot.labels.length > 0) {
-		//let labels = getElementsByAttr('span', 'fieldname');
-		let labels = document.querySelectorAll('span[fieldname]');
-		let lbl;
-		for (jsonObj of jsonRoot.labels) {
-			lbl = findElementByAttrValue(labels, 'fieldname', jsonObj.fieldName);
-			if (lbl) {
-				lbl.innerHTML = jsonObj.value;
-			}
-		}
-	}*/
-	/* Используем изменение свойства caption
-	if (jsonRoot.labels.length > 0) {
-		let lbl;
-		for (jsonObj of jsonRoot.labels) {
-			lbl = document.querySelector('span[fieldname="' + jsonObj.fieldName + '"]');
-			if (lbl) {
-				if (lbl.children.length == 0) lbl.innerHTML = jsonObj.value
-				else lbl.children[0].innerHTML = jsonObj.value;
-			}
-		}
-	}*/
+
 	for (jsonObj of jsonRoot.props) {
 		let ctrl = document.getElementById(jsonObj.name);
 		if (!ctrl) continue;
@@ -573,7 +539,6 @@ function processJson(jsonRoot) {
 			addTimer(jsonObj.tId, jsonObj.int);
 		}
 	}
-	
 }
 
 function tableAdd(id) {
@@ -910,10 +875,10 @@ function bnClick(bnName) {
 }
 
 function timerHandler(timerId) {
-	if (msgBox) {
+	/*if (msgBox) {
 		restartTimer(timerId);
 		return;
-	}
+	}*/
 	
 	SendRequest('POST', getCurrentUrl() + '&timer', 'timer=' + timerId + '&fresh=' + getFreshValue(), (Request) => {
 		if (Request.status == rcAjaxOk) {
@@ -999,7 +964,15 @@ function bodyLoad() {
 		}
 	}
 	
+	doNotSentResize = false;
+	
 	let ro = new ResizeObserver(entries => {
+		// При открытии/закрытии меню не изменяем размер
+		if (doNotSentResize) {
+			doNotSentResize = false;
+			return;
+		}
+		
 		if (!resizeTimer) {
 			resizeTimer = setTimeout(() => {
 				let fm = document.querySelector('div.fm');

@@ -1483,6 +1483,7 @@ let tms = null;
 let curtain = null;
 let curtainImg = null;
 let curtainCounter = 0;
+let doNotSentResize = false;
 
 function showList() {
 	let cbx = (event.currentTarget.tagName == 'BUTTON' ? event.currentTarget.previousSibling : event.currentTarget);
@@ -1570,11 +1571,13 @@ function fixedCbxKeyDown() {
 }
 
 function menuClick(el) {
+	doNotSentResize = true;
 	let sb = document.getElementById('sidebar');
 	sb.style.display = 'block';
 }
 
 function closeSidebarClick(el) {
+	doNotSentResize = true;
 	let sb = document.getElementById('sidebar');
 	sb.style.display = 'none';
 }

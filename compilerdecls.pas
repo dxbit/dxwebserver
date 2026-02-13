@@ -251,6 +251,8 @@ begin
   cl.AddTypeS('THandle', 'LongInt');
 
   cl.AddTypeS('TNotifyEvent', 'procedure (Sender: TObject)');
+  cl.AddTypeS('TAnchorKind', '(akTop, akLeft, akRight, akBottom)');
+  cl.AddTypeS('TAnchors', 'set of TAnchorKind');
 end;
 
 //!!!
@@ -368,6 +370,7 @@ begin
     RegisterProperty('TabOrder', 'Integer', iptRW);
     RegisterProperty('TabStop', 'Boolean', iptRW);
 
+    RegisterProperty('Anchors', 'TAnchors', iptRW);
     RegisterProperty('OnChangeBounds', 'TNotifyEvent', iptRW);
     RegisterProperty('OnResize', 'TNotifyEvent', iptRW);
   end;
