@@ -288,6 +288,28 @@ button[disabled] img {
     pointer-events: none;
 }
 
+/* панель */
+.panel {
+	overflow: hidden;
+	background-color: #F5F5DC;
+}
+
+.panel[disabled] {
+    pointer-events: none;
+}
+
+.panelframe {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border: 1px solid silver;
+}
+
+/* панель в закладке */
+.tabsheet div.panel {
+    background-color: #FDFDE9;
+}
+
 /* группа */
 .groupbox {
     overflow: hidden;

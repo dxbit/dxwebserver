@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -76,23 +76,6 @@ type
     property Style: TFontStyles read GetStyle write SetStyle;
   end;
 
-  {TdxFont = class
-  private
-    FColor: TColor;
-    FHeight: Integer;
-    FName: String;
-    FSize: Integer;
-    FStyle: TFontStyles;
-  public
-    constructor Create;
-    procedure Assign(Source: TdxFont);
-    property Name: String read FName write FName;
-    property Style: TFontStyles read FStyle write FStyle;
-    property Color: TColor read FColor write FColor;
-    property Size: Integer read FSize write FSize;
-    property Height: Integer read FHeight write FHeight;
-  end;   }
-
   { TdxBrush }
 
   TdxBrush = class(TBrush)
@@ -113,22 +96,6 @@ type
   public
     procedure Assign(Source: TPersistent); override;
   end;
-
-  {private
-    FColor: TColor;
-    FFontStyles: TFontStyles;
-    //FHeight: Integer;
-    FName: String;
-    FSize: Integer;
-  public
-    constructor Create;
-    procedure AssignFont(Fnt: TdxFont);
-    property Name: String read FName write FName;
-    property Style: TFontStyles read FFontStyles write FFontStyles;
-    property Color: TColor read FColor write FColor;
-    property Size: Integer read FSize write FSize;
-    //property Height: Integer read FHeight write FHeight;
-  end; }
 
   TComponentList = class;
 
@@ -1292,6 +1259,24 @@ type
 
   TdxRecordId = class(TdxField)
 
+  end;
+
+  TdxPanelBevelStyle = (pbsNone, pbsDefault, pbsSolid, pbsDashed, pbsDotted);
+
+  { TdxPanel }
+
+  TdxPanel = class(TdxWinControl)
+  private
+    FBevelColor: TColor;
+    FBevelRadius: Integer;
+    FBevelStyle: TdxPanelBevelStyle;
+    FBevelWidth: Integer;
+  public
+    constructor Create(AOwner: TdxComponent); override;
+    property BevelColor: TColor read FBevelColor write FBevelColor;
+    property BevelRadius: Integer read FBevelRadius write FBevelRadius;
+    property BevelStyle: TdxPanelBevelStyle read FBevelStyle write FBevelStyle;
+    property BevelWidth: Integer read FBevelWidth write FBevelWidth;
   end;
 
   //TdxBarSeries = class(TdxComponent)
@@ -2720,6 +2705,17 @@ end;
 procedure TdxButton.SetClickHandler(ClickHandler: TNotifyEvent);
 begin
   FOnClick := ClickHandler;
+end;
+
+{ TdxPanel }
+
+constructor TdxPanel.Create(AOwner: TdxComponent);
+begin
+  inherited Create(AOwner);
+  FBevelColor := clSilver;
+  FBevelStyle := pbsDefault;
+  FBevelWidth := 1;
+  Width := 200; Height := 200;
 end;
 
 { TdxTimer }

@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -103,6 +103,7 @@ type
     function ShowPages(Fm: TdxForm; RecCount, Page, Cnt: Integer): String;
     //function CheckReadOnly(C: TdxComponent; AReadOnly: Boolean = True; AOnChange: Boolean = True): String;
     function ControlReadOnly(C: TdxControl): Boolean;
+    function ShowPanel(C: TdxPanel): String;
     function ShowRecordId(C: TdxRecordId): String;
     function ShowChart(C: TdxChart): String;
     function ShowPivotGrid(C: TdxPivotGrid): String;
@@ -4205,7 +4206,18 @@ begin
   else if C is TdxGroupBox then Result := 'groupbox'
   else if C is TdxPageControl then Result := 'pages'
   else if C is TdxTabSheet then Result := 'tabsheet'
+  else if C is TdxPanel then Result := 'panel'
   else Result := '';
+end;
+
+function BevelStyleToCSS(pbs: TdxPanelBevelStyle): String;
+begin
+  case pbs of
+    pbsSolid: Result := 'solid';
+    pbsDashed: Result := 'dashed';
+    pbsDotted: Result := 'dotted';
+    else Result := '';
+  end;
 end;
 
 function THtmlShow.GetStyleClass(C: TdxControl): String;
@@ -4215,11 +4227,11 @@ var
 begin
   S := '';
   if (C is TdxForm) or (C is TdxGrid) or (C is TdxQueryGrid) then
-  begin
-    S := GetFontCSS(C.Font, nil, True);
-  end
+    S := S + GetFontCSS(C.Font, nil, True)
   else if (C is TdxPageControl) or (C is TdxTabSheet) or (C is TdxGroupBox) then
     S := S + GetFontCSS(C.Font, C.Parent.Font)
+  else if C is TdxPanel then
+    S := S + GetFontCSS(C.Font, C.Parent.Font) + GetColorCSS(C)
   else if C is TdxImage then
     with TdxImage(C) do
     begin
@@ -4235,10 +4247,8 @@ begin
       else
         S := S + 'object-fit:none;'
     end
-  //else if C is TdxDBImage then
-  //  Result := 'dbimg'
   else
-    S := GetFontCSS(C.Font, C.Parent.Font) + GetColorCSS(C);
+    S := S + GetFontCSS(C.Font, C.Parent.Font) + GetColorCSS(C);
   if C is TdxLabel then
     with TdxLabel(C) do
     begin
@@ -4639,6 +4649,29 @@ begin
     ((C is TdxCounter) and TdxCounter(C).ReadOnly);
 end;
 
+function THtmlShow.ShowPanel(C: TdxPanel): String;
+var
+  PanFr: String;
+begin
+  if C.BevelStyle <> pbsNone then
+  begin
+    PanFr := '<div class=panelframe';
+    if C.BevelStyle <> pbsDefault then
+      PanFr := PanFr + ' style="border:' + IntToStr(C.BevelWidth) + 'px ' +
+        BevelStyleToCSS(C.BevelStyle) + ' ' + ColorToHtml(C.BevelColor) + ';' +
+        IIF(C.BevelRadius > 0, 'border-radius:' + IntToStr(C.BevelRadius) + 'px;',
+        '') + '"';
+    PanFr := PanFr + '></div>';
+  end
+  else
+    PanFr := '';
+
+  Result := '<div id=' + C.Name + ' style="position:absolute;left: ' + IntToStr(C.Left) + 'px;top:' +
+    IntToStr(C.Top) + 'px;width:' + IntToStr(C.Width) + 'px;' +
+    'height:' + IntToStr(C.Height) + 'px;' + GetVisible(C) +
+    '" class="' + GetStyleClass(C) + '">' + PanFr + ShowContainer(C) + '</div>';
+end;
+
 function THtmlShow.ShowRecordId(C: TdxRecordId): String;
 begin
   Result := '<input class="' + GetStyleClass(C) + '" name=f' + IntToStr(C.Id) +
@@ -4984,26 +5017,6 @@ begin
   end;
   Result := Result + '</div></div>';
 end;
-
-(*function THtmlShow.ShowGroup(C: TdxGroupBox): String;
-var
-  H: Integer;
-begin
-  //H := GetFontSize(C);
-  H := C.Font.Size;
-  Result := '<div id=' + C.Name + ' style="position:absolute;left: ' + IntToStr(C.Left) + 'px;top:' +
-    IntToStr(C.Top + (H div 2) + 2) + 'px;width:' + IntToStr(C.Width) + 'px;' +
-    'height:' + IntToStr(C.Height - (H div 2) - 2) + 'px;' + GetVisible(C) +
-    '" class="groupbox ' + GetStyleClass(C) + '">';
-  Result := Result + '<div style="position:absolute;left:1px;top:' + IntToStr(H div 2 + 4) + 'px;' +
-    'width:' + IntToStr(C.Width - 4) + 'px;' +
-    'height:' + IntToStr(C.Height - H - 8) + 'px;">';
-  Result := Result + ShowContainer(C);
-  Result := Result + '</div></div>';
-  Result := Result + '<span style="position:absolute;left:' + IntToStr(C.Left + 8) +
-    'px;top:' + IntToStr(C.Top) + 'px;' + GetVisible(C) + '" class="groupcap ' +
-    GetStyleClass(C) + '">' + StrToHtml(C.Caption) + '</span>';
-end;    *)
 
 function THtmlShow.ShowGroup(C: TdxGroupBox): String;
 begin
@@ -5863,64 +5876,10 @@ begin
   end;
 end;
 
-{function IsDefaultFont(F: TdxFont): Boolean;
-begin
-  Result := (F.Name = '') and (F.Color = clDefault) and (F.Size = 0) and (F.Style = []);
-end;
-
-function THtmlShow.GetFontCSS(F: TdxFont): String;
-begin
-  if IsDefaultFont(F) then
-  begin
-    Result := 'font:inherit;color:inherit;text-decoration:inherit;';
-    Exit;
-  end;
-  Result := 'font-family:';
-  if F.Name <> '' then
-    Result := Result + '''' + F.Name + '''; '
-  else
-    Result := Result + 'inherit;';
-  Result := Result + 'font-size:';
-  if F.Size > 0 then
-    Result := Result + IntToStr(F.Size) + 'px;'
-  else
-    Result := Result + 'inherit;';
-  Result := Result + 'color:';
-  if F.Color <> clDefault then
-    Result := Result + ColorToHtmlColor(F.Color) + ';'
-  else
-    Result := Result + 'inherit;';
-  if F.Style = [] then
-    Result := Result + 'font-style:normal;font-weight:normal;text-decoration:none;'
-  else
-  begin
-    if fsItalic in F.Style then
-      Result := Result + 'font-style:italic;';
-    if fsBold in F.Style then
-      Result := Result + 'font-weight:bold;';
-    if (fsUnderline in F.Style) or (fsStrikeOut in F.Style) then
-    begin
-      Result := Result + 'text-decoration:';
-      if fsUnderline in F.Style then
-        Result := Result + 'underline';
-      if fsStrikeOut in F.Style then
-        Result := Result + 'line-through';
-      Result := Result + ';';
-    end;
-  end;
-end;     }
-
 function THtmlShow.GetFontCSS(F, ParentF: TdxFont; DefaultColor: Boolean
   ): String;
 begin
   Result := '';
-  {if IsParentFont then
-  begin
-    Result := 'font:inherit;color:inherit;text-decoration:' +
-      IIF(fsUnderline in F.Style, 'underline',
-      IIF(fsStrikeOut in F.Style, 'line-through', 'none')) + ';';
-    Exit;
-  end;  }
   if F.Name <> '' then
     Result := Result + 'font-family:''' + F.Name + ''';';
   if F.Size > 0 then
@@ -5930,13 +5889,6 @@ begin
     Result := Result + 'color:inherit;'
   else
     Result := Result + 'color:' + ColorToHtml(F.Color) + ';';
-  {if not DefaultColor and (F.Color <> clDefault) then
-  begin
-    if (ParentF = nil) or (ParentF.Color <> F.Color) then
-      Result := Result + 'color:' + ColorToHtml(F.Color) + ';'
-    else
-      Result := Result + 'color:inherit;';
-  end;  }
   Result := Result +
     'font-style:' + IIF(fsItalic in F.Style, 'italic', 'normal') +
     ';font-weight:' + IIF(fsBold in F.Style, 'bold', 'normal') +
@@ -5948,16 +5900,11 @@ function THtmlShow.GetBoundsCSS(C: TdxControl): String;
 begin
   Result := 'position:absolute;left:' + IntToStr(C.Left) + 'px;top:' +
     IntToStr(C.Top) + 'px;';
-  // В хроме текст почему-то переносится
-  //if C is TdxLabel then
-    //Result := Result + 'width: ' + IntToStr(C.Width + 10) + 'px; '
-  //else
   if not (C is TdxLabel) or not TdxLabel(C).AutoSize then
   begin
     Result := Result + 'width:' + IntToStr(C.Width) + 'px;';
     Result := Result + 'height:' + IntToStr(C.Height) + 'px;';
   end;
-  //if C is TdxShape then Result := Result + 'z-index:-1;';
 end;
 
 function THtmlShow.GetBoundsGridButtonsCSS(C: TdxCustomGrid): String;
@@ -6007,8 +5954,6 @@ begin
   Result := '<span id=' + C.Name + ' class="' + GetStyleClass(C) + '" style="' +
     GetBoundsCSS(C) + GetVisible(C) +  IIF(C.Hint <> '', '" title="' +
     StrToHtml(C.Hint), '') + '">';
-  //if Trim(C.Expression) <> '' then Result := Result + '" fieldname="' + C.FieldName;
-  //Result := Result + '">';
   if C.Layout = tlTop then
     Result := Result + StrToHtml(C.Caption, True) + '</span>'
   else
@@ -6103,6 +6048,7 @@ begin
   else if C is TdxPivotGrid then Result := ShowPivotGrid(TdxPivotGrid(C))
   else if C is TdxChart then Result := ShowChart(TdxChart(C))
   else if C is TdxRecordId then Result := ShowRecordId(TdxRecordId(C))
+  else if C is TdxPanel then Result := ShowPanel(TdxPanel(C))
 end;
 
 function THtmlShow.ShowContainer(Cont: TdxWinControl): String;

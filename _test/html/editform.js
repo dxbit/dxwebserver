@@ -159,6 +159,7 @@ function processJson(jsonRoot) {
 				case 'tdxpivotgrid':
 				case 'tdxpagecontrol':
 				case 'tdxchart':
+				case 'tdxpanel':
 					ctrl.style.display = (jsonObj.value == '1' ? '' : 'none');
 					break;
 				case 'tdxdateedit':
@@ -206,6 +207,7 @@ function processJson(jsonRoot) {
 				case 'tdxpagecontrol':
 				case 'tdxgroupbox':
 				case 'tdxcheckbox':
+				case 'tdxpanel':
 					if (disabled)
 						ctrl.setAttribute('disabled', '')
 					else
@@ -265,6 +267,7 @@ function processJson(jsonRoot) {
 				case 'tdxcombobox':
 				case 'tdxlookupcombobox':
 				case 'tdxfile':
+				case 'tdxpanel':
 					ctrl.style.backgroundColor = jsonObj.value;
 					break;
 				case 'tdxcheckbox':
@@ -291,6 +294,7 @@ function processJson(jsonRoot) {
 				case 'tdxquerygrid':
 				case 'tdxgroupbox':
 				case 'tdxpagecontrol':
+				case 'tdxpanel':
 					let parts = jsonObj.value.split(';');
 					ctrl.style.fontFamily = parts[0];
 					ctrl.style.fontSize = parts[1] + 'px';
@@ -343,6 +347,7 @@ function processJson(jsonRoot) {
 				case 'tdximage':
 				case 'tdxdbimage':
 				case 'tdxgroupbox':
+				case 'tdxpanel':
 				case 'tdxpagecontrol':
 					ctrl.style.left = x + 'px';
 					ctrl.style.top = y + 'px';

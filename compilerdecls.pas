@@ -1369,6 +1369,14 @@ begin
     RegisterProperty('Id', 'Integer', iptR);
     RegisterProperty('FieldName', 'String', iptR);
   end;
+  Cl.AddTypeS('TdxPanelBevelStyle', '(pbsNone, pbsDefault, pbsSolid, pbsDashed, pbsDotted)');
+  with Cl.AddClassN(Cl.FindClass('TControl'), 'TdxPanel') do
+  begin
+    RegisterProperty('BevelColor', 'TColor', iptRW);
+    RegisterProperty('BevelRadius', 'Integer', iptRW);
+    RegisterProperty('BevelStyle', 'TdxPanelBevelStyle', iptRW);
+    RegisterProperty('BevelWidth', 'Integer', iptRW);
+  end;
 end;
 
 procedure SIRegister_Session(Cl: TPSPascalCompiler);

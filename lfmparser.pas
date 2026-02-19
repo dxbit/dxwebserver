@@ -1,6 +1,6 @@
 {-------------------------------------------------------------------------------
 
-    Copyright 2016-2025 Pavel Duborkin ( mydataexpress@mail.ru )
+    Copyright 2016-2026 Pavel Duborkin ( mydataexpress@mail.ru )
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -449,6 +449,16 @@ begin
     if StrType[i] = S then Exit(i);
 end;
 
+function StrToBevelStyle(const S: String): TdxPanelBevelStyle;
+begin
+  if S = 'pbsNone' then Result := pbsNone
+  else if S = 'pbsDefault' then Result := pbsDefault
+  else if S = 'pbsSolid' then Result := pbsSolid
+  else if S = 'pbsDashed' then Result := pbsDashed
+  else if S = 'pbsDotted' then Result := pbsDotted
+  else raise Exception('StrToBevelStyle. Unknown property value: ' + S);
+end;
+
 ////////////////////////////////////////////////////////////////////////////////
 
 { ELfmParserError }
@@ -685,17 +695,17 @@ end;    }
 
 function TLfmParser.GetObjectClass(const ObjType: String): TdxControlClass;
 const
-  ObjCls: array [0..24] of TdxControlClass = (TdxLabel, TdxEdit, TdxCalcEdit,
+  ObjCls: array [0..25] of TdxControlClass = (TdxLabel, TdxEdit, TdxCalcEdit,
     TdxDateEdit, TdxMemo, TdxCheckBox, TdxComboBox, TdxLookupComboBox,
     TdxImage, TdxDBImage, TdxShape, TdxFile, TdxGrid, TdxGroupBox, TdxPageControl,
     TdxTabSheet, TdxForm, TdxQueryGrid, TdxObjectField, TdxTimeEdit, TdxCounter,
-    TdxButton, TdxChart, TdxPivotGrid, TdxRecordId);
-  ObjTypes: array [0..24] of String = ('TdxLabel', 'TdxEdit', 'TdxCalcEdit',
+    TdxButton, TdxChart, TdxPivotGrid, TdxRecordId, TdxPanel);
+  ObjTypes: array [0..25] of String = ('TdxLabel', 'TdxEdit', 'TdxCalcEdit',
     'TdxDateEdit', 'TdxMemo', 'TdxCheckBox', 'TdxComboBox', 'TdxLookupComboBox',
     'TdxImage', 'TdxDBImage', 'TdxShape', 'TdxFile', 'TdxGrid', 'TdxGroupBox',
     'TdxPageControl', 'TdxTabSheet', 'TdxForm', 'TdxQueryGrid', 'TdxObjectField',
     'TdxTimeEdit', 'TdxCounter', 'TdxButton', 'TdxChart', 'TdxPivotGrid',
-    'TdxRecordId');
+    'TdxRecordId', 'TdxPanel');
 var
   i: Integer;
 begin
@@ -783,6 +793,8 @@ begin
     Result := Pos(S, ' ImageName Glyph.Data ActionOnClick ') > 0;
   if (not Result) and (FObj is TdxPivotGrid) then
     Result := Pos(S, ' RowFields ColFields DataFields GrandTotalFixedColor GrandTotalColor GrandTotalFixedFont.Name GrandTotalFixedFont.Height GrandTotalFixedFont.Color GrandTotalFixedFont.Style GrandTotalFont.Name GrandTotalFont.Height GrandTotalFont.Color GrandTotalFont.Style GrandTotalWidth CornerColor WordWrap GrandTotalCaption ShowGrandTotalX ShowGrandTotalY Id FixedFont.Name FixedFont.Height FixedFont.Color FixedFont.Style SelectedFont.Name SelectedFont.Height SelectedFont.Color SelectedFont.Style DataDelimiter Indent Colors.FixedCellBkGnd Colors.CellBkGnd Colors.FixedCellLines Colors.CellLines ColCount RowCount ') > 0;
+  if not Result and (FObj is TdxPanel) then
+    Result := Pos(S, ' BevelColor BevelRadius BevelStyle BevelWidth ') > 0;
 end;
 
 procedure TLfmParser.SkipStrings;
@@ -1545,6 +1557,18 @@ begin
         ColCount := StrToInt(PropValue)
       else if PropName = 'RowCount' then
         RowCount := StrToInt(PropValue)
+    end
+  else if FObj is TdxPanel then
+    with TdxPanel(FObj) do
+    begin
+      if PropName = 'BevelColor' then
+        BevelColor := StringToColor(PropValue)
+      else if PropName = 'BevelRadius' then
+        BevelRadius := StrToInt(PropValue)
+      else if PropName = 'BevelStyle' then
+        BevelStyle := StrToBevelStyle(PropValue)
+      else if PropName = 'BevelWidth' then
+        BevelWidth := StrToInt(PropValue);
     end
 end;
 
