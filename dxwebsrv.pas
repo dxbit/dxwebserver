@@ -27,11 +27,11 @@ uses
   Classes, SysUtils, XmlReport, ToWordsFuncs, StrConsts, SqlGen, SAXBaseReader,
   ReportManager, padeg, MainServer, LfmParser, HtmlShow, FormManager,
   FilterParsers, ExprFuncs, Expressions, DXUsers, DxTypes, DXReports, DXCtrls,
-  DBEngine, AppUtils, AppSettings, Translations, TypesWrapper,
-  MainDaemon, PivotGrid, DxActions, DXMains, SQLDB, IBConnection, SQLDBLib,
-  ScriptManager, DaemonApp, CompilerDecls, MyTypes, RunDecls,
-  HttpClient, ScriptFuncs, CSVFiles, DxSQLQuery, myfpsqlparser, myfpsqltree,
-  myfpsqlscanner, webtemplates, PascalScriptFCL, LazLogger, MyLogger, QSort;
+  DBEngine, AppUtils, AppSettings, Translations, TypesWrapper, MainDaemon,
+  PivotGrid, DxActions, DXMains, SQLDB, IBConnection, SQLDBLib, ScriptManager,
+  DaemonApp, CompilerDecls, MyTypes, RunDecls, HttpClient, ScriptFuncs,
+  CSVFiles, DxSQLQuery, myfpsqlparser, myfpsqltree, myfpsqlscanner,
+  webtemplates, PascalScriptFCL, LazLogger, MyLogger, QSort, FormLayouts;
 
 {$R *.res}
 

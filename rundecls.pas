@@ -70,6 +70,8 @@ begin
   end;
 end;
 
+procedure TComponentTag_R(Self: TdxComponent; var T: LongInt); begin T := Self.Tag; end;
+procedure TComponentTag_W(Self: TdxComponent; T: LongInt); begin Self.Tag := T; end;
 procedure TComponentName_R(Self: TdxComponent; var T: String); begin T := Self.Name; end;
 procedure TComponentName_W(Self: TdxComponent; T: String); begin Self.Name := T; end;
 procedure TComponentOwnerR(Self: TdxComponent; var T: TdxComponent); begin T := Self.Owner; end;
@@ -86,6 +88,7 @@ begin
     RegisterPropertyHelper(@TComponentOwnerR, nil, 'Owner');
     RegisterPropertyHelper(@TCOMPONENTCOMPONENTS_R, nil, 'Components');
     RegisterPropertyHelper(@TCOMPONENTCOMPONENTCOUNT_R, nil, 'ComponentCount');
+    RegisterPropertyHelper(@TComponentTag_R, @TComponentTag_W, 'Tag');
   end;
 end;
 
@@ -2018,6 +2021,7 @@ procedure TdxFormActionResult_R(Self: TdxForm; var T: Variant); begin T := Self.
 procedure TdxFormActionResult_W(Self: TdxForm; T: Variant); begin Self.ActionResult := T; end;
 procedure TdxFormMsgs_R(Self: TdxForm; var T: TStringList); begin T := Self.Errs; end;
 procedure TdxFormMsgs_W(Self: TdxForm; T: TStringList); begin Self.Errs.Assign(T); end;
+procedure TdxFormLayoutName_R(Self: TdxForm; var T: String); begin T := Self.LayoutName; end;
 
 procedure TdxFormOnAfterCancel_R(Self: TdxForm; var T: TNotifyEvent); begin T := Self.OnAfterCancel; end;
 procedure TdxFormOnAfterCancel_W(Self: TdxForm; T: TNotifyEvent); begin Self.OnAfterCancel := T; end;
@@ -2069,6 +2073,8 @@ procedure TdxFormOnDestroy_W(Self: TdxForm; T: TNotifyEvent); begin Self.OnDestr
 procedure TdxFormOnMsgButtonClick_W(Self: TdxForm; T: TMsgButtonClickEvent); begin Self.OnMsgButtonClick := T; end;  }
 procedure TdxFormOnShowForm_R(Self: TdxForm; var T: TNotifyEvent); begin T := Self.OnShowForm; end;
 procedure TdxFormOnShowForm_W(Self: TdxForm; T: TNotifyEvent); begin Self.OnShowForm := T; end;
+procedure TdxFormOnLayoutChange_R(Self: TdxForm; var T: TNotifyEvent); begin T := Self.OnLayoutChange; end;
+procedure TdxFormOnLayoutChange_W(Self: TdxForm; T: TNotifyEvent); begin Self.OnLayoutChange := T; end;
 
 procedure RIRegister_dxForm(Cl: TPSRuntimeClassImporter);
 begin
@@ -2170,6 +2176,7 @@ begin
     RegisterPropertyHelper(@TdxFormQueryCount_R, nil, 'QueryCount');
     RegisterPropertyHelper(@TdxFormActionResult_R, @TdxFormActionResult_W, 'ActionResult');
     RegisterPropertyHelper(@TdxFormMsgs_R, @TdxFormMsgs_W, 'Msgs');
+    RegisterPropertyHelper(@TdxFormLayoutName_R, nil, 'LayoutName');
 
     RegisterEventPropertyHelper(@TdxFormOnAfterCancel_R, @TdxFormOnAfterCancel_W, 'OnAfterCancel');
     RegisterEventPropertyHelper(@TdxFormOnAfterClose_R, @TdxFormOnAfterClose_W, 'OnAfterClose');
@@ -2196,6 +2203,7 @@ begin
     RegisterEventPropertyHelper(@TdxFormOnDestroy_R, @TdxFormOnDestroy_W, 'OnDestroy');
     //RegisterEventPropertyHelper(@TdxFormOnMsgButtonClick_R, @TdxFormOnMsgButtonClick_W, 'OnMsgButtonClick');
     RegisterEventPropertyHelper(@TdxFormOnShowForm_R, @TdxFormOnShowForm_W, 'OnShowForm');
+    RegisterEventPropertyHelper(@TdxFormOnLayoutChange_R, @TdxFormOnLayoutChange_W, 'OnLayoutChange');
   end;
 end;
 

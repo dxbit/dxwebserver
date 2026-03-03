@@ -782,7 +782,7 @@ begin
     Result := Pos(S, ' Id PId FormCaption CalcFields.Strings Templates.Strings ' +
       'Filters.Strings Coloring.Strings ParentField LevelCount ViewType AutoOpen ' +
       'Index ConfirmSaveRecord ConfirmCancelEditing ActionOnCreate RecordsCaption ' +
-      'RecordCaption LockMode ') > 0;
+      'RecordCaption LockMode LayoutName ') > 0;
   if (not Result) and (FObj is TdxObjectField) then
     Result := Pos(S, ' ObjId FieldId ') > 0;
   if (not Result) and (FObj is TdxTimeEdit) then
@@ -1050,6 +1050,7 @@ begin
     end;
     Exit;
   end;
+
   if FObj is TdxControl then
   begin
     if PropName = 'Left' then
@@ -1433,6 +1434,8 @@ begin
         RecordCaption := PropValue
       else if PropName = 'LockMode' then
         ProcessLockMode(TdxForm(FObj), PropValue)
+      else if PropName = 'LayoutName' then
+        LayoutName := PropValue
     end
   else if FObj is TdxObjectField then
     with TdxObjectField(FObj) do

@@ -106,6 +106,7 @@ type
     FName: String;
     FComponents: TComponentList;
     FOwner: TdxComponent;
+    FTag: LongInt;
     function GetComponentCount: Integer;
     function GetComponents(Index: Integer): TdxComponent;
   public
@@ -118,6 +119,7 @@ type
     property Components[Index: Integer]: TdxComponent read GetComponents;
     property ComponentCount: Integer read GetComponentCount;
     property Owner: TdxComponent read FOwner;
+    property Tag: LongInt read FTag write FTag;
   end;
 
   { TComponentList }
@@ -158,7 +160,6 @@ type
     FVisible: Boolean;
     FWidth: Integer;
     procedure DoPropertyChange(const PropName: String);
-    procedure DoResize;
     procedure DoChangeBounds;
     procedure ProcessResize(dw, dh: Integer);
     procedure FontChange(Sender: TObject);
@@ -175,6 +176,8 @@ type
     procedure SetVisible(AValue: Boolean);
     procedure SetWidth(AValue: Integer);
     procedure SetFont(AValue: TdxFont);
+  protected
+    procedure DoResize; virtual;
   public
     constructor Create(AOwner: TdxComponent); override;
     destructor Destroy; override;
@@ -978,6 +981,8 @@ type
     FFilters: TStrings;
     FFormCaption: String;
     FGrid: TdxGrid;
+    FLayoutName: String;
+    FOnLayoutChange: TNotifyEvent;
     FTree: TdxComponent;
     FId: Integer;
     FIndex: Integer;
@@ -1018,6 +1023,7 @@ type
     FUseSelectCondition: Boolean;
     FViewType: TViewType;
     FTimers: TdxTimerList;
+    FDisableResize: Boolean;
     //FScrollEventsCounter: Integer;
     //FOldBeforeScroll, FOldAfterScroll: TDataSetNotifyEvent;
     function GetAsDT(AIndex: String): TDateTime;
@@ -1043,6 +1049,8 @@ type
     procedure SetCustomFilterForm(AValue: TdxForm);
     procedure SetFields(AIndex: String; AValue: Variant);
     //function GetGrid: TdxGrid;
+  protected
+    procedure DoResize; override;
   public
     constructor Create(AOwner: TdxComponent); override;
     destructor Destroy; override;
@@ -1164,6 +1172,7 @@ type
     property Queries[AIndex: String]: TdxQueryGrid read GetQueries;
     property QueryByIndex[AIndex: Integer]: TdxQueryGrid read GetQueryByIndex;
     property QueryCount: Integer read GetQueryCount;
+    property LayoutName: String read FLayoutName write FLayoutName;
 
     property OnAfterCancel: TNotifyEvent read FOnAfterCancel write FOnAfterCancel;
     property OnAfterClose: TNotifyEvent read FOnAfterClose write FOnAfterClose;
@@ -1192,6 +1201,8 @@ type
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
     property OnMsgButtonClick: TMsgButtonClickEvent read FOnMsgButtonClick write FOnMsgButtonClick;
     property OnShowForm: TNotifyEvent read FOnShowForm write FOnShowForm;
+
+    property OnLayoutChange: TNotifyEvent read FOnLayoutChange write FOnLayoutChange;
   end;
 
   { TdxTimeEdit }
@@ -1318,7 +1329,7 @@ implementation
 uses
   FPReadJPEG, BGRAReadJPEG, LazFileUtils, apputils, BGRAThumbnail, Variants,
   LazUtf8, FileUtil, dxtypes, pivotgrid, scriptfuncs, expressions,
-  xmlreport, dxreports, dxactions, Math;
+  xmlreport, dxreports, dxactions, Math, FormLayouts;
 
 function CopyToStorageFolder(const Src, Dir, Dest: String): String;
 begin
@@ -2270,26 +2281,39 @@ begin
   if not (Self is TdxWinControl) then Exit;
 
   WC := TdxWinControl(Self);
-  for i := 0 to WC.ControlCount - 1 do
+
+  if not (WC is TdxPageControl) then
+    for i := 0 to WC.ControlCount - 1 do
+    begin
+      C := WC.Controls[i];
+      if C.Anchors = [akLeft, akTop] then Continue;
+      R := C.BoundsRect;
+      if akRight in C.Anchors then
+      begin
+        if akLeft in C.Anchors then
+          R.Right := R.Right + dw
+        else
+          R.Offset(dw, 0);
+      end;
+      if akBottom in C.Anchors then
+      begin
+        if akTop in C.Anchors then
+          R.Bottom := R.Bottom + dh
+        else
+          R.Offset(0, dh);
+      end;
+      C.BoundsRect := R;
+    end
+  else
   begin
-    C := WC.Controls[i];
-    if C.Anchors = [akLeft, akTop] then Continue;
-    R := C.BoundsRect;
-    if akRight in C.Anchors then
+    for i := 0 to WC.ControlCount - 1 do
     begin
-      if akLeft in C.Anchors then
-        R.Right := R.Right + dw
-      else
-        R.Offset(dw, 0);
-    end;
-    if akBottom in C.Anchors then
-    begin
-      if akTop in C.Anchors then
-        R.Bottom := R.Bottom + dh
-      else
-        R.Offset(0, dh);
-    end;
-    C.BoundsRect := R;
+      C := WC.Controls[i];
+      R := C.BoundsRect;
+      R.Right := R.Right + dw;
+      R.Bottom := R.Bottom + dh;
+      C.BoundsRect := R;
+    end
   end;
 end;
 
@@ -2401,8 +2425,9 @@ var
   dw: Integer;
 begin
   if FWidth=AValue then Exit;
-  dw := FWidth - AValue;
+  dw := AValue - FWidth;
   FWidth:=AValue;
+
   ProcessResize(dw, 0);
   DoChangeBounds;
   DoResize;
@@ -2465,6 +2490,7 @@ begin
   dh := H - FHeight;
   FLeft := X; FTop := Y;
   FWidth := W; FHeight := H;
+
   ProcessResize(dw, dh);
   DoChangeBounds;
   if (dw <> 0) or (dh <> 0) then DoResize;
@@ -4160,6 +4186,42 @@ begin
   if C = nil then raise Exception.CreateFmt(rsFieldNotFound, [AIndex]);
   RequeryIfNeed;
   TSsRecordSet(FRS).SetDSField(C, AValue);
+end;
+
+procedure TdxForm.DoResize;
+var
+  pFm: PFormLayoutForm;
+  pLay: PFormLayout;
+  W, H: Integer;
+begin
+  if FDisableResize then Exit;
+
+  if FRS <> nil then
+  begin
+
+    pFm := TSsRecordSet(FRS).Session.Layouts.FindForm(Id);
+    if pFm <> nil then
+    begin
+      pLay := pFm^.Layouts.FindLayoutWidth(Width);
+      if (pLay <> nil) and (pLay^.Name <> FLayoutName) then
+      begin
+        FLayoutName := pLay^.Name;
+        W := Width;
+        H := Height;
+        FDisableResize := True;
+        pFm^.Layouts.ApplyLayout(FLayoutName, Self);
+        if pLay^.FixedHeight then
+          SetBounds(Left, Top, W, Height)
+        else
+          SetBounds(Left, Top, W, H);
+        FDisableResize := False;
+        if FOnLayoutChange <> nil then FOnLayoutChange(Self);
+      end;
+    end;
+
+  end;
+
+  inherited DoResize;
 end;
 
 constructor TdxForm.Create(AOwner: TdxComponent);

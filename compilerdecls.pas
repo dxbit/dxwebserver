@@ -60,6 +60,7 @@ begin
     RegisterProperty('Components', 'TComponent Integer', iptr);
     RegisterProperty('ComponentCount', 'Integer', iptr);
     RegisterProperty('Name', 'string', iptrw);
+    RegisterProperty('Tag', 'LongInt', iptrw);
   end;
 end;
 
@@ -1076,6 +1077,7 @@ begin
     RegisterProperty('LockMode', 'TLockMode', iptR);
     RegisterProperty('ActionResult', 'Variant', iptRW);
     RegisterProperty('Msgs', 'TStringList', iptRW);
+    RegisterProperty('LayoutName', 'String', iptR);
 
     RegisterProperty('OnAfterCancel', 'TNotifyEvent', iptRW);
     RegisterProperty('OnAfterClose', 'TNotifyEvent', iptRW);
@@ -1102,6 +1104,7 @@ begin
     RegisterProperty('OnDestroy', 'TNotifyEvent', iptRW);
     //RegisterProperty('OnMsgButtonClick', 'TMsgButtonClickEvent', iptRW);
     RegisterProperty('OnShowForm', 'TNotifyEvent', iptRW);
+    RegisterProperty('OnLayoutChange', 'TNotifyEvent', iptRW);
   end;
 end;
 

@@ -425,6 +425,11 @@ img.err {
     background-color: #FDFDE9;
 }
 
+/* Заглушка - нет доступа к компоненту */
+.dummy {
+	border:1px solid silver;
+}
+
 /* Меню кнопки "Дублировать" */
 .dup-menu {
     background-color: #e5e5b3;

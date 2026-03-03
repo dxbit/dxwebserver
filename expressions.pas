@@ -240,7 +240,7 @@ const
     ('+', '-', '', '', '', ''), ('*', '/', '', '', '', ''),
     ('', '', '', '', '', ''));
 
-  Funcs: array [0..143, 0..2] of String =
+  Funcs: array [0..144, 0..2] of String =
     (('COUNT', 's', 'n'),
     ('SUM', 'ss', 'n'),
     ('LENGTH', 's', 'n'),
@@ -390,7 +390,9 @@ const
     ('ISSERVICE', '', 'b'),
 
     ('ENCODEDATE', 'nnn', 'd'),
-    ('ENCODETIME', 'nnn', 't')
+    ('ENCODETIME', 'nnn', 't'),
+
+    ('LAYOUT', '', 's')
 
     );
 
@@ -544,6 +546,8 @@ const
 
     FUNC_ENCODEDATE = 142;
     FUNC_ENCODETIME = 143;
+
+    FUNC_LAYOUT = 144;
 
 function EvalField(ARecordSet: TSsRecordSet; const aExpr: String;
   aSkipLabels: Boolean): Variant;
@@ -962,6 +966,8 @@ begin
 
     FUNC_ENCODEDATE: V := EncodeDate(Vals[0], Vals[1], Vals[2]);
     FUNC_ENCODETIME: V := EncodeTime(Vals[0], Vals[1], Vals[2], 0);
+
+    FUNC_LAYOUT: V := GetFormLayout(FRS);
   end;
   Result := V;
 end;

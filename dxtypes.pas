@@ -26,7 +26,7 @@ uses
   Classes, SysUtils, Db, SqlDb, formmanager, reportmanager, dxctrls, dxusers,
   DateUtils, Math, dxreports, MemDs, Variants, strconsts, dbengine, dxmains,
   scriptmanager, appsettings, mytypes, uPSRuntime, dxsqlquery, fpjson,
-  fphttpserver, LazFileUtils;
+  fphttpserver, LazFileUtils, formlayouts;
 
 type
 
@@ -319,6 +319,7 @@ type
     function GetDXMain: TDXMain;
     function GetFormMan: TFormManager;
     function GetImageMan: TImageManager;
+    function GetLayouts: TFormLayoutFormList;
     function GetReportMan: TReportManager;
     function GetUserMan: TdxUserManager;
     function GetScriptMan: TScriptManager;
@@ -377,6 +378,7 @@ type
     property DebugText: String read FDebugText write FDebugText;
     property DebugShow: Boolean read FDebugShow write FDebugShow;
     property Busy: Boolean read FBusy;
+    property Layouts: TFormLayoutFormList read GetLayouts;
   public
     function CreateForm(const FormName: String): TdxForm;
     function SQLSelect(const SQL: String): TdxSQLQuery;
@@ -456,6 +458,8 @@ type
     FUserMan: TdxUserManager;
     FUsersLoaded: Boolean;
     FFormDataSet: TdxMemDataSet;
+    FLayouts: TFormLayoutFormList;
+    function IsVersion38(DBase: TDBEngine): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -484,6 +488,7 @@ type
     property LoadComplete: Boolean read FLoadComplete write FLoadComplete;
     property UsersLoaded: Boolean read FUsersLoaded write FUsersLoaded;
     property KeepMetaData: Boolean read FKeepMetaData write FKeepMetaData;
+    property Layouts: TFormLayoutFormList read FLayouts;
   end;
 
   { TMetaManager }
@@ -580,6 +585,16 @@ end;
 
 { TMetaData }
 
+function TMetaData.IsVersion38(DBase: TDBEngine): Boolean;
+begin
+  with DBase.OpenDataSet('SELECT COUNT(*) FROM RDB$RELATION_FIELDS ' +
+    'WHERE RDB$FIELD_NAME = ''EXTRA'' AND RDB$RELATION_NAME = ''DX_FORMS''') do
+  begin
+    Result := Fields[0].AsInteger > 0;
+    Free;
+  end;
+end;
+
 constructor TMetaData.Create;
 begin
   FId := SetZeros(Random(100000), 6);
@@ -590,6 +605,7 @@ begin
   FImageMan := TImageManager.Create;
   FScriptMan := TScriptManager.Create(Self);
   FFormDataSet := TdxMemDataSet.Create(nil);
+  FLayouts := TFormLayoutFormList.Create;
   FRef := 1;
   InitCriticalSection(FLock);
 end;
@@ -603,6 +619,7 @@ begin
   FFormMan.Free;
   FMain.Free;
   FFormDataSet.Free;
+  FLayouts.Free;
   DoneCriticalSection(FLock);
   inherited Destroy;
 end;
@@ -633,6 +650,8 @@ var
   Lfm: TLfmParser;
   Fm: TdxForm;
   DS: TSQLQuery;
+  BS: TStream;
+  pFmLayouts: PFormLayoutForm;
 begin
   ForceDirectories(GetEmbeddedImagesPath(Self));
   DS := DBase.OpenDataSet('select id, form from dx_forms');
@@ -650,7 +669,6 @@ begin
       TBlobField(Fields[1]).SaveToStream(SS);
       Fm := Lfm.Parse(SS.DataString);
       Fm.ExtractFormGrid;
-      //if Fm.Filters.Count > 0 then Fm.Filter.Load(Fm.Filters.ValueFromIndex[0]);
       FFormMan.AddForm(Fm);
       ScaleForm(Fm, Main.DesignTimePPI);
       Next;
@@ -658,7 +676,24 @@ begin
   finally
     Lfm.Free;
     SS.Free;
-    //Free;
+  end;
+
+  if IsVersion38(DBase) then
+  begin
+    DS := DBase.OpenDataSet('select id, extra from dx_forms');
+    while not DS.Eof do
+    begin
+      BS := DS.CreateBlobStream(DS.Fields[1], bmRead);
+      if BS <> nil then
+      begin
+        pFmLayouts := FLayouts.AddForm(DS.Fields[0].AsInteger);
+        FLayouts.LoadFromStream(pFmLayouts, BS);
+        ScaleFormLayouts(pFmLayouts, Main.DesignTimePPI);
+        BS.Free;
+      end;
+      DS.Next;
+    end;
+    DS.Free;
   end;
 end;
 
@@ -3365,6 +3400,11 @@ end;
 function TSession.GetImageMan: TImageManager;
 begin
   Result := FMetaData.ImageMan;
+end;
+
+function TSession.GetLayouts: TFormLayoutFormList;
+begin
+  Result := FMetaData.Layouts;
 end;
 
 function TSession.GetReportMan: TReportManager;

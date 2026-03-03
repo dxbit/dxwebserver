@@ -25,7 +25,7 @@ interface
 uses
   Classes, SysUtils, DXCtrls, FPimage, BGRAGraphics, Db, sqldb,
   DxReports, strconsts, dxtypes, fpjson, typeswrapper, mytypes,
-  pivotgrid, dbengine;
+  pivotgrid, dbengine, FormLayouts;
 
 const
   rcOk = 200;
@@ -1993,7 +1993,7 @@ begin
     if FRS <> nil then
     begin
       FRS.ClearChanges;
-      FRS.Form.SetBounds(FRS.Form.Left, FRS.Form.Top, W, H);
+      SetFormSizeWithLayout(FSS, FRS.Form, W, H);
       Result := GetEvalChangesAsJson();
     end;
   end;
@@ -2263,7 +2263,13 @@ begin
     for i := 0 to FRS.ChangedProps.Count - 1 do
     begin
       Prp := FRS.ChangedProps[i];
-      if not TdxControl(Prp.Control).ControlVisible then Continue;
+      if not TdxControl(Prp.Control).ControlVisible then
+      begin
+        if not TdxControl(Prp.Control).Hidden and (Prp.PropName = 'bounds') then
+          JsonProps.Add(TJsonObject.Create(['name', TdxControl(Prp.Control).Name,
+          'type', 'dummy', 'prop', Prp.PropName, 'value', Prp.GetPropValue]));
+        Continue;
+      end;
 
       if Prp.PropName = 'recno' then
       begin
@@ -6011,7 +6017,7 @@ end;
 
 function THtmlShow.ShowDummyComponent(C: TdxControl): String;
 begin
-  Result := '<div class=dummy style="border:1px solid;' + GetBoundsCSS(C) + '"></div>';
+  Result := '<div id=' + C.Name + ' class=dummy style="' + GetBoundsCSS(C) + '"></div>';
 end;
 
 function THtmlShow.ShowControl(C: TdxControl): String;
@@ -6237,7 +6243,7 @@ begin
   FTabOrderList := TList.Create;
   Fm.GetTabOrderList(FTabOrderList);
 
-  Fm.SetBounds(Fm.Left, Fm.Top, FSS.ClientWidth, FSS.ClientHeight);
+  SetFormSizeWithLayout(FSS, Fm, FSS.ClientWidth, FSS.ClientHeight);
 
   Btns := '';
   if Fm.ViewType <> vtSimpleForm then

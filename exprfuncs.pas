@@ -98,6 +98,7 @@ function CaseOf(const AValue, AItems: String): String;
 function GetTypedText(SS: TSession; AIndex: Integer): Variant;
 procedure SetTypedText(SS: TSession; S: String);
 function IsWebServer: Boolean;
+function GetFormLayout(RS: TSsRecordSet): String;
 
 //var
 //  VarList: TVarList;
@@ -106,8 +107,7 @@ implementation
 
 uses
   formmanager, LazUtf8, sqlgen, dbengine,
-  apputils, dateutils, Math, expressions, Variants, StrUtils,
-  dxusers;
+  apputils, dateutils, Math, expressions, Variants, StrUtils;
 
 function GetRecordSet(AMainRecordSet: TSsRecordSet; const FormName,
   FieldName: String; out ARecordSet: TSsRecordSet; out aF: TField): Boolean;
@@ -1465,6 +1465,12 @@ end;
 function IsWebServer: Boolean;
 begin
   Result := True;
+end;
+
+function GetFormLayout(RS: TSsRecordSet): String;
+begin
+  if RS.Form = nil then raise Exception.Create(rsFormNotAvail);
+  Result := RS.Form.LayoutName;
 end;
 
 end.

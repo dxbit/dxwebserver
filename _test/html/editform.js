@@ -4,6 +4,7 @@ let fileMnu = null;
 let dupMnu = null;
 let resizeTimer = null;
 let msgBox = null;
+let pageInactive = false;
 
 function getDataStateDS() {
 	return document.getElementById('datastate').dataset;
@@ -176,7 +177,7 @@ function processJson(jsonRoot) {
 				case 'tdxgrid':
 				case 'tdxquerygrid':
 					ctrl.style.display = (jsonObj.value == '1' ? '' : 'none');
-					if (ctrl.previousSibling.classList.contains('gridcmd'))
+					if (ctrl.previousSibling && ctrl.previousSibling.classList.contains('gridcmd'))
 						ctrl.previousSibling.style.display = ctrl.style.display;
 					break;
 				case 'tdxgroupbox':
@@ -349,6 +350,7 @@ function processJson(jsonRoot) {
 				case 'tdxgroupbox':
 				case 'tdxpanel':
 				case 'tdxpagecontrol':
+				case 'dummy':
 					ctrl.style.left = x + 'px';
 					ctrl.style.top = y + 'px';
 					ctrl.style.width = w + 'px';
@@ -379,7 +381,7 @@ function processJson(jsonRoot) {
 					break;
 				case 'tdxgrid':
 				case 'tdxquerygrid':
-					if (ctrl.previousSibling.classList.contains('gridcmd')) {
+					if (ctrl.previousSibling && ctrl.previousSibling.classList.contains('gridcmd')) {
 						ctrl.previousSibling.style.left = x + 'px';
 						ctrl.previousSibling.style.top = parseInt(ctrl.previousSibling.style.top) + (y - parseInt(ctrl.style.top)) + 'px';
 					}
@@ -880,10 +882,10 @@ function bnClick(bnName) {
 }
 
 function timerHandler(timerId) {
-	/*if (msgBox) {
+	if (msgBox || document.hidden) {
 		restartTimer(timerId);
 		return;
-	}*/
+	}
 	
 	SendRequest('POST', getCurrentUrl() + '&timer', 'timer=' + timerId + '&fresh=' + getFreshValue(), (Request) => {
 		if (Request.status == rcAjaxOk) {

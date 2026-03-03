@@ -24,7 +24,8 @@ interface
 
 uses
   Classes, SysUtils, strconsts, dxctrls, Db, SQLDb, formmanager, dxreports,
-  reportmanager, dxtypes, typeswrapper, fpjson, BGRAGraphics, dxsqlquery, process;
+  reportmanager, dxtypes, typeswrapper, fpjson, BGRAGraphics, dxsqlquery, process,
+  formlayouts;
 
 function AppPath: String;
 //function FilesPath: String;
@@ -104,6 +105,7 @@ function GenerateId: String;
 //function ColorToHtmlColor(C: TColor): String;
 function StrToHtml(const S: String; ReplaceNewLines: Boolean = False; Nbsp: Boolean = False): String;
 //function CheckActionEnabled(B: TdxButton): Boolean;
+procedure ScaleFormLayouts(pFmLayouts: PFormLayoutForm; DesignTimePPI: Integer);
 procedure ScaleForm(Fm: TdxForm; DesignTimePPI: Integer);
 //procedure ScaleForms(FMan: TFormManager; DesignTimePPI: Integer);
 procedure ScaleReport(RD: TReportData; FromPPI, ToPPI: Integer);
@@ -140,7 +142,8 @@ function GetRpFieldComponent(SS: TSession; F: TRpField; aLow: Boolean): TdxCompo
 procedure ConvertToDXMainVersion2(SS: TSession);
 function TryTextToDate(AText: String; out ResDate: TDateTime): Boolean;
 function TextToDate(AText: String): TDateTime;
-//procedure HideUnvisibleControls(Fm: TdxForm);
+procedure SetFormSizeWithLayout(SS: TSession; Fm: TdxForm; W, H: Integer);
+//function IsFormFixedHeight(FSS: TSession; AForm: TdxForm): Boolean;
 
 implementation
 
@@ -2302,6 +2305,37 @@ begin
   end;
 end;
 
+procedure ScaleFormLayouts(pFmLayouts: PFormLayoutForm; DesignTimePPI: Integer);
+
+  function Scale96(X: Integer): Integer;
+  begin
+    Result := MulDiv(X, 96, DesignTimePPI);
+  end;
+
+var
+  i, j: Integer;
+  pLay: PFormLayout;
+  CLI: PControlLayoutItem;
+begin
+  if DesignTimePPI = 96 then Exit;
+
+  for i := 0 to pFmLayouts^.Layouts.Count - 1 do
+  begin
+    pLay := pFmLayouts^.Layouts[i];
+    pLay^.MinWidth := Scale96(pLay^.MinWidth);
+    pLay^.Width := Scale96(pLay^.Width);
+    pLay^.Height := Scale96(pLay^.Height);
+    for j := 0 to pLay^.Controls.Count - 1 do
+    begin
+      CLI := pLay^.Controls[j];
+      CLI^.Left := Scale96(CLI^.Left);
+      CLI^.Top := Scale96(CLI^.Top);
+      CLI^.Width := Scale96(CLI^.Width);
+      CLI^.Height := Scale96(CLI^.Height);
+    end;
+  end;
+end;
+
 procedure ScaleForm(Fm: TdxForm; DesignTimePPI: Integer);
 
   procedure _DoScale(WC: TdxWinControl);
@@ -3067,71 +3101,42 @@ begin
     raise EConvertError.CreateFmt(rsInvalidDate, [AText]);
 end;
 
-(*procedure HideAllControls(WC: TdxWinControl);
+procedure SetFormSizeWithLayout(SS: TSession; Fm: TdxForm; W, H: Integer);
 var
-  i: Integer;
-  C: TdxControl;
+  pFmLayouts: PFormLayoutForm;
+  pLay: PFormLayout;
 begin
-  for i := 0 to WC.ControlCount - 1 do
+  if Fm.LayoutName <> '' then
   begin
-    C := WC.Controls[i];
-    C.Hidden := True;
-    if C is TdxWinControl then
-      HideAllControls(TdxWinControl(C));
-  end;
-end;
-
-procedure HideOverlapControls(Fm: TdxForm);
-var
-  i, j: Integer;
-  C, CC: TdxControl;
-begin
-  for i := 0 to Fm.ComponentCount - 1 do
-  begin
-    if not (Fm.Components[i] is TdxControl) then Continue;
-    C := TdxControl(Fm.Components[i]);
-    if C.Hidden then Continue;
-
-    for j := 0 to Fm.ComponentCount - 1 do
+    pFmLayouts := SS.Layouts.FindForm(Fm.Id);
+    if pFmLayouts <> nil then
     begin
-      if not (Fm.Components[j] is TdxControl) then Continue;
-      CC := TdxControl(Fm.Components[j]);
-      if (CC.Hidden) or (C = CC) then Continue;
-
-      if (C.Parent = CC.Parent) and (C.Left >= CC.Left) and (C.Top >= CC.Top)
-        and (C.Left + C.Width <= CC.Left + CC.Width)
-        and (C.Top + C.Height <= CC.Top + CC.Height) and (i < j) then
-      begin
-        C.Hidden := True;
-        Break;
-      end;
+      pLay := pFmLayouts^.Layouts.FindLayout(Fm.LayoutName);
+      if (pLay <> nil) and pLay^.FixedHeight then
+        H := pLay^.Height;
     end;
   end;
+  with Fm do
+    SetBounds(Left, Top, W, H);
 end;
 
-{ Скрываем все компоненты, которые находятся вне зоны видимости формы, а
-  также те компоненты, которые перекрыты другими компонентами (например,
-  запросы перекрытые сводными таблицами). Скрытые компоненты не возвращаются
-  сервером, в том числе в GetEvalChangesAsJson. }
-procedure HideUnvisibleControls(Fm: TdxForm);
+{function IsFormFixedHeight(FSS: TSession; AForm: TdxForm): Boolean;
 var
-  i: Integer;
-  C: TdxControl;
+  pFm: PFormLayoutForm;
+  pLay: PFormLayout;
 begin
-  for i := 0 to Fm.ControlCount - 1 do
+  Result := False;
+  if AForm.LayoutName <> '' then
   begin
-    C := Fm.Controls[i];
-    if (C.Left + C.Width < 0) or (C.Left > Fm.Width) or
-      (C.Top + C.Height < 0) or (C.Top > Fm.Height) then
+    pFm := FSS.Layouts.FindForm(AForm.Id);
+    if pFm <> nil then
     begin
-      C.Hidden := True;
-      if C is TdxWinControl then
-        HideAllControls(TdxWinControl(C));
+      pLay := pFm^.Layouts.FindLayout(AForm.LayoutName);
+      if pLay <> nil then
+        Exit(pLay^.FixedHeight);
     end;
   end;
-
-  HideOverlapControls(Fm);
-end;*)
+end;}
 
 end.
 
