@@ -410,7 +410,7 @@ end;
 function StrToTotalFunc(const S: String): TRpTotalFunc;
 const
   StrFuncs: array [TRpTotalFunc] of String = ('tfNone', 'tfSum', 'tfAvg', 'tfMax', 'tfMin',
-    'tfCount', 'tfProfit', 'tfDistCount', 'tfMergeAll', 'tfMerge');
+    'tfCount', 'tfProfit', 'tfDistCount', 'tfMergeAll', 'tfMerge', 'tfGet');
 var
   i: TRpTotalFunc;
 begin

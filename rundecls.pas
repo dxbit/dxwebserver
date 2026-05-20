@@ -1416,6 +1416,8 @@ end;
 
 procedure TdxLabelFieldName_R(Self: TdxLabel; var T: String); begin T := Self.FieldName; end;
 procedure TdxLabelExpression_R(Self: TdxLabel; var T: String); begin T := Self.Expression; end;
+procedure TdxLabelOnClick_R(Self: TdxLabel; var T: TNotifyEvent); begin T := Self.OnClick; end;
+procedure TdxLabelOnClick_W(Self: TdxLabel; T: TNotifyEvent); begin Self.OnClick := T; end;
 
 procedure RIRegister_dxLabel(Cl: TPSRuntimeClassImporter);
 begin
@@ -1423,6 +1425,7 @@ begin
   begin
     RegisterPropertyHelper(@TdxLabelExpression_R, nil, 'Expression');
     RegisterPropertyHelper(@TdxLabelFieldName_R, nil, 'FieldName');
+    RegisterEventPropertyHelper(@TdxLabelOnClick_R, @TdxLabelOnClick_W, 'OnClick');
   end;
 end;
 
@@ -1687,6 +1690,8 @@ procedure TdxImageProportional_R(Self: TdxImage; var T: Boolean); begin T := Sel
 procedure TdxImageProportional_W(Self: TdxImage; T: Boolean); begin Self.Proportional := T; end;
 procedure TdxImageStretch_R(Self: TdxImage; var T: Boolean); begin T := Self.Stretch; end;
 procedure TdxImageStretch_W(Self: TdxImage; T: Boolean); begin Self.Stretch := T; end;
+procedure TdxImageOnClick_R(Self: TdxImage; var T: TNotifyEvent); begin T := Self.OnClick; end;
+procedure TdxImageOnClick_W(Self: TdxImage; T: TNotifyEvent); begin Self.OnClick := T; end;
 
 procedure RIRegister_dxImage(Cl: TPSRuntimeClassImporter);
 begin
@@ -1703,6 +1708,8 @@ begin
     RegisterPropertyHelper(@TdxImageKeepSize_R, @TdxImageKeepSize_W, 'KeepSize');
     RegisterPropertyHelper(@TdxImageProportional_R, @TdxImageProportional_W, 'Proportional');
     RegisterPropertyHelper(@TdxImageStretch_R, @TdxImageStretch_W, 'Stretch');
+
+    RegisterEventPropertyHelper(@TdxImageOnClick_R, @TdxImageOnClick_W, 'OnClick');
   end;
 end;
 
@@ -1785,6 +1792,8 @@ procedure TdxShapeShape_R(Self: TdxShape; var T: TShapeType); begin T := Self.Sh
 procedure TdxShapeShape_W(Self: TdxShape; T: TShapeType); begin Self.Shape := T; end;
 procedure TdxShapeShapeEx_R(Self: TdxShape; var T: TShapeTypeEx); begin T := Self.ShapeEx; end;
 procedure TdxShapeShapeEx_W(Self: TdxShape; T: TShapeTypeEx); begin Self.ShapeEx := T; end;
+procedure TdxShapeOnClick_R(Self: TdxShape; var T: TNotifyEvent); begin T := Self.OnClick; end;
+procedure TdxShapeOnClick_W(Self: TdxShape; T: TNotifyEvent); begin Self.OnClick := T; end;
 
 procedure RIRegister_dxShape(Cl: TPSRuntimeClassImporter);
 begin
@@ -1794,6 +1803,7 @@ begin
     RegisterPropertyHelper(@TdxShapePen_R, @TdxShapePen_W, 'Pen');
     RegisterPropertyHelper(@TdxShapeShape_R, @TdxShapeShape_W, 'Shape');
     RegisterPropertyHelper(@TdxShapeShapeEx_R, @TdxShapeShapeEx_W, 'ShapeEx');
+    RegisterEventPropertyHelper(@TdxShapeOnClick_R, @TdxShapeOnClick_W, 'OnClick');
   end;
 end;
 

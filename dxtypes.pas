@@ -1756,7 +1756,7 @@ begin
     except
       on E: Exception do
       begin
-        FForm.Errs.Add(E.Message);
+        FForm.Errs.Add(TdxLabel(L[i]).FieldName + ': ' + E.Message);
         ED.Free;
       end;
     end;
@@ -2777,7 +2777,7 @@ begin
     begin
       if FDataSet.Active then
       begin
-        if FRD.IsSimple then n := RecId
+        if FRD.CanEdit then n := RecId
         else n := FDataSet.RecNo;
         if FQryRecId > 0 then
         begin
@@ -2808,7 +2808,7 @@ begin
 
     if (rstKeepPos in FState) and (n > 0) then
     begin
-      if FRD.IsSimple then
+      if FRD.CanEdit then
         FDataSet.Locate('id', n, [])
       else
       begin

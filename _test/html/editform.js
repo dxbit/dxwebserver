@@ -871,8 +871,8 @@ function queryAdd(qId) {
 	});
 }
 
-function bnClick(bnName) {
-	SendRequest('POST', getCurrentUrl() + '&bnclick', 'bn=' + bnName + '&fresh=' + getFreshValue(), (Request) => {
+function ctrlClick() {
+	SendRequest('POST', getCurrentUrl() + '&ctrlclick', 'ctrl=' + event.currentTarget.id + '&fresh=' + getFreshValue(), (Request) => {
 		if (Request.status == rcAjaxOk) {
 			processJson(JSON.parse(Request.responseText));
 		} else {

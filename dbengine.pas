@@ -235,7 +235,7 @@ begin
   if (FRS <> nil) and (TSsRecordSet(FRS).RD <> nil) then
   begin
     RD := TSsRecordSet(FRS).RD;
-    if RD.IsSimple then
+    if RD.CanEdit then
     begin
       if RD.HasParentIdField then delta := 2
       else delta := 1;

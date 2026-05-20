@@ -207,10 +207,6 @@ msgstr ""
 msgid "Boolean"
 msgstr ""
 
-#: strconsts.rsbuttonnotfound
-msgid "Button not found."
-msgstr ""
-
 #: strconsts.rscallfunction
 msgid "Call function"
 msgstr ""
@@ -280,6 +276,10 @@ msgstr ""
 
 #: strconsts.rsconnecttodb
 msgid "Connect to database"
+msgstr ""
+
+#: strconsts.rscontrolnotfound
+msgid "Control not found."
 msgstr ""
 
 #: strconsts.rscouldnotcreatefolder
@@ -365,6 +365,11 @@ msgstr ""
 
 #: strconsts.rserror
 msgid "Error"
+msgstr ""
+
+#: strconsts.rserrorinfield
+#, object-pascal-format
+msgid "Error in field [%s]: %s"
 msgstr ""
 
 #: strconsts.rsexceptionmsg

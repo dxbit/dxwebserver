@@ -25,7 +25,7 @@ interface
 uses
   Classes, SysUtils, DXCtrls, FPimage, BGRAGraphics, Db, sqldb,
   DxReports, strconsts, dxtypes, fpjson, typeswrapper, mytypes,
-  pivotgrid, dbengine, FormLayouts;
+  pivotgrid, dbengine;
 
 const
   rcOk = 200;
@@ -227,7 +227,7 @@ type
     function ObjectAppend(AParams: TStrings): String;
     function ObjectEdit(AParams: TStrings): String;
     function DuplicateRecord(AParams: TStrings; DupParam: TDuplicateParam): String;
-    function BnClick(AParams: TStrings): String;
+    function CtrlClick(AParams: TStrings): String;
     function MsgBnClick(AParams: TStrings): String;
     function TimerTimer(AParams: TStrings): String;
     function ShowDebugAjax: String;
@@ -1315,7 +1315,7 @@ begin
   end;
   Rp := RS.RD;
 
-  if Rp.IsSimple then
+  if Rp.CanEdit then
   begin
     EditFmId := Rp.GetEditFormId;
     CanGotoRec := FSs.UserMan.CheckFmVisible(FSS.RoleId, EditFmId);
@@ -3267,7 +3267,7 @@ begin
   if not DS.Active then Exit('');
   Rp := ARS.RD;
 
-  if Rp.IsSimple then
+  if Rp.CanEdit then
   begin
     EditFmId := Rp.GetEditFormId;
     CanGotoRec := FSs.UserMan.CheckFmVisible(FSS.RoleId, EditFmId);
@@ -3895,10 +3895,10 @@ begin
   end;
 end;
 
-function THtmlShow.BnClick(AParams: TStrings): String;
+function THtmlShow.CtrlClick(AParams: TStrings): String;
 var
-  Bn: TdxButton;
   FreshValue: Longint;
+  C: TdxComponent;
 begin
   Result := '';
   FResultCode := rcAjaxError;
@@ -3909,14 +3909,29 @@ begin
     Exit(MakeJsonErrString(rcRecordSetNotFound, rsNoLinkForm))
   else if FRS.FreshValue <> FreshValue then
     Exit(MakeJsonErrString(rcInvalidFreshValue, rsInvalidFreshValueMsg));
-  Bn := TdxButton(FRS.Form.FindComponent(AParams.Values['bn']));
-  if (Bn = nil) {or not Bn.ActionEnabled} then
-    Exit(MakeJsonErrString(rcAnyError, rsButtonNotFound));
+  C := FRS.Form.FindComponent(AParams.Values['ctrl']);
+  if C = nil then
+    Exit(MakeJsonErrString(rcAnyError, rsControlNotFound));
   FResultCode := rcAjaxOk;
 
   try
     FRS.ClearChanges;
-    Bn.Click;
+    if C is TdxButton then TdxButton(C).Click
+    else if C is TdxLabel then
+      with TdxLabel(C) do
+      begin
+        if OnClick <> nil then OnClick(C);
+      end
+    else if C is TdxImage then
+      with TdxImage(C) do
+      begin
+        if OnClick <> nil then OnClick(C);
+      end
+    else if C is TdxShape then
+      with TdxShape(C) do
+      begin
+        if OnClick <> nil then OnClick(C);
+      end;
     Result := GetEvalChangesAsJson;
   except
     on E: EPSException do
@@ -4206,13 +4221,26 @@ begin
   else if (C is TdxGrid) or (C is TdxQueryGrid) then Result := 'grid'
   else if C is TdxPivotGrid then Result := 'pgrid'
   else if C is TdxChart then Result := 'chart'
-  else if C is TdxImage then Result := 'image'
-  else if C is TdxShape then Result := 'shape'
+  else if C is TdxImage then
+  begin
+    Result := 'image';
+    if TdxImage(C).OnClick <> nil then Result := Result + ' clickable';
+  end
+  {else if C is TdxShape then
+  begin
+    Result := 'shape';
+    if TdxShape(C).OnClick <> nil then Result := Result + ' clickable';
+  end}
   else if C is TdxButton then Result := 'bn'
   else if C is TdxGroupBox then Result := 'groupbox'
   else if C is TdxPageControl then Result := 'pages'
   else if C is TdxTabSheet then Result := 'tabsheet'
   else if C is TdxPanel then Result := 'panel'
+  else if C is TdxLabel then
+  begin
+    Result := 'label';
+    if TdxLabel(C).OnClick <> nil then Result := Result + ' clickable';
+  end
   else Result := '';
 end;
 
@@ -4733,7 +4761,7 @@ begin
   Result := '<button id=' + C.Name + ' type=button class="' +
     GetStyleClass(C) + '" style="' + GetBoundsCSS(C) + GetVisible(C) +
     IIF(C.Hint <> '', '" title="' + StrToHtml(C.Hint), '') + '" tabindex=' +
-    IntToStr(GetTabOrder(C)) + GetEnabled(C) + ' onclick="bnClick(''' + C.Name + ''')">' +
+    IntToStr(GetTabOrder(C)) + GetEnabled(C) + ' onclick="ctrlClick()">' +
     //IIF(C.ActionEnabled = True, ' onclick="bnClick(''' + C.Name + ''')"', ' disabled') +
     IIF(FlNm <> '', '<img src="' + FlNm + '">', '') +
     IIF(C.Caption <> '', '<span>' + StrToHtml(C.Caption) + '</span>', '') + '</button>';
@@ -4884,23 +4912,11 @@ begin
 end;
 
 function THtmlShow.ShowImage(C: TdxImage): String;
-//var
-  //ImgName: String;
-  //ImgD: TImageData;
 begin
-  //ImgName := C.GetImagePath(True);
-  {if C.ImageName <> '' then
-  begin
-    ImgD := FSS.ImageMan.FindImage(C.ImageName);
-    if ImgD <> nil then
-      ImgName := ImagesPath(FSS.MetaData, True) + ImgD.Name + '.' + ImgD.Ext;
-  end
-  else if C.Ext <> '' then
-    ImgName := EmbeddedImagesPath(FSS.Metadata, True) + IntToStr(C.Form.Id) +
-      C.Name + '.' + C.Ext; }
   Result := '<img id=' + C.Name + ' class="' + GetStyleClass(C) + '" style="' + GetBoundsCSS(C) +
     GetVisible(C) + '"' + GetEnabled(C) + 'src="' +
-    C.GetImagePath(True) + '">';
+    C.GetImagePath(True) +
+    IIF(C.OnClick <> nil, '" onclick="ctrlClick()', '') + '">';
 end;
 
 function GetFontSize(C: TdxControl): Integer;
@@ -5051,7 +5067,7 @@ begin
   QG := ARS.QGrid;
   // !!! Доступ
   FmId := RD.GetEditFormId;
-  IsEditable := RD.IsSimple and FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId);
+  IsEditable := RD.CanEdit and FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId);
   if IsEditable then
   begin
     Editing := (ARS.Parent.Editing = asOk) and FSS.UserMan.CheckFmEditing(FSS.RoleId, FmId);
@@ -5182,7 +5198,7 @@ begin
 
   // !!! Доступ
   FmId := RD.GetEditFormId;
-  IsEditable := RD.IsSimple and FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId);
+  IsEditable := RD.CanEdit and FSS.UserMan.CheckFmVisible(FSS.RoleId, FmId);
   //
 
   if not C.ManualRefresh then RS.Open;
@@ -5515,9 +5531,15 @@ begin
 end;
 
 function THtmlShow.ShowShape(C: TdxShape): String;
+var
+  HasClick: Boolean;
 begin
-  Result := '<img id=' + C.Name + ' class="shape" style="' + GetBoundsCSS(C) +
-    GetVisible(C) + '" src="' + C.GetImagePath(True) + '">';
+  HasClick := C.OnClick <> nil;
+  Result := '<img id=' + C.Name + ' class="shape' +
+    IIF(HasClick, ' clickable', '') +
+    '" style="' + GetBoundsCSS(C) +
+    GetVisible(C) + '" src="' + C.GetImagePath(True) +
+    IIF(HasClick, '" onclick="ctrlClick()', '') + '">';
 end;
 
 function THtmlShow.ShowLookupComboBox(C: TdxLookupComboBox): String;
@@ -5958,8 +5980,9 @@ end;
 function THtmlShow.ShowLabel(C: TdxLabel): String;
 begin
   Result := '<span id=' + C.Name + ' class="' + GetStyleClass(C) + '" style="' +
-    GetBoundsCSS(C) + GetVisible(C) +  IIF(C.Hint <> '', '" title="' +
-    StrToHtml(C.Hint), '') + '">';
+    GetBoundsCSS(C) + GetVisible(C) +
+    IIF(C.Hint <> '', '" title="' + StrToHtml(C.Hint), '') +
+    IIF(C.OnClick <> nil, '" onclick="ctrlClick()', '') + '">';
   if C.Layout = tlTop then
     Result := Result + StrToHtml(C.Caption, True) + '</span>'
   else

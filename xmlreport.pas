@@ -1199,7 +1199,7 @@ begin
   pD^.Script := False;
   if not pD^.RecordSet.NeedRequery then
   begin
-    if pD^.RecordSet.RD.IsSimple then
+    if pD^.RecordSet.RD.CanEdit then
       pD^.Id := ARecordSet.RecId
     else
       pD^.Id := ARecordSet.DataSet.RecNo;
@@ -1309,7 +1309,7 @@ var
   DS: TDataSet;
   Fm: TdxForm;
   C: TdxField;
-  BlankImage, NeedConvert: Boolean;
+  //BlankImage, NeedConvert: Boolean;
   Lbl: TdxLabel;
   dt, FlList: String;
   Cbx: TdxLookupComboBox;
@@ -1502,12 +1502,11 @@ begin
       begin
         if Lbl.Value = unassigned then
           try
-
-            //CalcLabelExpr(FSS, Lbl, DS{, GetData(0)^.Form});
+            CalcLabelExpr(Lbl, FRecordSet);
           except
             on E: Exception do
             begin
-              //AddError(Format(rsErrorInField, [Lbl.FieldName, E.Message]));
+              AddError(Format(rsErrorInField, [Lbl.FieldName, E.Message]));
               Result := '';
               Exit;
             end;

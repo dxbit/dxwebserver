@@ -258,6 +258,7 @@ type
     FExpr: String;
     FFieldName: String;
     FLayout: TTextLayout;
+    FOnClick: TNotifyEvent;
     FValue: Variant;
     FWordWrap: Boolean;
   public
@@ -270,6 +271,7 @@ type
     property Layout: TTextLayout read FLayout write FLayout;
     property WordWrap: Boolean read FWordWrap write FWordWrap;
     property AutoSize: Boolean read FAutoSize write FAutoSize;
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
   end;
 
   { TdxEdit }
@@ -528,6 +530,7 @@ type
     FExt: String;
     FImageName: String;
     FKeepSize: Boolean;
+    FOnClick: TNotifyEvent;
     FProportional: Boolean;
     FStretch: Boolean;
     FModified: Boolean;
@@ -549,6 +552,7 @@ type
     property Stretch: Boolean read FStretch write FStretch;
     property KeepSize: Boolean read FKeepSize write FKeepSize;
     property ImageName: String read FImageName write SetImageName;
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
   end;
 
   { TdxDBImage }
@@ -594,6 +598,7 @@ type
   TdxShape = class(TdxControl)
   private
     FBrush: TdxBrush;
+    FOnClick: TNotifyEvent;
     FPen: TdxPen;
     FShape: TShapeType;
     FModified: Boolean;
@@ -616,6 +621,7 @@ type
     property Shape: TShapeType read FShape write SetShape;
     property ShapeEx: TShapeTypeEx read FShapeEx write SetShapeEx;
     property Modified: Boolean read FModified write FModified;
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
   end;
 
   { TdxFile }
@@ -2883,7 +2889,7 @@ end;
 
 function TdxQueryGrid.GetEditable: Boolean;
 begin
-  Result := TSsRecordSet(FRS).RD.IsSimple;
+  Result := TSsRecordSet(FRS).RD.CanEdit;
 end;
 
 function TdxQueryGrid.GetQueryFields(AIndex: String): Variant;

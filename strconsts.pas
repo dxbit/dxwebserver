@@ -269,7 +269,7 @@ resourcestring
   rsInvalidFreshValue = 'Invalid fresh value.';
   rsClearAllFilters = 'Clear all filters';
   rsOutput = 'Output';
-  rsButtonNotFound = 'Button not found.';
+  rsControlNotFound = 'Control not found.';
   rsIncorrectUserOrPwd = 'Incorrect user or password';
   rsConnectionNotFound = 'Connection %s not found.';
   rsUnknownFBVersion = 'Unknown Firebird version specified.';
@@ -281,6 +281,7 @@ resourcestring
   rsInvalidDate = 'Invalid date %s';
   rsObjectFieldCantUsedAsObjectField = 'The "Object field" component cannot be used as an object field.';
   rsUseTagsInsideGroupError = 'It is not allowed to use the %s tag inside the group tag.';
+  rsErrorInField = 'Error in field [%s]: %s';
 
   //rsRecordModifiedAnotherUser = 'The record has been modified by another user.';
   //rsRecordHasBeenDeleted = 'The record has been deleted.';

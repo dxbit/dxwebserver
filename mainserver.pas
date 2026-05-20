@@ -290,7 +290,7 @@ begin
                   else if Fields[4] = 'queryfetch' then
                   else if Fields[4] = 'dup' then
                   else if Fields[4] = 'dupall' then
-                  else if Fields[4] = 'bnclick' then
+                  else if Fields[4] = 'ctrlclick' then
                   else if Fields[4] = 'msgbnclick' then
                   else if Fields[4] = 'objadd' then
                   else if Fields[4] = 'objedit' then
@@ -334,7 +334,7 @@ begin
           else if Fields[2] = 'queryfetch' then
           else if Fields[2] = 'dup' then
           else if Fields[2] = 'dupall' then
-          else if Fields[2] = 'bnclick' then
+          else if Fields[2] = 'ctrlclick' then
           else if Fields[2] = 'msgbnclick' then
           else if Fields[2] = 'tableadd' then
           else if Fields[2] = 'tableedit' then
@@ -1300,9 +1300,9 @@ begin
     AResponse.Contents.Text := HS.DuplicateRecord(ARequest.ContentFields, dpAll);
     AResponse.Code := HS.ResultCode;
   end
-  else if LPm = 'bnclick' then
+  else if LPm = 'ctrlclick' then
   begin
-    AResponse.Contents.Text := HS.BnClick(ARequest.ContentFields);
+    AResponse.Contents.Text := HS.CtrlClick(ARequest.ContentFields);
     AResponse.Code := HS.ResultCode;
   end
   else if LPm = 'msgbnclick' then

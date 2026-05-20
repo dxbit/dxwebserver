@@ -46,7 +46,7 @@ type
     flCounter, flFile, flRecId, flImage);
   TRpFieldTypes = set of TRpFieldType;
   TRpTotalFunc = (tfNone, tfSum, tfAvg, tfMax, tfMin, tfCount, tfProfit, tfDistCount,
-    tfMergeAll, tfMerge);
+    tfMergeAll, tfMerge, tfGet);
 
   TRpFieldList = class;
 
@@ -343,6 +343,7 @@ type
     FId: Integer;
     FName: String;
     FKind: TReportKind;
+    FNoEdit: Boolean;
     FPrintFields: TStringList;
     FSearchText: String;
     FSession: TObject;
@@ -387,6 +388,7 @@ type
     function GetEditFormId: Integer;
     function GetSourceFilter: String;
     function IsSimple: Boolean;
+    function CanEdit: Boolean;
     function HasParentIdField: Boolean;
     function ParamExists: Boolean;
 
@@ -414,6 +416,8 @@ type
     property SearchText: String read FSearchText write FSearchText;
 
     property Session: TObject read FSession write FSession;
+
+    property NoEdit: Boolean read FNoEdit write FNoEdit;
   end;
 
 function NewRpField: PRpField;
@@ -434,8 +438,8 @@ function GetTypeByComponent(C: TdxField): TRpFieldType;
 implementation
 
 uses
-  apputils, SAX, LazUtf8, formmanager, sqlgen, expressions, strutils,
-  Variants, DateUtils, reportmanager, saxbasereader, dxtypes;
+  apputils, SAX, LazUtf8, formmanager, expressions, strutils,
+  Variants, DateUtils, saxbasereader, dxtypes;
 
 type
 
@@ -1132,6 +1136,7 @@ begin
     RD.HelpText:=XmlToHtml(GetStr(Atts, 'helptext'));
     RD.SQL := XmlToStr(GetStr(Atts, 'sql'));
     RD.SqlMode := GetBool(Atts, 'sqlmode');
+    RD.NoEdit := GetBool(Atts, 'noedit');
     RD.Version := GetInt(Atts, 'version');
   end
   else if LocalName = 'grid' then
@@ -1619,6 +1624,7 @@ begin
     '" first="' + IntToStr(FFirstRecordCount) +
     '" filter="' + StrToXml(FFilter) + '" helptext="' + HtmlToXml(FHelpText) +
     '" sql="' + StrToXml(FSQL) + '" sqlmode="' + Bool2Str(FSqlMode) +
+    '" noedit="' + Bool2Str(FNoEdit) +
     '" version="' + IntToStr(FVersion) + '">');
   WrStr('<sources>');
   for i := 0 to Sources.Count - 1 do
@@ -1985,18 +1991,26 @@ var
   Sr: TRpSource;
   i: Integer;
   Fl: TRpField;
+  HasFn: Boolean;
 begin
   Result := False;
+  HasFn := False;
   if FSources.Count = 1 then
   begin
     Sr := FSources[0]^;
     for i := 0 to Sr.Fields.Count - 1 do
     begin
       Fl := Sr.Fields[i]^;
-      if Fl.Func <> tfNone then Exit;
+      if Fl.Func = tfGet then Exit(True)
+      else if Fl.Func <> tfNone then HasFn := True;
     end;
-    Result := FDateField < 0;
+    Result := (FDateField < 0) and not HasFn;
   end;
+end;
+
+function TReportData.CanEdit: Boolean;
+begin
+  Result := IsSimple and not FNoEdit;
 end;
 
 function TReportData.HasParentIdField: Boolean;

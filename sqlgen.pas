@@ -133,14 +133,17 @@ begin
   end;
 end;
 
-function GetFuncSql(SS: TSession; Fl: TRpField): String;
+function GetFuncSql(SS: TSession; Fl: TRpField; const FlNm: String = ''): String;
 var
   Nm: String;
   Pr: Integer;
   C: TdxComponent;
 begin
   Result := '';
-  Nm := 'f' + IntToStr(Fl.Id);
+  if FlNm = '' then
+    Nm := 'f' + IntToStr(Fl.Id)
+  else
+    Nm := FlNm;
   case Fl.Func of
     tfSum: Result:= 'coalesce(sum(' + Nm + '),0)';
     tfAvg: Result:= 'coalesce(avg(' + Nm + '),0)';
@@ -156,11 +159,11 @@ begin
         begin
           Pr := TdxCalcEdit(C).Precission;
           if Pr > 0 then
-            Nm := 'replace(substring(' + Nm + ' from 1 for position(''.'' in ' + Nm + ')+' +
+            Nm := 'replace(substring(' + Nm + ' from 1 for position(''.'',' + Nm + ')+' +
               IntToStr(Pr) + '),''.'',''' + DefaultFormatSettings.DecimalSeparator +
               ''')'
           else
-            Nm := 'substring(' + Nm + ' from 1 for position(''.'' in ' + Nm + ')-1)';
+            Nm := 'substring(' + Nm + ' from 1 for position(''.'',' + Nm + ')-1)';
         end;
         Result := 'list(';
         if Fl.Func = tfMerge then Result := Result + 'distinct ';
@@ -1037,7 +1040,26 @@ begin
   Result := GetJoinType(SS, PC, C);
 end;
 
-function SqlSourceSelect2(ARecordSet: TSsRecordSet; Src: TRpSource): String;
+function GetDateDetailSql(RD: TReportData; Fl: TRpField; const FlNm: String = ''): String;
+var
+  Nm: String;
+begin
+  Result := '';
+  if FlNm = '' then
+    Nm := FieldStr(Fl.Id)
+  else
+    Nm := FlNm;
+  case RD.DateDetail of
+    ddDay: Result := Nm;
+    ddWeek: Result:= Format('(extract (year from %0:s) || ''.'' || trim(iif(extract (week from %0:s) < 10, ''0'', '''') || (extract (week from %0:s))))', [Nm]);
+    ddMonth: Result := Format('(extract (year from %0:s) || ''.'' || trim(iif(extract (month from %0:s) < 10, ''0'', '''') || (extract (month from %0:s))))', [Nm]);
+    ddQuart: Result := Format('(extract (year from %0:s)  || ''.'' || ROUND((CAST(EXTRACT(MONTH FROM %0:s) AS FLOAT)/3 + 0.3)))', [Nm]);
+    ddHalfYear: Result := Format('(extract (year from %0:s)  || ''.'' ||iif(extract(month from %0:s) <= 6, 1, 2))', [Nm]);
+    ddYear: Result := Format('(extract (year from %0:s))', [Nm]);
+  end;
+end;
+
+function SqlSourceSelect2(RD: TReportData; ARecordSet: TSsRecordSet; Src: TRpSource; ReduceSQL, IsGet: Boolean): String;
 var
   FStr, JStr, Flt: String;
   AliasSL: TStringList;
@@ -1080,34 +1102,50 @@ var
     end;
   end;
 
-  procedure ProcessField(const TopFl, Fl: TRpField);
+  procedure ProcessField(const TopFl, Fl: TRpField; FieldIndex: Integer);
   var
     TblNm, FlNm, TopFlNm: String;
   begin
     if Fl.Parent <> nil then ProcessJoin(Fl);
 
     if (Fl.Tp = flObject) and (Fl.Src <> nil) then
-      ProcessField(TopFl, Fl.Src^)
+      ProcessField(TopFl, Fl.Src^, FieldIndex)
     else
     begin
       TblNm := GetAliasOrTblNm(Fl);
+      FlNm := TblNm + '.' + FieldStr(Fl.FId);
+      TopFlNm := FieldStr(TopFl.Id);
+      if IsGet then TopFlNm := 'y' + TopFlNm;
+
       if TopFl.Func = tfProfit then
       begin
-        if Src.Kind = skIncome then
-          FStr := FStr + TblNm + '.' + FieldStr(Fl.FId) + ' as income' + IntToStr(TopFl.Id) +
-            ',0 as outcome' + IntToStr(TopFl.Id) + ','
+        if ReduceSQL then
+        begin
+          if Src.Kind = skIncome then
+            FStr := FStr + 'sum(' + FlNm + ') as ' + TopFlNm + ','
+          else
+            FStr := FStr + '-sum(' + FlNm + ') as ' + TopFlNm + ','
+        end
         else
-          FStr := FStr + '0 as income' + IntToStr(TopFl.Id) + ',' + TblNm + '.' + FieldStr(Fl.FId) +
-            ' as outcome' + IntToStr(TopFl.Id) + ',';
+        begin
+          if Src.Kind = skIncome then
+            FStr := FStr + TblNm + '.' + FieldStr(Fl.FId) + ' as income' + IntToStr(TopFl.Id) +
+              ',0 as outcome' + IntToStr(TopFl.Id) + ','
+          else
+            FStr := FStr + '0 as income' + IntToStr(TopFl.Id) + ',' + TblNm + '.' + FieldStr(Fl.FId) +
+              ' as outcome' + IntToStr(TopFl.Id) + ',';
+        end;
       end
-      else if Fl.Tp = flRecId then
+      else if ReduceSQL and not IsGet and not (TopFl.Func in [tfNone, tfGet]) then
       begin
-        FStr := FStr + TblNm + '.id as ' + FieldStr(TopFl.Id) + ',';
+        FStr := FStr + GetFuncSql(SS, TopFl, FlNm) + ' as ' + TopFlNm + ',';
       end
+      else if ReduceSQL and not IsGet and (FieldIndex = RD.DateField) then
+        FStr := FStr + GetDateDetailSql(RD, Fl, FlNm) + ' as ' + TopFlNm + ','
+      else if Fl.Tp = flRecId then
+        FStr := FStr + TblNm + '.id as ' + TopFlNm + ','
       else if Fl.Tp = flFile then
       begin
-        FlNm := TblNm + '.' + FieldStr(Fl.FId);
-        TopFlNm := FieldStr(TopFl.Id);
         FStr := FStr +
           FlNm + 'd as ' + TopFlNm + ',' +
           FlNm + 'src as ' + TopFlNm + 'src,' +
@@ -1116,8 +1154,6 @@ var
       end
       else if Fl.Tp = flImage then
       begin
-        FlNm := TblNm + '.' + FieldStr(Fl.FId);
-        TopFlNm := FieldStr(TopFl.Id);
         FStr := FStr +
           FlNm + 'src as ' + TopFlNm + ',' +
           FlNm + 'dest as ' + TopFlNm + 'dest,' +
@@ -1125,14 +1161,7 @@ var
           FlNm + ' as ' + TopFlNm + 'data,';
       end
       else
-      begin
-        {FlNm := FieldStr(Fl.FId);
-        if Fl.Tp = flFile then FlNm := FlNm + 'd'
-        else if Fl.Tp = flRecId then FlNm := 'id';
-        FStr := FStr + TblNm + '.' + FlNm;
-        FStr := FStr + ' as ' + FieldStr(TopFl.Id) + ',';  }
-        FStr := FStr + TblNm + '.' + FieldStr(Fl.FId) + ' as ' + FieldStr(TopFl.Id) + ',';
-      end;
+        FStr := FStr + TblNm + '.' + FieldStr(Fl.FId) + ' as ' + TopFlNm + ',';
     end;
   end;
 
@@ -1145,11 +1174,15 @@ var
     else
     begin
       FlNm := FieldStr(Fl.Id);
+      if IsGet then FlNm := 'y' + FlNm;
       case Fl.Func of
         tfSum: FStr := FStr + '0 as ' + FlNm + ',';
         tfCount:
           if Fl.AllZeros then
-            FStr := FStr + '0 as ' + FlNm + ','
+          begin
+            if ReduceSQL then FStr := FStr + 'count(*) as ' + FlNm + ','
+            else FStr := FStr + '0 as ' + FlNm + ','
+          end
           else
 	          FStr := FStr + 'null as ' + FlNm + ',';
         else
@@ -1183,13 +1216,13 @@ begin
   for i := 0 to Src.Fields.Count - 1 do
   begin
     Fl := Src.Fields[i]^;
-    if Fl.Tp = flNone then Continue;
+    if (Fl.Tp = flNone) or (IsGet and not (Fl.Func in [tfNone, tfMin, tfMax, tfGet])) or
+      (not IsGet and (Fl.Func = tfGet)) then Continue;
+
     if Fl.Zero then
       ProcessZero(Fl)
-    //else if Fl.Func = tfProfit then
-    //  ProcessSumField(Fl)
     else
-      ProcessField(Fl, Fl);
+      ProcessField(Fl, Fl, i);
   end;
   FStr := Copy(FStr, 1, Length(FStr) - 1);
   Result := 'select ' + FStr + ' from ' + TableStr(Src.Id);
@@ -1205,22 +1238,6 @@ begin
 
   finally
     AliasSL.Free;
-  end;
-end;
-
-function GetDateDetailSql(RD: TReportData; Fl: TRpField): String;
-var
-  Nm: String;
-begin
-  Result := '';
-  Nm := FieldStr(Fl.Id);
-  case RD.DateDetail of
-    ddDay: Result := Nm;
-    ddWeek: Result:= Format('(extract (year from %0:s) || ''.'' || trim(iif(extract (week from %0:s) < 10, ''0'', '''') || (extract (week from %0:s))))', [Nm]);
-    ddMonth: Result := Format('(extract (year from %0:s) || ''.'' || trim(iif(extract (month from %0:s) < 10, ''0'', '''') || (extract (month from %0:s))))', [Nm]);
-    ddQuart: Result := Format('(extract (year from %0:s)  || ''.'' || ROUND((CAST(EXTRACT(MONTH FROM %0:s) AS FLOAT)/3 + 0.3)))', [Nm]);
-    ddHalfYear: Result := Format('(extract (year from %0:s)  || ''.'' ||iif(extract(month from %0:s) <= 6, 1, 2))', [Nm]);
-    ddYear: Result := Format('(extract (year from %0:s))', [Nm]);
   end;
 end;
 
@@ -1319,7 +1336,7 @@ begin
   SL.Free;
 end;
 
-function GetWhereClause(SS: TSession; aFl: TRpField): String;
+function GetWhereClause(SS: TSession; aFl: TRpField; IsGet: Boolean): String;
 var
   S, Bg, Ed, FlNm, W, Tmp, AbsValue: String;
   p: Integer;
@@ -1332,6 +1349,7 @@ begin
   SL := TStringList.Create;
   SplitStr(aFl.Value, ';', SL);
   FlNm := 'f' + IntToStr(aFl.Id);
+  if IsGet then FlNm := 'y' + FlNm;
   Tp := GetLowField(@aFl)^.Tp;
 
   W := '';
@@ -1433,7 +1451,7 @@ begin
   end;
 end;
 
-function GetTextSearchClause(SS: TSession; RD: TreportData; aFl: TRpField): String;
+function GetTextSearchClause(SS: TSession; RD: TreportData; aFl: TRpField; IsGet: Boolean): String;
 var
   Text, FlNm, W, S, Tmp: String;
   i: Integer;
@@ -1450,7 +1468,7 @@ begin
   SL := TStringList.Create;
   SplitStr(Text, ' ', SL);
 
-  if aFl.Func <> tfNone then
+  if (aFl.Func <> tfNone) and not IsGet then
   begin
     FlNm := GetFuncSql(SS, aFl);
     if aFl.Func in [tfCount, tfDistCount] then Tp := flCounter
@@ -1462,6 +1480,8 @@ begin
     FlNm := 'f' + IntToStr(aFl.Id);
     Tp := GetLowField(@aFl)^.Tp;
   end;
+
+  if IsGet then FlNm := 'y' + FlNm;
 
   W := '';
   for i := 0 to SL.Count - 1 do
@@ -1558,16 +1578,25 @@ begin
   end;
 end;
 
+function HasGetFunc(Sr: TRpSource): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  for i := 0 to Sr.Fields.Count - 1 do
+    if Sr.Fields[i]^.Func = tfGet then Exit(True);
+end;
+
 function InnerSqlReportSelect(RD: TReportData; ARecordSet: TSsRecordSet): String;
 var
   Sr: TRpSource;
-  FStr, GStr, FromStr, Nm, Srt, S, Hav, Wh, WhTS, HavTS: String;
+  FStr, GStr, FromStr, Nm, Srt, S, Hav, Wh, WhTS, HavTS, FStr2, InnerStr,
+    FromStr2, FStrAll, Wh2, WhTS2, yNm: String;
   i: Integer;
   Fl: TRpField;
-  Sim, NeedGroup: Boolean;
+  CanEdit, NeedGroup, HasGetFn, MinMaxPass, ReduceSQL: Boolean;
   Col: TRpGridSortData;
   Tp: TRpFieldType;
-  //CF: TRpCalcField;
 begin
   Result := '';
   if RD.Sources.Count = 0 then Exit;
@@ -1583,10 +1612,13 @@ begin
   HavTS := '';
 
   NeedGroup := False;
+  HasGetFn := HasGetFunc(Sr);
+  ReduceSQL := (RD.Sources.Count = 1) and (RD.Kind = rkQuery);
+
   for i := 0 to Sr.Fields.Count - 1 do
   begin
     Fl := RD.FindField(Sr.Fields[i]^.Id)^;
-    if Fl.Tp = flNone then Continue;
+    if (Fl.Tp = flNone) or (Fl.Func = tfGet) then Continue;
     Nm := 'f' + IntToStr(Fl.Id);
 
     if Fl.Param then
@@ -1599,15 +1631,15 @@ begin
       end
       else
       begin
-        S := GetWhereClause(ARecordSet.Session, Fl);
+        S := GetWhereClause(ARecordSet.Session, Fl, False);
         if S <> '' then
           Wh := Wh + S + ' and '
       end;
     end;
 
-    if Fl.TextSearch then
+    if Fl.TextSearch and not HasGetFn then
     begin
-      S := GetTextSearchClause(ARecordSet.Session, RD, Fl);
+      S := GetTextSearchClause(ARecordSet.Session, RD, Fl, False);
       if S <> '' then
       begin
         if Fl.Func = tfNone then
@@ -1622,14 +1654,6 @@ begin
     if i = RD.DateField then
     begin
       FStr := FStr + GetDateDetailSql(RD, Fl) + ' as ' + Nm + ',';
-      {case RD.DateDetail of
-        ddDay: FStr := FStr + Nm + ',';
-        ddWeek: FStr := FStr + Format('(extract (year from %0:s) || ''.'' || trim(iif(extract (week from %0:s) < 10, ''0'', '''') || (extract (week from %0:s)))) as %0:s,', [Nm]);
-        ddMonth: FStr := FStr + Format('(extract (year from %0:s) || ''.'' || trim(iif(extract (month from %0:s) < 10, ''0'', '''') || (extract (month from %0:s)))) as %0:s,', [Nm]);
-        ddQuart: FStr := FStr + Format('(extract (year from %0:s)  || ''.'' || ROUND((CAST(EXTRACT(MONTH FROM %0:s) AS FLOAT)/3 + 0.3))) as %0:s,', [Nm]);
-        ddHalfYear: FStr := FStr + Format('(extract (year from %0:s)  || ''.'' ||iif(extract(month from %0:s) <= 6, 1, 2)) as %0:s,', [Nm]);
-        ddYear: FStr := FStr + Format('(extract (year from %0:s)) as %0:s,', [Nm]);
-      end;}
       GStr := GStr + Nm + ',';
       NeedGroup := True;
     end
@@ -1672,7 +1696,7 @@ begin
   for i := 0 to RD.Sources.Count - 1 do
   begin
     try
-      FromStr := FromStr + SqlSourceSelect2(ARecordSet, RD.Sources[i]^);
+      FromStr := FromStr + SqlSourceSelect2(RD, ARecordSet, RD.Sources[i]^, ReduceSQL, False);
     except
       on E: EFilterParserError do
         raise ESourceFilterError.Create(E.Message, RD.Sources[i]^.Filter, i+1, E.Position);
@@ -1680,8 +1704,8 @@ begin
     if i < RD.Sources.Count - 1 then FromStr := FromStr + ' union all ';
   end;
 
-  Sim := RD.IsSimple;
-  if Sim then
+  CanEdit := RD.CanEdit;
+  if CanEdit and not HasGetFn then
   begin
     S := ' ' + TableStr(RD.Sources[0]^.Id) + '.id as id';
     if RD.Sources[0]^.TId > 0 then S := S + ',' + TableStr(RD.Sources[0]^.TId) + '.id as tid';
@@ -1690,48 +1714,163 @@ begin
     if RD.Sources[0]^.TId > 0 then FStr := 'tid,' + FStr;
     FStr := 'id,' + FStr;
   end;
-  // Добавляем поля-пустышки для вычисляемых полей
-  (*for i := 0 to RD.CalcFields.Count - 1 do
-  begin
-    CF := RD.CalcFields[i]^;
-    case CF.Tp of
-      flNumber: S := '0.0';
-      flDate: S := 'CURRENT_DATE';
-      flTime: S := 'CURRENT_TIME';
-      else S := Format('(CAST('' '' AS VARCHAR(%d)))', [CF.Size])
-      //else S := '(''' + DupeString(' ', CF.Size) + ''')';
-    end;
-    //FStr := FStr + '(''' + DupeString(' ', 200) + ''') as cf' +
-    FStr := FStr + S + ' as cf' + IntToStr(CF.Id) + ',';
-  end; *)
-  //
+
   FStr := Copy(FStr, 1, Length(FStr) - 1);
   GStr := Copy(GStr, 1, Length(GStr) - 1);
-  Result := 'select ';
-  if RD.FirstRecordCount > 0 then
-    Result := Result + 'first ' + IntToStr(RD.FirstRecordCount) + ' ';
-  Result := Result + FStr + ' from (' + FromStr + ') ';
-  if Wh <> '' then
-    Result := Result + ' where ' + Wh;
-  if WhTS <> '' then
+
+  if not ReduceSQL then
   begin
-    if Wh <> '' then Result := Result + ' and '
-    else Result := Result + ' where ';
-    Result := Result + '(' + WhTS + ')';
-  end;
-  if (not Sim) and NeedGroup then
-  begin
-    if GStr <> '' then
-      Result := Result + ' group by ' + GStr;
-    if Hav <> '' then
-      Result := Result + ' having ' + Hav;
-    if HavTS <> '' then
+    Result := 'select ';
+    Result := Result + FStr + ' from (' + FromStr + ') ';
+
+    if Wh <> '' then
+      Result := Result + ' where ' + Wh;
+    if WhTS <> '' then
     begin
-      if Hav <> '' then Result := Result + ' and '
-      else Result := Result + ' having ';
-      Result := Result + '(' + HavTS + ')';
+      if Wh <> '' then Result := Result + ' and '
+      else Result := Result + ' where ';
+      Result := Result + '(' + WhTS + ')';
     end;
+    if {(not Sim) and} NeedGroup then
+    begin
+      if GStr <> '' then
+        Result := Result + ' group by ' + GStr;
+      if Hav <> '' then
+        Result := Result + ' having ' + Hav;
+      if HavTS <> '' then
+      begin
+        if Hav <> '' then Result := Result + ' and '
+        else Result := Result + ' having ';
+        Result := Result + '(' + HavTS + ')';
+      end;
+    end;
+  end
+  else
+  begin
+    Result := FromStr;
+    if NeedGroup and (GStr <> '') then
+      Result := Result + ' group by ' + GStr;
   end;
+
+  if HasGetFn then
+  begin
+    FStrAll := '';
+    FStr2 := '';
+    InnerStr := '';
+    FromStr2 := '';
+    Wh2 := '';
+    WhTS2 := '';
+    MinMaxPass := False;
+    for i := 0 to Sr.Fields.Count - 1 do
+    begin
+      Fl := RD.FindField(Sr.Fields[i]^.Id)^;
+      if Fl.Tp = flNone then Continue;
+
+      if Fl.Param then
+      begin
+        S := GetWhereClause(ARecordset.Session, Fl, True);
+        if S <> '' then Wh2 := Wh2 + S + ' and ';
+      end;
+
+      if Fl.TextSearch then
+      begin
+        S := GetTextSearchClause(ARecordset.Session, RD, Fl, Fl.Func = tfGet);
+        if S <> '' then WhTS2 := WhTS2 + S + ' or '
+      end;
+
+      if not Fl.Visible then Continue;
+
+      Nm := 'f' + IntToStr(Fl.Id);
+      yNm := 'y' + Nm;
+
+      if Fl.Func = tfGet then
+      begin
+        FStr2 := FStr2 + yNm + ',';
+        FStrAll := FStrAll + yNm + ' as ' + Nm + ',';
+
+        Tp := GetLowField(@Fl)^.Tp;
+        if Tp = flImage then
+        begin
+          FStr2 := FStr2 + yNm + 'dest,' + yNm + 'thumb,' + yNm + 'data,';
+          FStrAll := FStrAll + yNm + 'dest as ' + Nm + 'dest,' + yNm + 'thumb as ' + Nm + 'thumb,' + yNm + 'data as ' + Nm + 'data,' ;
+        end
+        else if Tp = flFile then
+        begin
+          FStr2 := FStr2 + yNm + 'src,' + yNm + 'dest,' + yNm + 'data,';
+          FStrAll := FStrAll + yNm + 'src as ' + Nm + 'src,' + yNm + 'dest as ' + Nm + 'dest,' + yNm + 'data as ' + Nm + 'data,';
+        end;
+      end
+      else
+      begin
+        FStrAll := FStrAll + Nm + ',';
+
+        if Fl.Func in [tfNone, tfMin, tfMax] then
+        begin
+          // Только первая функция Минимум/Максимум идет в условие соединения
+          if Fl.Func in [tfMin, tfMax] then
+          begin
+            if not MinMaxPass then
+            begin
+              FStr2 := FStr2 + yNm + ',';
+              InnerStr := InnerStr + 'x.' + Nm + '=y.' + yNm + ' and ';
+              MinMaxPass := True;
+            end;
+          end
+          else
+          begin
+            FStr2 := FStr2 + yNm + ',';
+            InnerStr := InnerStr + 'x.' + Nm + '=y.' + yNm + ' and ';
+          end;
+        end;
+      end;
+    end;
+    SetLength(FStrAll, Length(FStrAll) - 1);
+    SetLength(FStr2, Length(FStr2) - 1);
+    SetLength(Wh2, Length(Wh2) - 5);
+    SetLength(WhTS2, Length(WhTS2) - 4);
+    SetLength(InnerStr, Length(InnerStr) - 5);
+
+    for i := 0 to RD.Sources.Count - 1 do
+    begin
+      try
+        FromStr2 := FromStr2 + SqlSourceSelect2(RD, ARecordSet, RD.Sources[i]^, ReduceSQL, True);
+      except
+        on E: EFilterParserError do
+          raise ESourceFilterError.Create(E.Message, RD.Sources[i]^.Filter, i+1, E.Position);
+      end;
+      if i < RD.Sources.Count - 1 then FromStr2 := FromStr2 + ' union all ';
+    end;
+
+    if CanEdit then
+    begin
+      S := TableStr(RD.Sources[0]^.Id) + '.id as id,';
+      if RD.Sources[0]^.TId > 0 then S := S + TableStr(RD.Sources[0]^.TId) + '.id as tid,';
+      Insert(S, FromStr2, 8);
+      S := 'id,';
+      if RD.Sources[0]^.TId > 0 then S := S + 'tid,';
+      FStrAll := S + FStrAll;
+      FStr2 := S + FStr2;
+    end;
+
+    if not ReduceSQL then
+    begin
+      Result := 'select ' + FStrAll + ' from (' + Result + ') x inner join (select ' +
+        FStr2 + ' from (' + FromStr2 + ')';
+      if Wh2 <> '' then
+        Result := Result + ' where ' + Wh2;
+      Result := Result + ') y on ' + InnerStr;
+    end
+    else
+    begin
+      Result := 'select ' + FStrAll + ' from (' + Result + ') x inner join (' +
+        FromStr2 + ')';
+      Result := Result + ' y on ' + InnerStr;
+    end;
+    if WhTS2 <> '' then Result := Result + ' where ' + WhTS2;
+  end;
+
+  if RD.FirstRecordCount > 0 then
+    Insert('first ' + IntToStr(RD.FirstRecordCount) + ' ', Result, 8);
 
   // Сортировка. Пропускаем вычисляемые поля.
   Srt := '';
@@ -1747,6 +1886,7 @@ begin
   if Srt <> '' then
     Result := Result + ' order by ' + Srt;
   //DebugStr(Result);
+  //ARecordset.Session.Debug(Result);
 end;
 
 function InnerSqlReportSelectSQL(RD: TReportData; ARecordSet: TObject): String;

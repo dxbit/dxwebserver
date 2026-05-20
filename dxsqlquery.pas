@@ -117,6 +117,7 @@ type
     FTableName: String;
     FFields, FAliases: TStringList;
     FLosts: TList;
+    FStatList: TList;
     function PrepareSQLExpr(const S: String): String;
     //function ReplaceBrackets(const S: String): String;
     function ReplaceFieldName(S: String; Fm: TdxForm; const AliasName: String): String;
@@ -190,6 +191,7 @@ begin
       '''', '"':
         begin
           Ch := S[i];
+          Inc(i);
           while (i <= L) and (S[i] <> Ch) do
             Inc(i);
           Result := Result + Copy(S, p0, i - p0 + 1);
@@ -280,7 +282,7 @@ begin
             else if VarIsNumeric(V) then
               Value := VarToStr(V)
             else
-              Value := '''' + VarToStr(V) + '''';
+              Value := '''' + EscapeSQuotes(VarToStr(V)) + '''';
           end;
           {else
             Value := 'null';  }
@@ -299,6 +301,20 @@ begin
                 Inc(i);
                 Break;
               end;
+              Inc(i);
+            end;
+            Result := Result + Copy(S, p0, i - p0 + 1);
+          end
+          else
+            Result := Result + S[i];
+        end;
+      '-':
+        begin
+          if Copy(S, i + 1, 1) = '-' then
+          begin
+            while i <= L do
+            begin
+              if S[i] in [#13, #10] then Break;
               Inc(i);
             end;
             Result := Result + Copy(S, p0, i - p0 + 1);
@@ -611,6 +627,7 @@ begin
   	S := T.AliasName.Name;
   ReplaceFieldNames(Stat, Fm, S);
   T.ObjectName.Name := TableStr(Fm.Id);
+  FStatList.Add(Stat);
 end;
 
 procedure TdxSQLParser.ParseSelectTableRef(T: TSQLSelectTableReference);
@@ -638,6 +655,7 @@ procedure TdxSQLParser.ParseSelectStatement(Stat: TSQLSelectStatement);
 var
   i: Integer;
   T: TSQLElement;
+  Dummy: Boolean;
 begin
   if Stat.WithSelect <> nil then
   	for i := 0 to Stat.WithSelect.SelectList.Count - 1 do
@@ -655,6 +673,13 @@ begin
     else if T is TSQLSelectTableReference then
     	ParseSelectTableRef(TSQLSelectTableReference(T));
   end;
+
+  if FStatList.IndexOf(Stat) < 0 then
+  begin
+    Stat.Where := ProcessSQLExpression(Stat.Where, nil, '', Dummy);
+    Stat.Having := ProcessSQLExpression(Stat.Having, nil, '', Dummy);
+  end;
+
   if Stat.Union <> nil then
   	ParseSelectStatement(Stat.Union);
 end;
@@ -726,10 +751,12 @@ begin
   FFields := TStringList.Create;
   FAliases := TStringList.Create;
   FLosts := TList.Create;
+  FStatList := TList.Create;
 end;
 
 destructor TdxSQLParser.Destroy;
 begin
+  FStatList.Free;
   ClearList(FLosts);
   FLosts.Free;
   FFields.Free;
@@ -745,6 +772,7 @@ var
 begin
   Result := '';
   El := nil;
+  FStatList.Clear;
 	St := TStringStream.Create(PrepareSQLExpr(SQL));
   Parser := TSQLParser.Create(St);
   try

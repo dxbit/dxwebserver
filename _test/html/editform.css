@@ -383,6 +383,13 @@ img.err {
 	object-fit: scale-down;
 }
 
+/* Надпись */
+.label { }
+
+.label.clickable:hover {
+	text-decoration: underline;
+}
+
 /* Текст */
 .text { }
 
@@ -416,6 +423,9 @@ img.err {
 /* Фигура */
 .shape { }
 
+/* Фоновое изображение */
+.image { }
+
 /* Диаграммы (заглушка) */
 .chart {
     background-color: #F5F5DC;
@@ -423,6 +433,11 @@ img.err {
 
 .tabsarea .chart {
     background-color: #FDFDE9;
+}
+
+/* Все что можно кликнуть, кроме кнопки: надпись, фигура, фоновое изображение */
+.clickable {
+	cursor: pointer
 }
 
 /* Заглушка - нет доступа к компоненту */
