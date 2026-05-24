@@ -22,10 +22,10 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="26"/>
-      <MinorVersionNr Value="3"/>
-      <RevisionNr Value="3"/>
+      <MinorVersionNr Value="5"/>
+      <RevisionNr Value="24"/>
       <Language Value="0419"/>
-      <StringTable CompanyName="Pavel Duborkin" FileDescription="DataExpress Web Server" LegalCopyright="Copyright © 2016-2026 Pavel Duborkin" OriginalFilename="dxwebsrv.exe" ProductName="DataExpress Web Server" ProductVersion="26.3.3"/>
+      <StringTable CompanyName="Pavel Duborkin" FileDescription="DataExpress Web Server" LegalCopyright="Copyright © 2016-2026 Pavel Duborkin" OriginalFilename="dxwebsrv.exe" ProductName="DataExpress Web Server" ProductVersion="26.5.24"/>
     </VersionInfo>
     <BuildModes Count="4">
       <Item1 Name="Linux64" Default="True"/>
@@ -57,6 +57,9 @@
             </CompilerMessages>
             <CustomOptions Value="-dUseCThreads
 -dHeapTrc"/>
+            <OtherDefines Count="1">
+              <Define0 Value="UseCThreads"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item2>

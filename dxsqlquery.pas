@@ -227,7 +227,7 @@ begin
               begin
                 Value := VarToStr(V);
                 if not IsNumericComponent(RS.Session, C) then
-                  Value := '''' + Value + '''';
+                  Value := '''' + EscapeSQuotes(Value) + '''';
               end;
             end
             else

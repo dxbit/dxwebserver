@@ -36,7 +36,7 @@ type
   TSsRecordSets = class;
 
   TSsRecordSetState = (rstInsert, rstPost, rstPrint, rstKeepPos, rstRecalculate,
-    rstDuplicate);
+    rstDuplicate, rstOpening);
   TSsRecordSetStates = set of TSsRecordSetState;
 
   { TSsRecordSet }
@@ -2743,10 +2743,11 @@ var
   n: LongInt;
 begin
   Result := True;
-  if not FNeedRequery then Exit;
+  if not FNeedRequery or (rstOpening in FState) then Exit;
   FNeedRequery := False;
+  Include(FState, rstOpening);
 
-  try
+  try try
 
   if FForm <> nil then
   begin
@@ -2794,8 +2795,8 @@ begin
     FDataSet.MaxIndexesCount := 100;
 
     SQL := SqlReportSelect(FRD, Self);
-    if FDataSet.Active then Exit    // В процессе вычислений уже может быть открыт.
-    else if SQL = '' then Exit(False);
+    {if FDataSet.Active then Exit    // В процессе вычислений уже может быть открыт.
+    else} if SQL = '' then Exit(False);
 
     FDataSet.SQL.Text := SQL;
     FDataSet.DeleteSQL.Text := 'delete from rdb$database';
@@ -2805,6 +2806,7 @@ begin
     CalcQuery(Self);
     FilterQuery(Self);
     BuildSortIndexes(FRD, FDataSet);
+    Exclude(FState, rstOpening);
 
     if (rstKeepPos in FState) and (n > 0) then
     begin
@@ -2838,6 +2840,10 @@ begin
         FForm.Errs.Add(FForm.FormCaption + ': ' + E.Message);
       Result := False;
     end;
+  end;
+
+  finally
+    Exclude(FState, rstOpening);
   end;
 end;
 

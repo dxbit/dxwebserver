@@ -356,6 +356,27 @@ var
   end;
 
 begin
+  if AGrid.Id = 0 then
+  begin
+    if (ARow < AGrid.FixedRows) or (ACol < AGrid.FixedCols) then
+    begin
+      CSSClass := 'pgrid-cf';
+      AColor := AGrid.Colors.FixedCellBkGnd;
+      AFont := AGrid.FixedFont;
+      ABorderColor := AGrid.Colors.FixedCellLines;
+    end
+    else
+    begin
+      CSSClass := 'pgrid-c';
+      AColor := AGrid.Colors.CellBkGnd;
+      AFont := AGrid.Font;
+      ABorderColor := AGrid.Colors.CellLines;
+    end;
+    AHAlign := halLeft;
+    AVAlign := valCenter;
+    Exit;
+  end;
+
   Clr := clNone;
   BrdClr := clNone;
   CSSClass := '';
@@ -581,7 +602,7 @@ var
   end;
 
 begin
-  if Grid.NeedBuild then Grid.Build;
+  if (Grid.Id > 0) and Grid.NeedBuild then Grid.Build;
 
   Spans := TList.Create;
 

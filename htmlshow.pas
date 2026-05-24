@@ -1086,7 +1086,10 @@ begin
           V2 := JsonVal['valueEnd'].AsString
         else
           V2 := '';
-        Tp := GetLowField(pF)^.Tp;
+        //Tp := GetLowField(pF)^.Tp;
+        if pF^.Func in [tfCount, tfDistCount] then Tp := flNumber
+        else if pF^.Func in [tfMerge, tfMergeAll] then Tp := flText
+        else Tp := GetLowField(pF)^.Tp;
         if not CheckFltFieldValue(Tp, V1, V2) then Continue;
         V := V1;
         if (Tp in [flNumber, flDate, flTime, flCounter, flRecId]) and ((V <> '') or (V2 <> '')) then
@@ -1287,7 +1290,7 @@ var
   Rp: TReportData;
   Sr: TRpSource;
   rF: TRpField;
-  F: TdxField;
+  F, TmpF: TdxField;
   SortCol: TRpGridSortData;
   si, EditFmId: Integer;
   RS: TSsRecordSet;
@@ -1358,7 +1361,13 @@ begin
     begin
       rF := Sr.Fields[i]^;
       if not rF.Param then Continue;
-      F := RpFieldToFormField(FSS, Rp, rF.Id);
+
+      TmpF := nil;
+      if rF.Func in [tfCount, tfDistCount] then TmpF := TdxCalcEdit.Create(nil)
+      else if rF.Func in [tfMerge, tfMergeAll] then TmpF := TdxEdit.Create(nil)
+      else F := RpFieldToFormField(FSS, Rp, rF.Id);
+      if TmpF <> nil then F := TmpF;
+
       Flt := Flt + '<div class=filter-item data-id=' + IntToStr(rF.Id) +
         '><div class=field><span>' + rF.Name + '</span><input type=checkbox' +
         IIF(rF.No, ' checked', '') + '><span>' + rsNot + '</span><input type=checkbox' +
@@ -1373,6 +1382,7 @@ begin
           '<button class=fltbn type=button onclick="delValue(this)"><img src="/img/delete.svg"></button>' +
           '<button class=fltbn type=button onclick="addValue(this)"><img src="/img/add.svg"></button></div>';
       end;
+      FreeAndNil(TmpF);
 
       Flt := Flt + '</div>';
     end;
@@ -4735,7 +4745,9 @@ begin
       C.Build;
       Result := Result + PivotGridToHtml(C);
     end;
-  end;
+  end
+  else
+    Result := Result + PivotGridToHtml(C);
   Result := Result + '</div>';
 end;
 

@@ -1138,7 +1138,7 @@ var
       end
       else if ReduceSQL and not IsGet and not (TopFl.Func in [tfNone, tfGet]) then
       begin
-        FStr := FStr + GetFuncSql(SS, TopFl, FlNm) + ' as ' + TopFlNm + ',';
+        FStr := FStr + GetFuncSql(SS, TopFl, IIF(Fl.Tp <> flRecId, FlNm, TblNm + '.id')) + ' as ' + TopFlNm + ',';
       end
       else if ReduceSQL and not IsGet and (FieldIndex = RD.DateField) then
         FStr := FStr + GetDateDetailSql(RD, Fl, FlNm) + ' as ' + TopFlNm + ','
@@ -1241,7 +1241,7 @@ begin
   end;
 end;
 
-function GetHavingClause(SS: TSession; Fl: TRpField): String;
+function GetHavingClause(SS: TSession; Fl: TRpField; IsGet: Boolean): String;
 var
   i, p: Integer;
   S, V1, V2, Fn, rS, Tmp, AbsValue1, AbsValue2: String;
@@ -1251,7 +1251,8 @@ var
 begin
   rS := '';
   Result := '';
-  Fn := GetFuncSql(SS, Fl);
+  if not IsGet then Fn := GetFuncSql(SS, Fl)
+  else Fn := FieldStr(Fl.Id);
   if Fl.Func in [tfCount, tfDistCount] then Tp := flNumber
   else if Fl.Func in [tfMerge, tfMergeAll] then Tp := flText
   else Tp := GetLowField(@Fl)^.Tp;
@@ -1306,15 +1307,19 @@ begin
     else if Tp in [flCounter, flRecId] then
     begin
       if V1 <> '' then
-      	Tmp := Tmp + Fn + '>=' + V1 + ' and ';
+      	Tmp := Tmp + Fn + '>=' + CheckNumber(V1) + ' and ';
     	if V2 <> '' then
-        Tmp := Tmp + Fn + '<=' + V2 + ' and ';
+        Tmp := Tmp + Fn + '<=' + CheckNumber(V2) + ' and ';
       Tmp := Copy(Tmp, 1, Length(Tmp) - 5);
       rS := rS + '(' + Tmp + ') or ';
     end
     else if Tp = flText then
     begin
       rS := rS + Fn + ' containing ''' + EscapeSQuotes(V1) + ''' or ';
+    end
+    else if Tp = flBool then
+    begin
+      rS := rS + Fn + '=' + V1 + ' or ';
     end
     else if Tp = flObject then
     begin
@@ -1336,7 +1341,7 @@ begin
   SL.Free;
 end;
 
-function GetWhereClause(SS: TSession; aFl: TRpField; IsGet: Boolean): String;
+function GetWhereClause(SS: TSession; aFl: TRpField): String;
 var
   S, Bg, Ed, FlNm, W, Tmp, AbsValue: String;
   p: Integer;
@@ -1349,7 +1354,7 @@ begin
   SL := TStringList.Create;
   SplitStr(aFl.Value, ';', SL);
   FlNm := 'f' + IntToStr(aFl.Id);
-  if IsGet then FlNm := 'y' + FlNm;
+  if aFl.Func = tfGet then FlNm := 'y' + FlNm;
   Tp := GetLowField(@aFl)^.Tp;
 
   W := '';
@@ -1468,20 +1473,22 @@ begin
   SL := TStringList.Create;
   SplitStr(Text, ' ', SL);
 
-  if (aFl.Func <> tfNone) and not IsGet then
+  if not (aFl.Func in [tfNone, tfGet]) {and not IsGet} then
   begin
-    FlNm := GetFuncSql(SS, aFl);
+    if not IsGet then FlNm := GetFuncSql(SS, aFl)
+    else FlNm := FieldStr(aFl.Id);
     if aFl.Func in [tfCount, tfDistCount] then Tp := flCounter
     else if aFl.Func in [tfMerge, tfMergeAll] then Tp := flText
     else Tp := GetLowField(@aFl)^.Tp;
   end
   else
   begin
-    FlNm := 'f' + IntToStr(aFl.Id);
+    FlNm := FieldStr(aFl.Id);
     Tp := GetLowField(@aFl)^.Tp;
+    if IsGet then FlNm := 'y' + FlNm;
   end;
 
-  if IsGet then FlNm := 'y' + FlNm;
+  //if IsGet then FlNm := 'y' + FlNm;
 
   W := '';
   for i := 0 to SL.Count - 1 do
@@ -1587,6 +1594,15 @@ begin
     if Sr.Fields[i]^.Func = tfGet then Exit(True);
 end;
 
+function HasTextSearch(Sr: TRpSource): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  for i := 0 to Sr.Fields.Count - 1 do
+    if Sr.Fields[i]^.TextSearch then Exit(True);
+end;
+
 function InnerSqlReportSelect(RD: TReportData; ARecordSet: TSsRecordSet): String;
 var
   Sr: TRpSource;
@@ -1613,7 +1629,7 @@ begin
 
   NeedGroup := False;
   HasGetFn := HasGetFunc(Sr);
-  ReduceSQL := (RD.Sources.Count = 1) and (RD.Kind = rkQuery);
+  ReduceSQL := (RD.Sources.Count = 1) and (RD.Kind = rkQuery) and not HasTextSearch(Sr);
 
   for i := 0 to Sr.Fields.Count - 1 do
   begin
@@ -1621,21 +1637,23 @@ begin
     if (Fl.Tp = flNone) or (Fl.Func = tfGet) then Continue;
     Nm := 'f' + IntToStr(Fl.Id);
 
-    if Fl.Param then
+    if Fl.Param and not HasGetFn then
     begin
       if Fl.Func <> tfNone then
       begin
-        S := GetHavingClause(ARecordSet.Session, Fl);
+        S := GetHavingClause(ARecordSet.Session, Fl, False);
         if S <> '' then
           Hav := Hav + S + ' and '
       end
       else
       begin
-        S := GetWhereClause(ARecordSet.Session, Fl, False);
+        S := GetWhereClause(ARecordSet.Session, Fl);
         if S <> '' then
           Wh := Wh + S + ' and '
       end;
     end;
+
+    if not Fl.Visible then Continue;
 
     if Fl.TextSearch and not HasGetFn then
     begin
@@ -1648,8 +1666,6 @@ begin
           HavTS := HavTS + S + ' or ';
       end;
     end;
-
-    if not Fl.Visible then Continue;
 
     if i = RD.DateField then
     begin
@@ -1768,17 +1784,20 @@ begin
 
       if Fl.Param then
       begin
-        S := GetWhereClause(ARecordset.Session, Fl, True);
+        if Fl.Func in [tfNone, tfGet] then
+          S := GetWhereClause(ARecordset.Session, Fl)
+        else
+          S := GetHavingClause(ARecordset.Session, Fl, True);
         if S <> '' then Wh2 := Wh2 + S + ' and ';
       end;
 
+      if not Fl.Visible then Continue;
+
       if Fl.TextSearch then
       begin
-        S := GetTextSearchClause(ARecordset.Session, RD, Fl, Fl.Func = tfGet);
+        S := GetTextSearchClause(ARecordset.Session, RD, Fl, True);
         if S <> '' then WhTS2 := WhTS2 + S + ' or '
       end;
-
-      if not Fl.Visible then Continue;
 
       Nm := 'f' + IntToStr(Fl.Id);
       yNm := 'y' + Nm;
@@ -1856,8 +1875,8 @@ begin
     begin
       Result := 'select ' + FStrAll + ' from (' + Result + ') x inner join (select ' +
         FStr2 + ' from (' + FromStr2 + ')';
-      if Wh2 <> '' then
-        Result := Result + ' where ' + Wh2;
+      {if Wh2 <> '' then
+        Result := Result + ' where ' + Wh2;}
       Result := Result + ') y on ' + InnerStr;
     end
     else
@@ -1866,7 +1885,15 @@ begin
         FromStr2 + ')';
       Result := Result + ' y on ' + InnerStr;
     end;
-    if WhTS2 <> '' then Result := Result + ' where ' + WhTS2;
+    if Wh2 <> '' then
+      Result := Result + ' where ' + Wh2;
+    if WhTS2 <> '' then
+    begin
+      if Wh2 <> '' then Result := Result + ' and '
+      else Result := Result + ' where ';
+      Result := Result + '(' + WhTS2 + ')';
+    end;
+    //if WhTS2 <> '' then Result := Result + ' where ' + WhTS2;
   end;
 
   if RD.FirstRecordCount > 0 then
