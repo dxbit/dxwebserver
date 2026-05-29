@@ -1954,6 +1954,26 @@ begin
   end;
 end;
 
+procedure TdxPanelBevelColor_R(Self: TdxPanel; var T: TColor); begin T := Self.BevelColor; end;
+procedure TdxPanelBevelColor_W(Self: TdxPanel; T: TColor); begin Self.BevelColor := T; end;
+procedure TdxPanelBevelRadius_R(Self: TdxPanel; var T: Integer); begin T := Self.BevelRadius; end;
+procedure TdxPanelBevelRadius_W(Self: TdxPanel; T: Integer); begin Self.BevelRadius := T; end;
+procedure TdxPanelBevelStyle_R(Self: TdxPanel; var T: TdxPanelBevelStyle); begin T := Self.BevelStyle; end;
+procedure TdxPanelBevelStyle_W(Self: TdxPanel; T: TdxPanelBevelStyle); begin Self.BevelStyle := T; end;
+procedure TdxPanelBevelWidth_R(Self: TdxPanel; var T: Integer); begin T := Self.BevelWidth; end;
+procedure TdxPanelBevelWidth_W(Self: TdxPanel; T: Integer); begin Self.BevelWidth := T; end;
+
+procedure RIRegister_dxPanel(Cl: TPSRuntimeClassImporter);
+begin
+  with Cl.Add(TdxPanel) do
+  begin
+    RegisterPropertyHelper(@TdxPanelBevelColor_R, @TdxPanelBevelColor_W, 'BevelColor');
+    RegisterPropertyHelper(@TdxPanelBevelRadius_R, @TdxPanelBevelRadius_W, 'BevelRadius');
+    RegisterPropertyHelper(@TdxPanelBevelStyle_R, @TdxPanelBevelStyle_W, 'BevelStyle');
+    RegisterPropertyHelper(@TdxPanelBevelWidth_R, @TdxPanelBevelWidth_W, 'BevelWidth');
+  end;
+end;
+
 procedure TdxRecordIdFieldName_R(Self: TdxRecordId; var T: String); begin T := Self.FieldName; end;
 procedure TdxRecordIdId_R(Self: TdxRecordId; var T: Integer); begin T := Self.Id; end;
 
@@ -2544,6 +2564,7 @@ begin
   RIRegister_dxPageControl(Cl);
   RIRegister_dxTabSheet(Cl);
   RIRegister_dxGroupBox(Cl);
+  RIRegister_dxPanel(Cl);
   RIRegister_dxForm(Cl);
   RIRegister_Session(Cl);
 end;
