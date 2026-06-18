@@ -4922,7 +4922,7 @@ begin
   TplFullName := RS.Session.GetTemplatesPath +
     StringReplace(TemplateName, '\', DirectorySeparator, [rfReplaceAll]);
   if not FileExists(TplFullName) then
-    raise Exception.CreateFmt(rsTemplateNotFound, [TemplateName]);
+    raise Exception.CreateFmt(rsTemplateNotFound, [TemplateName + ' (' + TplFullName + ')']);
 
   if OutFileName = '' then
     OutName := ExtractFileName(TplFullName)

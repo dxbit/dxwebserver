@@ -3547,7 +3547,7 @@ begin
 
   if not TryStrToInt(AParams.Values['id'], QId) then Exit(MakeJsonErrString(rcAnyError, 'Invalid query id'));
   QRS := CurRS.Queries.FindRpById(QId);
-  if (QRS = nil) or (QRS.RD.Sources.Count = 0) then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
+  if (QRS = nil) or QRS.RD.IsEmpty then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
   Fm := FSS.FormMan.FindForm(QRS.RD.GetEditFormId);
   if Fm = nil then Exit(MakeJsonErrString(rcAnyError, 'Fm=nil'));
 
@@ -3619,7 +3619,7 @@ begin
     Exit(MakeJsonErrString(rcInvalidFreshValue, rsInvalidFreshValueMsg));
 
   QRS := FRS.Queries.FindRpById(QId);
-  if (QRS = nil) or (QRS.RD.Sources.Count = 0) then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
+  if (QRS = nil) or QRS.RD.IsEmpty then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
   Fm := FSS.FormMan.FindForm(QRS.RD.GetEditFormId);
   if Fm = nil then Exit(MakeJsonErrString(rcAnyError, 'Fm=nil'));
 
@@ -3675,7 +3675,7 @@ begin
     Exit(MakeJsonErrString(rcInvalidFreshValue, rsInvalidFreshValueMsg));
 
   QRS := FRS.Queries.FindRpById(QId);
-  if (QRS = nil) or (QRS.RD.Sources.Count = 0) then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
+  if (QRS = nil) or QRS.RD.IsEmpty then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
   Fm := FSS.FormMan.FindForm(QRS.RD.GetEditFormId);
   if Fm = nil then Exit(MakeJsonErrString(rcAnyError, 'Fm=nil'));
 
@@ -3745,7 +3745,7 @@ begin
     Exit(MakeJsonErrString(rcInvalidFreshValue, rsInvalidFreshValueMsg));
 
   QRS := FRS.Queries.FindRpById(QId);
-  if (QRS = nil) or (QRS.RD.Sources.Count = 0) then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
+  if (QRS = nil) or QRS.RD.IsEmpty then Exit(MakeJsonErrString(rcAnyError, 'QRS=nil or empty query'));
   try
     Result := ShowQueryGridRecords(QRS, SkipRecs, FetchDirect);
     FResultCode := rcAjaxOk;
