@@ -758,7 +758,7 @@ begin
   end;
   Btns := '<button type=submit><img src="/img/ok.svg"></button><button type=button' +
     ' onclick="goBack()"><img src="/img/back.svg"></button>';
-  Btns := Btns + '<span>' + '<img src="/img/filterfm.svg">' + Fm.GetRecordsCaption + '</span>';
+  Btns := Btns + '<span>' + '<img src="/img/filterfm.svg">' + StrToHtml(Fm.GetRecordsCaption) + '</span>';
 
   Flds := ''; Ctrls := '';
   SL := TStringListUtf8.Create;
@@ -800,7 +800,7 @@ begin
 
   Result := LoadString(GetHtmlPath + 'filterform.html');
   Result := StringReplace(Result, '[lng]', AppSet.Language, []);
-  Result := StringReplace(Result, '[title]', Fm.GetRecordsCaption, []);
+  Result := StringReplace(Result, '[title]', StrToHtml(Fm.GetRecordsCaption), []);
   Result := StringReplace(Result, '[javascript]', GetJsCode(False), []);
   //Result := StringReplace(Result, '[resourcestrings]', Res, []);
   Result := StringReplace(Result, '[user]', ShowUser, []);
@@ -1236,7 +1236,7 @@ var
   i: Integer;
 begin
   i := RD.IndexOfNameDS(FieldName);
-  Assert(i < 0, 'GetRpFieldType: i < 0');
+  Assert(i >= 0, 'GetRpFieldType: i < 0');
 
   FTp := RD.GetFieldType(i);
   Fmt := RD.GetDisplayFormat(i);
@@ -1275,7 +1275,7 @@ begin
         T.Value := VarToStr(V);
     except
       on Ex: Exception do
-        T.Value := Ex.Message;
+        T.Value := StrToHtml(Ex.Message);
     end;
     Result := Result + '<td>' + T.Value + '</td></tr>';
   end;
@@ -1438,7 +1438,7 @@ begin
     Data := S + ShowReportRecords(RS, 0) + '</tbody></table>';
   except
     on E: Exception do
-      Data := E.Message;
+      Data := StrToHtml(E.Message);
   end;
 
   Result := LoadString(GetHtmlPath + 'report.html');
@@ -1673,7 +1673,7 @@ begin
           Cls := '';
         Fm := FSS.FormMan.FindForm(FmId);
         S := S + '<span' + Cls + '><a href="' + GetFormHRef(Fm) + '">' +
-          Fm.GetRecordsCaption + '</a></span>';
+          StrToHtml(Fm.GetRecordsCaption) + '</a></span>';
       end;
     end
   else
@@ -1692,7 +1692,7 @@ begin
           Cls := '';
         Fm := FSS.FormMan.FindForm(FmId);
         S := S + '<span' + Cls + '><a href="' + GetFormHRef(Fm) + '">' +
-          Fm.GetRecordsCaption + '</a></span>';
+          StrToHtml(Fm.GetRecordsCaption) + '</a></span>';
       end;
     end;
   end;
@@ -1702,7 +1702,7 @@ begin
     Fm := FSS.FormMan.FindForm(FSS.FormId);
     if Fm <> nil then
       S := S + '<span class=sel><a href="' + GetFormHRef(Fm) + '">' +
-        Fm.GetRecordsCaption + '</a></span>'
+        StrToHtml(Fm.GetRecordsCaption) + '</a></span>'
     else if FSS.RpId > 0 then
     begin
       RD := FSS.ReportMan.FindReport(FSS.RpId);
@@ -1766,7 +1766,7 @@ function THtmlShow.ShowSideBar: String;
   begin
     Fm := FSS.FormMan.FindForm(Id);
     Result := '<a' + IIF(Id = FSS.FormId, ' class=sel', '') +
-      ' href="' + GetFormHRef(Fm) + '">' + FSS.FormMan.FindForm(Id).GetRecordsCaption + '</a>';
+      ' href="' + GetFormHRef(Fm) + '">' + StrToHtml(Fm.GetRecordsCaption) + '</a>';
   end;
 
   function ShowRp(Id: Integer): String;
@@ -1779,7 +1779,7 @@ function THtmlShow.ShowSideBar: String;
   function ShowMenuItem(MI: TdxMenuItem): String;
   begin
     case MI.Kind of
-      miMenu: Result := '<b>' + MI.Caption + '</b>';
+      miMenu: Result := '<b>' + StrToHtml(MI.Caption) + '</b>';
       miDiv: Result := '<hr>';
       miForm: Result := ShowFm(MI.Id);
       miReport: Result := ShowRp(MI.Id);
@@ -1916,7 +1916,7 @@ begin
   U := FSS.UserMan.Users.FindUser(FSS.UserId);
   Result := '<div><img src="/img/logout.svg"></div><div><a href=?logout>';
   if U <> nil then
-    Result := Result + U.Name + ' - ';
+    Result := Result + StrToHtml(U.Name) + ' - ';
   Result := Result + rsExit + '</a></div><div><button type=button ' +
     'onclick="closeSidebarClick(this)"><img src=/img/close.svg></button></div>';
 end;
@@ -2578,9 +2578,11 @@ begin
         Marks[n].Start := p;
         Marks[n].Len := Len;
         Inc(n);
+        if n > 1000 then Break;
       end;
       p := Utf8Pos(Frg, S, p + Len);
     end;
+    if n > 1000 then Break;
   end;
   AnySort(Marks, n, SizeOf(TMarkData), @CompareInt);
 
@@ -5395,9 +5397,9 @@ begin
         else if F is TdxCheckBox then
         begin
           if FieldByName(FieldStr(F.Id)).AsInteger = 1 then
-            S := S + '<td>' + TdxCheckBox(F).CheckedText + '</td>'
+            S := S + '<td>' + StrToHtml(TdxCheckBox(F).CheckedText) + '</td>'
           else
-           S := S + '<td>' + TdxCheckBox(F).UnCheckedText + '</td>'
+           S := S + '<td>' + StrToHtml(TdxCheckBox(F).UnCheckedText) + '</td>'
         end
         else if F is TdxMemo then
           S := S + '<td>' + StrToHtml(FieldByName(FieldStr(F.Id)).AsString, True) + '</td>'
@@ -5742,7 +5744,7 @@ begin
   else Btns := '';
   Btns := Btns + '<button id=fltbn type=button onclick="filterClick(this)"><img src="/img/filter.svg"></button>' +
     '<button id=menubn type=button onclick="menuClick(this)"><img src="/img/menu.svg"></button>';
-  Btns := Btns + '<span>' + Fm.GetRecordsCaption + '</span>';
+  Btns := Btns + '<span>' + StrToHtml(Fm.GetRecordsCaption) + '</span>';
   //
   // Фильтр
   Btns := Btns + '<div id=filters class=filters>';
@@ -5753,7 +5755,7 @@ begin
   for i := 0 to SL.Count - 1 do
     Btns := Btns + '<a href="' + BuildHRef(1) + '&flt=' +
       IntToStr(TdxForm(SL.Objects[i]).Id) + '">' +
-      TdxForm(SL.Objects[i]).GetRecordsCaption + '</a>';
+      StrToHtml(TdxForm(SL.Objects[i]).GetRecordsCaption) + '</a>';
   SL.Free;
   {Btns := Btns + '<select id=filters>' + W + '</select>&nbsp;' +
     '<button type=button " onclick="location.href=''' + BuildHRef(2) +
@@ -5902,7 +5904,7 @@ begin
     Result := LoadString(GetHtmlPath + 'form.html');
     Result := StringReplace(Result, '[lng]', AppSet.Language, []);
     Result := StringReplace(Result, '[css]', CSS, []);
-    Result := StringReplace(Result, '[title]', Fm.GetRecordsCaption, []);
+    Result := StringReplace(Result, '[title]', StrToHtml(Fm.GetRecordsCaption), []);
     Result := StringReplace(Result, '[user]', ShowUser, []);
     Result := StringReplace(Result, '[sidebar]', ShowSideBar, []);
     Result := StringReplace(Result, '[tabs]', ShowTabs, []);

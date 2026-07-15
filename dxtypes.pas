@@ -1854,10 +1854,13 @@ begin
   FRD := TReportData.Create;
   FRD.Session := FSS;
   St := TMemoryStream.Create;
-  AValue.SaveToStream(St);
-  St.Position := 0;
-  FRD.LoadFromStream(St);
-  St.Free;
+  try
+    AValue.SaveToStream(St);
+    St.Position := 0;
+    FRD.LoadFromStream(St);
+  finally
+    St.Free;
+  end;
   InitColoring;
   InitRpGrid;
 end;
@@ -3156,8 +3159,7 @@ begin
   for i := 0 to FForm.Coloring.Count - 1 do
   begin
     CD := FForm.Coloring[i];
-    CD.E.Free;
-    CD.E := nil;
+    FreeAndNil(CD.E);
   end;
 end;
 

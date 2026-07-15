@@ -318,8 +318,8 @@ end;
 
 procedure TFontColor_R(Self: TdxFont; var T: TColor); begin T := Self.Color; end;
 procedure TFontColor_W(Self: TdxFont; T: TColor); begin Self.Color := T; end;
-procedure TFontHeight_R(Self: TdxFont; var T: Integer); begin T := Self.Height; end;
-procedure TFontHeight_W(Self: TdxFont; T: Integer); begin Self.Height := T; end;
+//procedure TFontHeight_R(Self: TdxFont; var T: Integer); begin T := Self.Height; end;
+//procedure TFontHeight_W(Self: TdxFont; T: Integer); begin Self.Height := T; end;
 procedure TFontName_R(Self: TdxFont; var T: String); begin T := Self.Name; end;
 procedure TFontName_W(Self: TdxFont; T: String); begin Self.Name := T; end;
 procedure TFontSize_R(Self: TdxFont; var T: Integer); begin T := Self.Size; end;
@@ -333,11 +333,10 @@ begin
   begin
     RegisterConstructor(@TdxFont.Create, 'Create');
     RegisterPropertyHelper(@TFontColor_R, @TFontColor_W, 'Color');
-    RegisterPropertyHelper(@TFontHeight_R, @TFontHeight_W, 'Height');
+    //RegisterPropertyHelper(@TFontHeight_R, @TFontHeight_W, 'Height');
     RegisterPropertyHelper(@TFontName_R, @TFontName_W, 'Name');
     RegisterPropertyHelper(@TFontSize_R, @TFontSize_W, 'Size');
     RegisterPropertyHelper(@TFontStyle_R, @TFontStyle_W, 'Style');
-    //RegisterPropertyHelper(@TBrush_R, @TBrush_W, '');
   end;
 end;
 

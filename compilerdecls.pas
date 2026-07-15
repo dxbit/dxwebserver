@@ -310,7 +310,7 @@ begin
   begin
     RegisterMethod('constructor Create');
     RegisterProperty('Color', 'TColor', iptRW);
-    RegisterProperty('Height', 'Integer', iptRW);
+    //RegisterProperty('Height', 'Integer', iptRW);
     RegisterProperty('Name', 'string', iptRW);
     RegisterProperty('Size', 'Integer', iptRW);
     RegisterProperty('Style', 'TFontStyles', iptrw);
@@ -1376,7 +1376,7 @@ begin
     RegisterProperty('FieldName', 'String', iptR);
   end;
   Cl.AddTypeS('TdxPanelBevelStyle', '(pbsNone, pbsDefault, pbsSolid, pbsDashed, pbsDotted)');
-  with Cl.AddClassN(Cl.FindClass('TControl'), 'TdxPanel') do
+  with Cl.AddClassN(Cl.FindClass('TWinControl'), 'TdxPanel') do
   begin
     RegisterProperty('BevelColor', 'TColor', iptRW);
     RegisterProperty('BevelRadius', 'Integer', iptRW);
