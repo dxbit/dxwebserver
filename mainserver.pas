@@ -389,6 +389,7 @@ begin
       else Exit;
     end;
   end
+  else if Fields[0] = 'submenuclick' then
   else if Fields[0] = 'formadd' then
   else if Fields[0] = 'formedit' then
   else if Fields[0] = 'usermon' then
@@ -1358,6 +1359,11 @@ begin
   else if LPm = 'timer' then
   begin
     AResponse.Contents.Text := HS.TimerTimer(ARequest.ContentFields);
+    AResponse.Code := HS.ResultCode;
+  end
+  else if LPm = 'submenuclick' then
+  begin
+    AResponse.Contents.Text := HS.SubMenuClick(ARequest.ContentFields);
     AResponse.Code := HS.ResultCode;
   end
   else

@@ -281,6 +281,7 @@ type
     FDebugText: String;
     FIsService: Boolean;
     FMainErrorMsg: String;
+    FMainMenu: TdxMainMenu;
     FMetaData: TMetaData;
     FBusy: Boolean;
     FDBase: TDBEngine;
@@ -379,6 +380,7 @@ type
     property DebugShow: Boolean read FDebugShow write FDebugShow;
     property Busy: Boolean read FBusy;
     property Layouts: TFormLayoutFormList read GetLayouts;
+    property MainMenu: TdxMainMenu read FMainMenu write FMainMenu;
   public
     function CreateForm(const FormName: String): TdxForm;
     function SQLSelect(const SQL: String): TdxSQLQuery;
@@ -459,6 +461,8 @@ type
     FUsersLoaded: Boolean;
     FFormDataSet: TdxMemDataSet;
     FLayouts: TFormLayoutFormList;
+    FDefaultMenu: TdxMenuItemList;
+    function GetDefaultMenu: TdxMenuItemList;
     function IsVersion38(DBase: TDBEngine): Boolean;
   public
     constructor Create;
@@ -489,6 +493,7 @@ type
     property UsersLoaded: Boolean read FUsersLoaded write FUsersLoaded;
     property KeepMetaData: Boolean read FKeepMetaData write FKeepMetaData;
     property Layouts: TFormLayoutFormList read FLayouts;
+    property DefaultMenu: TdxMenuItemList read GetDefaultMenu;
   end;
 
   { TMetaManager }
@@ -595,6 +600,89 @@ begin
   end;
 end;
 
+function TMetaData.GetDefaultMenu: TdxMenuItemList;
+var
+  MenuId: Integer;
+
+  function CreateMenuItem(Mnu: TdxMenuItemList; const ACaption: String): TdxMenuItem;
+  begin
+    Result := Mnu.AddItem;
+    Result.Caption := ACaption;
+    Result.Kind := miMenu;
+    Result.MenuId := MenuId;
+    Inc(MenuId);
+  end;
+
+  function CreateMenuFromGroup(G: TFormGroup): TdxMenuItemList;
+  var
+    SL: TStringList;
+    Mnu: TdxMenuItemList;
+    MI: TdxMenuItem;
+    i: Integer;
+  begin
+    SL := TStringList.Create;
+    SplitStr(G.Name, '\', SL);
+    Mnu := FDefaultMenu[0].Items;
+    for i := 0 to SL.Count - 1 do
+    begin
+      MI := Mnu.Find(SL[i]);
+      if MI = nil then MI := CreateMenuItem(Mnu, SL[i]);
+      Mnu := MI.Items;
+    end;
+    Result := Mnu;
+    SL.Free;
+  end;
+
+var
+  GL: TFormGroupList;
+  i, j: Integer;
+  G: TFormGroup;
+  Mnu: TdxMenuItemList;
+  Fm: TdxForm;
+  SL: TStrings;
+begin
+  if FDefaultMenu = nil then
+  begin
+    FDefaultMenu := TdxMenuItemList.Create;
+    CreateMenuItem(FDefaultMenu, rsData);
+    CreateMenuItem(FDefaultMenu, rsReports);
+
+    MenuId := 1;
+    GL := FMain.Groups;
+    for i := 0 to GL.Count - 1 do
+    begin
+      G := GL[i];
+      if G.Name = '' then Mnu := FDefaultMenu[0].Items
+      else Mnu := CreateMenuFromGroup(G);
+
+      for j := 0 to G.IdList.Count - 1 do
+      begin
+        Fm := FFormMan.FindForm(G.IdList[j]);
+        with CreateMenuItem(Mnu, Fm.GetRecordsCaption) do
+        begin
+          Kind := miForm;
+          Id := Fm.Id;
+        end;
+      end;
+    end;
+
+    Mnu := FDefaultMenu[1].Items;
+    SL := TStringListUtf8.Create;
+    FReportMan.GetReportList(SL);
+    for i := 0 to SL.Count - 1 do
+    begin
+      with CreateMenuItem(Mnu, SL[i]) do
+      begin
+        Kind := miReport;
+        Id := TReportData(SL.Objects[i]).Id;
+      end;
+    end;
+    SL.Free;
+  end;
+
+  Result := FDefaultMenu;
+end;
+
 constructor TMetaData.Create;
 begin
   FId := SetZeros(Random(100000), 6);
@@ -620,6 +708,7 @@ begin
   FMain.Free;
   FFormDataSet.Free;
   FLayouts.Free;
+  FreeAndNil(FDefaultMenu);
   DoneCriticalSection(FLock);
   inherited Destroy;
 end;
@@ -3446,6 +3535,7 @@ begin
   FRunScript := TRunScript.Create(Self);
   FExtRunMan := TExtRunManager.Create;
   FExtRunMan.Session := Self;
+  FMainMenu := TdxMainMenu.Create;
   FPage := 1;
   InitCriticalSection(FLock);
 end;
@@ -3479,6 +3569,7 @@ begin
   if FDBase.Connected then FDBase.Disconnect;
   DebugStr('FDBase.Free', Self);
   FDBase.Free;
+  FMainMenu.Free;
   inherited Destroy;
 end;
 

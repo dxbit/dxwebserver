@@ -198,18 +198,23 @@ type
   TdxMenuItem = class
   private
     FCaption: String;
+    FClosed: Boolean;
     FId: Integer;
     FItems: TdxMenuItemList;
     FKind: TdxMenuItemKind;
+    FMenuId: Integer;
     FVisible: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
+    function Clone: TdxMenuItem;
     property Caption: String read FCaption write FCaption;
     property Kind: TdxMenuItemKind read FKind write FKind;
     property Id: Integer read FId write FId;
     property Items: TdxMenuItemList read FItems;
     property Visible: Boolean read FVisible write FVisible;     // Доступ !!!
+    property Closed: Boolean read FClosed write FClosed;
+    property MenuId: Integer read FMenuId write FMenuId;
   end;
 
   { TdxMenuItemList }
@@ -219,9 +224,24 @@ type
     function GetMenuItems(Index: Integer): TdxMenuItem;
   public
     function AddItem: TdxMenuItem;
+    function Find(const ACaption: String): TdxMenuItem;
     procedure DeleteItem(Item: TdxMenuItem);
     procedure Clear; override;
+    function Clone: TdxMenuItemList;
     property MenuItems[Index: Integer]: TdxMenuItem read GetMenuItems; default;
+  end;
+
+  { TdxMainMenu }
+
+  TdxMainMenu = class
+  private
+    FItems: TdxMenuItemList;
+  public
+    destructor Destroy; override;
+    function FindByMenuId(MenuId: Integer): TdxMenuItem;
+    procedure SetClosed(MenuId: Integer; Value: Boolean);
+    function IsClosed(MenuId: Integer): Boolean;
+    property Items: TdxMenuItemList read FItems write FItems;
   end;
 
   { TdxTabList }
@@ -275,7 +295,7 @@ type
 
   TdxUserManager = class
   private
-    FCurUserId: Integer;
+    //FCurUserId: Integer;
     FRoles: TdxRoleList;
     FUsers: TdxUserList;
     FIntfs: TdxIntfList;
@@ -308,7 +328,7 @@ type
 implementation
 
 uses
-  LazUtf8, sqldb, apputils, SAX, SAX_XML, dxtypes, saxbasereader;
+  LazUtf8, sqldb, apputils, SAX, SAX_XML, saxbasereader;
 
 type
 
@@ -341,6 +361,7 @@ type
     FIntfs: TdxIntfList;
     FIntf: TdxIntf;
     FParentMenu: TdxMenuItemList;
+    FMenuId: Integer;
   protected
     procedure DoStartElement(const NamespaceURI, LocalName, QName: SAXString;
       Atts: TSAXAttributes); override;
@@ -377,6 +398,7 @@ begin
     FIntf.Name := XmlToStr(GetStr(Atts, 'name'));
     FIntf.IsDefault:=GetBool(Atts, 'default');
     FParentMenu := FIntf.Menu;
+    FMenuId := 1;
   end
   else if LocalName = 'tab' then
   begin
@@ -388,6 +410,8 @@ begin
     MI.Kind := TdxMenuItemKind(GetInt(Atts, 'kind'));
     MI.Caption := XmlToStr(GetStr(Atts, 'caption'));
     MI.Id:=GetInt(Atts, 'id');
+    MI.MenuId := FMenuId;
+    Inc(FMenuId);
     FParentMenu := MI.Items;
   end;
 end;
@@ -542,12 +566,24 @@ end;
 constructor TdxMenuItem.Create;
 begin
   FItems := TdxMenuItemList.Create;
+  FClosed := True;
 end;
 
 destructor TdxMenuItem.Destroy;
 begin
   FItems.Free;
   inherited Destroy;
+end;
+
+function TdxMenuItem.Clone: TdxMenuItem;
+begin
+  Result := TdxMenuItem.Create;
+  Result.Caption := Caption;
+  Result.Kind := Kind;
+  Result.Id := Id;
+  Result.MenuId := MenuId;
+  Result.FItems.Free;
+  Result.FItems := Items.Clone;
 end;
 
 { TdxMenuItemList }
@@ -563,6 +599,15 @@ begin
   Add(Result);
 end;
 
+function TdxMenuItemList.Find(const ACaption: String): TdxMenuItem;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if MenuItems[i].Caption = ACaption then Exit(MenuItems[i]);
+end;
+
 procedure TdxMenuItemList.DeleteItem(Item: TdxMenuItem);
 begin
   Remove(Item);
@@ -576,6 +621,63 @@ begin
   for i := 0 to Count - 1 do
     MenuItems[i].Free;
   inherited Clear;
+end;
+
+function TdxMenuItemList.Clone: TdxMenuItemList;
+var
+  i: Integer;
+begin
+  Result := TdxMenuItemList.Create;
+  for i := 0 to Count - 1 do
+    Result.Add(MenuItems[i].Clone);
+end;
+
+{ TdxMainMenu }
+
+destructor TdxMainMenu.Destroy;
+begin
+  FreeAndNil(FItems);
+  inherited Destroy;
+end;
+
+function TdxMainMenu.FindByMenuId(MenuId: Integer): TdxMenuItem;
+
+  function _Find(AItems: TdxMenuItemList): TdxMenuItem;
+  var
+    i: Integer;
+    MI: TdxMenuItem;
+  begin
+    Result := nil;
+    for i := 0 to AItems.Count - 1 do
+    begin
+      MI := AItems[i];
+      if MI.MenuId = MenuId then Exit(MI);
+      if MI.Kind = miMenu then
+      begin
+        Result := _Find(MI.Items);
+        if Result <> nil then Exit;
+      end;
+    end;
+  end;
+
+begin
+  Result := _Find(FItems);
+end;
+
+procedure TdxMainMenu.SetClosed(MenuId: Integer; Value: Boolean);
+var
+  MI: TdxMenuItem;
+begin
+  MI := FindByMenuId(MenuId);
+  if MI <> nil then MI.Closed := Value;
+end;
+
+function TdxMainMenu.IsClosed(MenuId: Integer): Boolean;
+var
+  MI: TdxMenuItem;
+begin
+  MI := FindByMenuId(MenuId);
+  if MI <> nil then Result := MI.Closed;
 end;
 
 { TdxFormRight }

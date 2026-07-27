@@ -230,6 +230,7 @@ type
     function CtrlClick(AParams: TStrings): String;
     function MsgBnClick(AParams: TStrings): String;
     function TimerTimer(AParams: TStrings): String;
+    function SubMenuClick(AParams: TStrings): String;
     function ShowDebugAjax: String;
     function CloseDebug: String;
     function ClearDebug: String;
@@ -1760,6 +1761,25 @@ end;
 
 function THtmlShow.ShowSideBar: String;
 
+  function CanClosedMenu(MnuItem: TdxMenuItem; Level: Integer): Boolean;
+  var
+    i: Integer;
+    MI: TdxMenuItem;
+  begin
+    Result := False;
+    if MnuItem.Kind <> miMenu then Exit;
+
+    if (Level = 0) and not FSS.MainMenu.IsClosed(MnuItem.MenuId) then Exit;
+    for i := 0 to MnuItem.Items.Count - 1 do
+    begin
+      MI := MnuItem.Items[i];
+      if (MI.Kind = miForm) and (MI.Id = FSS.FormId) then Exit;
+      if (MI.Kind = miReport) and (MI.Id = FSS.RpId) then Exit;
+      if (MI.Kind = miMenu) and not CanClosedMenu(MI, Level + 1) then Exit;
+    end;
+    Result := True;
+  end;
+
   function ShowFm(Id: Integer): String;
   var
     Fm: TdxForm;
@@ -1779,7 +1799,8 @@ function THtmlShow.ShowSideBar: String;
   function ShowMenuItem(MI: TdxMenuItem): String;
   begin
     case MI.Kind of
-      miMenu: Result := '<b>' + StrToHtml(MI.Caption) + '</b>';
+      miMenu: Result := '<b' + IIF(CanClosedMenu(MI, 0), ' class=closed', '') +
+        ' data-id=' + IntToStr(MI.MenuId) + ' onclick="subMenuClick()">' + StrToHtml(MI.Caption) + '</b>';
       miDiv: Result := '<hr>';
       miForm: Result := ShowFm(MI.Id);
       miReport: Result := ShowRp(MI.Id);
@@ -1787,14 +1808,14 @@ function THtmlShow.ShowSideBar: String;
     end;
   end;
 
-  function ShowMenu(Menu: TdxMenuItemList): String;
+  function ShowMenu(Menu: TdxMenuItemList; ShowClosed: Boolean): String;
   var
     i: Integer;
     MI: TdxMenuItem;
     Cls: String;
   begin
     if Menu.Count = 0 then Exit('');
-    Result := '<ul>';
+    Result := '<ul' + IIF(ShowClosed, ' class=closed', '') + '>';
     for i := 0 to Menu.Count - 1 do
     begin
       MI := Menu[i];
@@ -1805,7 +1826,7 @@ function THtmlShow.ShowSideBar: String;
         Cls := '';
       if MI.Visible then
         Result := Result + '<li' + Cls + '>' + ShowMenuItem(MI) +
-          ShowMenu(MI.Items) + '</li>';
+          ShowMenu(MI.Items, CanClosedMenu(MI, 0)) + '</li>';
     end;
     Result := Result + '</ul>';
   end;
@@ -1855,58 +1876,19 @@ function THtmlShow.ShowSideBar: String;
 
 var
   Intf: TdxIntf;
-  SL: TStringListUtf8;
-  i, Id: Integer;
-  Cls: String;
+  Menu: TdxMenuItemList;
 begin
   Intf := FSS.UserMan.GetIntf(FSS.RoleId);
   if Intf <> nil then
-  begin
-    CheckVisibleMenu(Intf.Menu);
-    Result := ShowMenu(Intf.Menu);
-  end
+    Menu := Intf.Menu
   else
+    Menu := FSS.MetaData.DefaultMenu;
+  if FSS.MainMenu.Items = nil then
   begin
-    SL := TStringListUtf8.Create;
-    FSS.FormMan.GetFormList(SL);
-    for i := SL.Count - 1 downto 0 do
-      if not FSS.UserMan.CheckFmVisible(FSS.RoleId, TdxForm(SL.Objects[i]).Id) then
-        SL.Delete(i);
-    SL.Sort;
-    Result := '<ul>';
-    if SL.Count > 0 then
-    begin
-      Result := Result + '<li><b>' + rsData + '</b><ul>';
-      for i := 0 to SL.Count - 1 do
-      begin
-        Id := TdxForm(SL.Objects[i]).Id;
-        if (Id = FSS.FormId) then Cls := ' class=sel'
-        else Cls := '';
-        Result := Result + '<li' + Cls + '>' + ShowFm(Id) + '</li>';
-      end;
-      Result := Result + '</ul></li>';
-    end;
-    SL.Clear;
-    FSS.ReportMan.GetReportList(SL);
-    for i := SL.Count - 1 downto 0 do
-      if not FSS.UserMan.CheckRpVisible(FSS.RoleId, TReportData(SL.Objects[i]).Id) then
-        SL.Delete(i);
-    SL.Sort;
-    if SL.Count > 0 then
-    begin
-      Result := Result + '<li><b>' + rsReports + '</b><ul>';
-      for i := 0 to SL.Count - 1 do
-      begin
-        Id := TReportData(SL.Objects[i]).Id;
-        if (Id = FSS.RpId) then Cls := ' class=sel'
-        else Cls := '';
-        Result := Result + '<li' + Cls + '>' + ShowRp(TReportData(SL.Objects[i]).Id) + '</li>';
-      end;
-      Result := Result + '</ul></li>';
-    end;
-    Result := Result + '</ul>';
-    SL.Free;
+    FSS.MainMenu.Items := Menu.Clone;
+    CheckVisibleMenu(FSS.MainMenu.Items);
   end;
+  Result := ShowMenu(FSS.MainMenu.Items, False);
 end;
 
 function THtmlShow.ShowUser: String;
@@ -4098,6 +4080,17 @@ begin
   end;
 end;
 
+function THtmlShow.SubMenuClick(AParams: TStrings): String;
+var
+  MenuId, Closed: Longint;
+begin
+  Result := '';
+  FResultCode := rcAjaxOk;
+  if not TryStrToInt(AParams.Values['menuid'], MenuId) then Exit;
+  if not TryStrToInt(AParams.Values['closed'], Closed) then Exit;
+  FSS.MainMenu.SetClosed(MenuId, Closed=1);
+end;
+
 function THtmlShow.ShowUserMonitor: String;
 var
   Html, ElTime, S, Btns: String;
@@ -4715,7 +4708,8 @@ begin
   Result := '<div id=' + C.Name + ' style="position:absolute;left: ' + IntToStr(C.Left) + 'px;top:' +
     IntToStr(C.Top) + 'px;width:' + IntToStr(C.Width) + 'px;' +
     'height:' + IntToStr(C.Height) + 'px;' + GetVisible(C) +
-    '" class="' + GetStyleClass(C) + '">' + PanFr + ShowContainer(C) + '</div>';
+    '" class="' + GetStyleClass(C) + '" ' + GetEnabled(C) + '>' + PanFr +
+    ShowContainer(C) + '</div>';
 end;
 
 function THtmlShow.ShowRecordId(C: TdxRecordId): String;

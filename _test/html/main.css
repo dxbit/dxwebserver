@@ -211,6 +211,10 @@ button {
     padding: 0px;
 }
 
+.sidebar ul.closed {
+	display: none;
+}
+
 .sidebar ul li {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -247,6 +251,11 @@ button {
     margin-top: 1rem;
     text-transform: uppercase;
     font-size: 1.2rem;
+    cursor: pointer;
+    color: silver;
+}
+
+.sidebar b.closed {
     color: #4E5754;
 }
 

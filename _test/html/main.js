@@ -1576,6 +1576,23 @@ function menuClick(el) {
 	sb.style.display = 'block';
 }
 
+function subMenuClick() {
+	let el = event.currentTarget;
+	let ul = el.nextSibling;
+	if (ul.tagName == 'UL') {
+		if (ul.classList.contains('closed')) {
+			ul.classList.remove('closed');
+			el.classList.remove('closed');
+			SendRequest('POST', '?submenuclick', 'closed=0&menuid=' + el.dataset.id, null);
+		}
+		else {
+			ul.classList.add('closed');
+			el.classList.add('closed');
+			SendRequest('POST', '?submenuclick', 'closed=1&menuid=' + el.dataset.id, null);
+		}
+	}
+}
+
 function closeSidebarClick(el) {
 	doNotSentResize = true;
 	let sb = document.getElementById('sidebar');

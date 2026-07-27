@@ -26,12 +26,40 @@ uses
   Classes, SysUtils, mytypes;
 
 type
+
+  { TFormGroup }
+
+  TFormGroup = class
+  private
+    FIdList: TIntegerList;
+    FName: String;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property Name: String read FName write FName;
+    property IdList: TIntegerList read FIdList;
+  end;
+
+  { TFormGroupList }
+
+  TFormGroupList = class(TList)
+  private
+    function GetGroups(Index: Integer): TFormGroup;
+  public
+    function AddGroup: TFormGroup;
+    function FindGroup(const GroupName: String): TFormGroup;
+    function FindGroupByFormId(FmId: Integer): TFormGroup;
+    procedure Clear; override;
+    property Groups[Index: Integer]: TFormGroup read GetGroups; default;
+  end;
+
   { TDXMain }
 
   TDXMain = class
   private
     FActions: String;
     FDesignTimePPI: Integer;
+    FGroups: TFormGroupList;
     FLastModified: TDateTime;
     FTabs: TIntegerList;
     FVersion: Integer;
@@ -45,11 +73,9 @@ type
     property DesignTimePPI: Integer read FDesignTimePPI write FDesignTimePPI;
     property LastModified: TDateTime read FLastModified write FLastModified;
     property Tabs: TIntegerList read FTabs;
+    property Groups: TFormGroupList read FGroups;
     property Version: Integer read FVersion;
   end;
-
-var
-  DXMain: TDXMain;
 
 implementation
 
@@ -77,6 +103,7 @@ procedure TSettingsReader.DoStartElement(const NamespaceURI, LocalName,
 var
   SL: TStringList;
   i: Integer;
+  G: TFormGroup;
 begin
   if LocalName = 'designer' then
   begin
@@ -89,6 +116,16 @@ begin
         FMain.Tabs.AddValue(StrToInt(SL[i]));
       SL.Free;
     end;
+  end
+  else if LocalName = 'group' then
+  begin
+    G := FMain.Groups.AddGroup;
+    G.Name := GetStr(Atts, 'name');
+    SL := TStringList.Create;
+    SplitStr(GetStr(Atts, 'forms'), ';', SL);
+    for i := 0 to SL.Count - 1 do
+      G.IdList.AddValue(StrToInt(SL[i]));
+    SL.Free;
   end
   else if LocalName = 'settings' then
   begin
@@ -143,13 +180,77 @@ constructor TDXMain.Create;
 begin
   FDesignTimePPI := 96;
   FTabs := TIntegerList.Create;
+  FGroups := TFormGroupList.Create;
 end;
 
 destructor TDXMain.Destroy;
 begin
+  FGroups.Free;
   FTabs.Free;
   inherited Destroy;
 end;
+
+{ TFormGroup }
+
+constructor TFormGroup.Create;
+begin
+  FIdList := TIntegerList.Create;
+end;
+
+destructor TFormGroup.Destroy;
+begin
+  FIdList.Free;
+  inherited Destroy;
+end;
+
+{ TFormGroupList }
+
+function TFormGroupList.GetGroups(Index: Integer): TFormGroup;
+begin
+  Result := TFormGroup(Items[Index]);
+end;
+
+function TFormGroupList.AddGroup: TFormGroup;
+begin
+  Result := TFormGroup.Create;
+  Add(Result);
+end;
+
+function TFormGroupList.FindGroup(const GroupName: String): TFormGroup;
+var
+  i: Integer;
+  G: TFormGroup;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+  begin
+    G := Groups[i];
+    if MyUtf8CompareText(GroupName, G.Name) = 0 then Exit(G);
+  end;
+end;
+
+function TFormGroupList.FindGroupByFormId(FmId: Integer): TFormGroup;
+var
+  i: Integer;
+  G: TFormGroup;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+  begin
+    G := Groups[i];
+    if G.IdList.FindValue(FmId) >= 0 then Exit(G);
+  end;
+end;
+
+procedure TFormGroupList.Clear;
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+    Groups[i].Free;
+  inherited Clear;
+end;
+
 
 end.
 
