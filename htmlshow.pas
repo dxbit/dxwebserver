@@ -5763,7 +5763,7 @@ begin
     for i := 0 to Fm.Filters.Count - 1 do
       Btns := Btns + '<a href="' + BuildHRef(1) + '&fltpr=' +
         IntToStr(i) + '">' +
-        Fm.Filters.Names[i] + '</a>';
+        StrToHtml(UnEscapeEqual(Fm.Filters.Names[i])) + '</a>';
 
     {W := W + '<option value=' + IntToStr(i) + '>' + Fm.Filters.Names[i] +
         '</option>';

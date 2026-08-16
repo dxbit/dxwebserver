@@ -135,6 +135,7 @@ begin
             end;
             W := StringReplace(W, '#13', #13, [rfReplaceAll]);
             W := StringReplace(W, '#10', #10, [rfReplaceAll]);
+            W := StringReplace(W, '#1', #1, [rfReplaceAll]);
             Buf := Buf + W;
           end;
           if (P <= L) and (S[P] = '''') then

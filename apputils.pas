@@ -143,7 +143,7 @@ procedure ConvertToDXMainVersion2(SS: TSession);
 function TryTextToDate(AText: String; out ResDate: TDateTime): Boolean;
 function TextToDate(AText: String): TDateTime;
 procedure SetFormSizeWithLayout(SS: TSession; Fm: TdxForm; W, H: Integer);
-//function IsFormFixedHeight(FSS: TSession; AForm: TdxForm): Boolean;
+function UnEscapeEqual(const S: String): String;
 
 implementation
 
@@ -3120,23 +3120,10 @@ begin
     SetBounds(Left, Top, W, H);
 end;
 
-{function IsFormFixedHeight(FSS: TSession; AForm: TdxForm): Boolean;
-var
-  pFm: PFormLayoutForm;
-  pLay: PFormLayout;
+function UnEscapeEqual(const S: String): String;
 begin
-  Result := False;
-  if AForm.LayoutName <> '' then
-  begin
-    pFm := FSS.Layouts.FindForm(AForm.Id);
-    if pFm <> nil then
-    begin
-      pLay := pFm^.Layouts.FindLayout(AForm.LayoutName);
-      if pLay <> nil then
-        Exit(pLay^.FixedHeight);
-    end;
-  end;
-end;}
+  Result := StringReplace(S, #1, '=', [rfReplaceAll]);
+end;
 
 end.
 
