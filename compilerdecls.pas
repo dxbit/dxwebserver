@@ -1409,6 +1409,8 @@ begin
     RegisterProperty('OnDestroyForm', 'TCreateFormEvent', iptRW);
     RegisterProperty('OnDatabaseClose', 'TNotifyEvent', iptRW);
     RegisterProperty('OnHandleRequest', 'TWebServerRequestHandler', iptRW);
+    RegisterProperty('OnBeforeHandleRequest', 'TWebServerRequestHandler', iptRW);
+    RegisterProperty('OnAfterHandleRequest', 'TWebServerRequestHandler', iptRW);
   end;
 end;
 
@@ -1633,6 +1635,8 @@ begin
       OrgName := 'x';
       Mode := pmInOut;
     end;
+
+  Cl.AddDelphiFunction('function PosEx(const SubStr, S: String; Offset: LongWord): LongInt');
 end;
 
 //!!!

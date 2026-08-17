@@ -35,7 +35,7 @@ implementation
 
 uses
   ScriptFuncs, Math, exprfuncs, DateUtils, dxctrls, apputils, IniFiles,
-  BGRABitmap, dxSQLQuery, HMAC, Variants, pivotgrid, dxtypes;
+  BGRABitmap, dxSQLQuery, HMAC, Variants, pivotgrid, dxtypes, strutils;
 
 type
   TFileSetDateFunc = function (const FileName : RawByteString;Age : Int64) : Longint;
@@ -2250,6 +2250,10 @@ procedure TSessionOnDatabaseClose_R(Self: TSession; var T: TNotifyEvent); begin 
 procedure TSessionOnDatabaseClose_W(Self: TSession; T: TNotifyEvent); begin Self.OnDatabaseClose := T; end;
 procedure TSessionOnHandleRequest_R(Self: TSession; var T: TWebServerRequestHandler); begin T := Self.OnHandleRequest; end;
 procedure TSessionOnHandleRequest_W(Self: TSession; T: TWebServerRequestHandler); begin Self.OnHandleRequest := T; end;
+procedure TSessionOnBeforeHandleRequest_R(Self: TSession; var T: TWebServerRequestHandler); begin T := Self.OnBeforeHandleRequest; end;
+procedure TSessionOnBeforeHandleRequest_W(Self: TSession; T: TWebServerRequestHandler); begin Self.OnBeforeHandleRequest := T; end;
+procedure TSessionOnAfterHandleRequest_R(Self: TSession; var T: TWebServerRequestHandler); begin T := Self.OnAfterHandleRequest; end;
+procedure TSessionOnAfterHandleRequest_W(Self: TSession; T: TWebServerRequestHandler); begin Self.OnAfterHandleRequest := T; end;
 procedure TSessionRequest_R(Self: TSession; var T: TFPHTTPConnectionRequest); begin T := Self.Request; end;
 
 procedure RIRegister_Session(Cl: TPSRuntimeClassImporter);
@@ -2277,6 +2281,8 @@ begin
     RegisterEventPropertyHelper(@TSessionOnDestroyForm_R, @TSessionOnDestroyForm_W, 'OnDestroyForm');
     RegisterEventPropertyHelper(@TSessionOnDatabaseClose_R, @TSessionOnDatabaseClose_W, 'OnDatabaseClose');
     RegisterEventPropertyHelper(@TSessionOnHandleRequest_R, @TSessionOnHandleRequest_W, 'OnHandleRequest');
+    RegisterEventPropertyHelper(@TSessionOnBeforeHandleRequest_R, @TSessionOnBeforeHandleRequest_W, 'OnBeforeHandleRequest');
+    RegisterEventPropertyHelper(@TSessionOnAfterHandleRequest_R, @TSessionOnAfterHandleRequest_W, 'OnAfterHandleRequest');
   end;
 end;
 
@@ -2521,6 +2527,8 @@ begin
 
   Exec.RegisterFunctionName('RECT', @RegFunctions86_64, Pointer(6), nil);
   Exec.RegisterFunctionName('FREEANDNIL', @RegFunctions86_64, Pointer(7), nil);
+
+  Exec.RegisterDelphiFunction(@MyPosEx, 'PosEx', cdRegister);
 end;
 
 procedure RIRegister_All(Cl: TPSRuntimeClassImporter);

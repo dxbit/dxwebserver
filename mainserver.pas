@@ -1057,337 +1057,339 @@ begin
 
   AResponse.CacheControl := 'no-store, no-cache, must-revalidate';
 
-  if ARequest.QueryFields.Count = 0 then
-  begin
-    AResponse.Contents.Text := HS.ShowFirstForm;
-    Exit;
-  end;
-  LPm := ParseQueryFields(ARequest.QueryFields, Ss);
-  if (LPm = 'fm') or (LPm = 'pg') then
-  begin
-    AResponse.Contents.Text := HS.ShowForm;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'formadd' then
-  begin
-    AResponse.Contents.Text := HS.FormAppend(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'formedit' then
-  begin
-    AResponse.Contents.Text := HS.FormEdit(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if (LPm = 'rec') or (LPm = 'row') then
-  begin
-    AResponse.Contents.Text:=HS.ShowEditForm;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'tableadd' then
-  begin
-    AResponse.Contents.Text:=HS.TableAppend(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'tableedit' then
-  begin
-    AResponse.Contents.Text:=HS.TableEdit(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'tabledel' then
-  begin
-    AResponse.Contents.Text:=HS.TableDeleteRow(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'tablescroll' then
-  begin
-    AResponse.Contents.Text:=HS.TableScroll(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'tablefetch' then
-  begin
-    AResponse.Contents.Text:=HS.TableFetch(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'post' then
-  begin
-    AResponse.Contents.Text:=HS.PostEditForm(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'imgup' then
-  begin
-    if ARequest.Files.Count <> 1 then Exit;
-    with ARequest.Files[0] do
-      AResponse.Contents.Text:=HS.UploadImage(ARequest.ContentFields, FileName, Stream);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'imgvw' then
-    AResponse.Contents.Text:=HS.ViewImage
-  else if LPm = 'imgclr' then
-  begin
-    AResponse.Contents.Text:=HS.ClearImage(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'flup' then
-  begin
-    if ARequest.Files.Count <> 1 then Exit;
-    with ARequest.Files[0] do
-      AResponse.Contents.Text:=HS.UploadFile(ARequest.ContentFields, FileName, Stream);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'fldl' then
-  begin
-    AResponse.Contents.Text:=HS.DownloadFile(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'flclr' then
-  begin
-    AResponse.Contents.Text:=HS.ClearFile(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'del' then
-  begin
-    AResponse.Contents.Text := HS.DeleteRecord(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'formdel' then
-  begin
-    AResponse.Contents.Text := HS.FormDeleteRow;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'flt' then
-  begin
-    AResponse.Contents.Text := HS.ShowFilter;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'fltok' then
-  begin
-    AResponse.Contents.Text := HS.ApplyFilter(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'fltpr' then
-  begin
-    AResponse.Contents.Text := HS.ApplyFilterPreset;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'fltclr' then
-  begin
-    AResponse.Contents.Text := HS.ClearAllFilters;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'print' then
-  begin
-    if SS.GetFmId > 0 then
-      AResponse.Contents.Text := HS.PrintForm(ARequest.ContentFields)
-    else if SS.RpId > 0 then
-      AResponse.Contents.Text := HS.PrintReport;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'rp' then
-  begin
-    AResponse.Contents.Text := HS.ShowReport;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'rpfetch' then
-  begin
-    AResponse.Contents.Text := HS.ReportFetch(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'exec' then
-  begin
-    AResponse.Contents.Text := HS.ApplyReportFilter(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'sort' then
-  begin
-    if SS.RecId > 0 then
-      AResponse.Contents.Text := HS.ApplyQrySort(ARequest.ContentFields)
-    else if SS.RpId > 0 then
-      AResponse.Contents.Text := HS.ApplyRpSort(ARequest.ContentFields)
-    else if SS.FormId > 0 then
-      AResponse.Contents.Text := HS.ApplySort(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'logout' then
-  begin
-    //Sessions.Lock;
-    DebugStr('Logout begin', SS);
-    try
-      if SS.OnDatabaseClose <> nil then SS.OnDatabaseClose(SS);
-      SS.RunScript.TryRunProc('DATABASE_CLOSE', []);
-    except
-      ;
-    end;
+  HandleOk := False;
+  if SS.OnBeforeHandleRequest <> nil then
+    HandleOk := SS.OnBeforeHandleRequest(SS, ARequest, AResponse);
 
-    DebugStr('Logout Sessions.Lock', SS);
-    Sessions.Lock;
-    try
-      MD := SS.MetaData;
-      Sessions.DeleteSession(SS);
-      MetaMan.DeleteMetaData(MD);
-    finally
-      DebugStr('Logout Sessions.UnLock');
-      Sessions.Unlock;
+  if not HandleOk then
+  begin
+
+    if ARequest.QueryFields.Count = 0 then
+    begin
+      AResponse.Contents.Text := HS.ShowFirstForm;
+      Exit;
     end;
-    AResponse.Contents.Text := '<html><head><meta http-equiv=refresh content="1;url=/' + ConnectName + '/"></head><body></body></html>';
-    DebugStr('Logout complete. Session count: ' + IntToStr(Sessions.Count));
-  end
-  else if LPm = 'fieldchange' then
-  begin
-    AResponse.Contents.Text := HS.FieldChange(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'queryscroll' then
-  begin
-    AResponse.Contents.Text := HS.QueryScroll(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'getlist' then
-  begin
-    if SS.RecId > 0 then
-      AResponse.Contents.Text := HS.GetList(ARequest.ContentFields)
-    else if SS.FilterId > 0 then
-      AResponse.Contents.Text := HS.GetFilterList(ARequest.ContentFields)
-    else if SS.RpId > 0 then
-      AResponse.Contents.Text := HS.GetRpFilterList(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'cancel' then
-  begin
-    AResponse.Contents.Text := HS.CancelChanges;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'setpage' then
-  begin
-    AResponse.Contents.Text := HS.SetActivePage(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'queryadd' then
-  begin
-    AResponse.Contents.Text := HS.AppendQueryRecord(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'queryedit' then
-  begin
-    AResponse.Contents.Text := HS.QueryEdit(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'querydel' then
-  begin
-    AResponse.Contents.Text := HS.QueryDelRow(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'queryfetch' then
-  begin
-    AResponse.Contents.Text := HS.QueryFetch(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'objadd' then
-  begin
-    AResponse.Contents.Text := HS.ObjectAppend(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'objedit' then
-  begin
-    AResponse.Contents.Text := HS.ObjectEdit(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'dup' then
-  begin
-    AResponse.Contents.Text := HS.DuplicateRecord(ARequest.ContentFields, dpOne);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'dupall' then
-  begin
-    AResponse.Contents.Text := HS.DuplicateRecord(ARequest.ContentFields, dpAll);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'ctrlclick' then
-  begin
-    AResponse.Contents.Text := HS.CtrlClick(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'msgbnclick' then
-  begin
-    AResponse.Contents.Text := HS.MsgBnClick(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'usermon' then
-  begin
-    AResponse.Contents.Text := HS.ShowUserMonitor;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'showdbg' then
-  begin
-    AResponse.Contents.Text := HS.ShowDebugAjax;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'closedbg' then
-  begin
-    AResponse.Contents.Text := HS.CloseDebug;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'cleardbg' then
-  begin
-    AResponse.Contents.Text := HS.ClearDebug;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'compileerror' then
-  begin
-    AResponse.Contents.Text := HS.ShowCompileError;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'runtimeerror' then
-  begin
-    AResponse.Contents.Text := HS.ShowErrorPage(rsRuntimeError, SS.MainErrorMsg);
-    AResponse.Code := HS.ResultCode;
-  end
-  {else if LPm = 'testfm' then
-  begin
-    AResponse.Contents.Text := HS.ShowTestForm;
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'setsize' then
-  begin
-    AResponse.Contents.Text := HS.SetSize(ARequest.ContentFields, False);
-    AResponse.Code := HS.ResultCode;
-  end }
-  else if LPm = 'resize' then
-  begin
-    AResponse.Contents.Text := HS.SetSize(ARequest.ContentFields, True);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'timer' then
-  begin
-    AResponse.Contents.Text := HS.TimerTimer(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else if LPm = 'submenuclick' then
-  begin
-    AResponse.Contents.Text := HS.SubMenuClick(ARequest.ContentFields);
-    AResponse.Code := HS.ResultCode;
-  end
-  else
-  begin
-    try
-      HandleOk := False;
-      if SS.OnHandleRequest <> nil then
-        HandleOk := SS.OnHandleRequest(SS, ARequest, AResponse);
-      if not HandleOk then
-      begin
-        AResponse.Content := HS.ShowErrorPage(rsUnknownRequest, rsUnknownRequestMsg);
-        AResponse.Code := rcBadRequest;
+    LPm := ParseQueryFields(ARequest.QueryFields, Ss);
+    if (LPm = 'fm') or (LPm = 'pg') then
+    begin
+      AResponse.Contents.Text := HS.ShowForm;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'formadd' then
+    begin
+      AResponse.Contents.Text := HS.FormAppend(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'formedit' then
+    begin
+      AResponse.Contents.Text := HS.FormEdit(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if (LPm = 'rec') or (LPm = 'row') then
+    begin
+      AResponse.Contents.Text:=HS.ShowEditForm;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'tableadd' then
+    begin
+      AResponse.Contents.Text:=HS.TableAppend(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'tableedit' then
+    begin
+      AResponse.Contents.Text:=HS.TableEdit(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'tabledel' then
+    begin
+      AResponse.Contents.Text:=HS.TableDeleteRow(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'tablescroll' then
+    begin
+      AResponse.Contents.Text:=HS.TableScroll(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'tablefetch' then
+    begin
+      AResponse.Contents.Text:=HS.TableFetch(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'post' then
+    begin
+      AResponse.Contents.Text:=HS.PostEditForm(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'imgup' then
+    begin
+      if ARequest.Files.Count <> 1 then Exit;
+      with ARequest.Files[0] do
+        AResponse.Contents.Text:=HS.UploadImage(ARequest.ContentFields, FileName, Stream);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'imgvw' then
+      AResponse.Contents.Text:=HS.ViewImage
+    else if LPm = 'imgclr' then
+    begin
+      AResponse.Contents.Text:=HS.ClearImage(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'flup' then
+    begin
+      if ARequest.Files.Count <> 1 then Exit;
+      with ARequest.Files[0] do
+        AResponse.Contents.Text:=HS.UploadFile(ARequest.ContentFields, FileName, Stream);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'fldl' then
+    begin
+      AResponse.Contents.Text:=HS.DownloadFile(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'flclr' then
+    begin
+      AResponse.Contents.Text:=HS.ClearFile(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'del' then
+    begin
+      AResponse.Contents.Text := HS.DeleteRecord(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'formdel' then
+    begin
+      AResponse.Contents.Text := HS.FormDeleteRow;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'flt' then
+    begin
+      AResponse.Contents.Text := HS.ShowFilter;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'fltok' then
+    begin
+      AResponse.Contents.Text := HS.ApplyFilter(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'fltpr' then
+    begin
+      AResponse.Contents.Text := HS.ApplyFilterPreset;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'fltclr' then
+    begin
+      AResponse.Contents.Text := HS.ClearAllFilters;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'print' then
+    begin
+      if SS.GetFmId > 0 then
+        AResponse.Contents.Text := HS.PrintForm(ARequest.ContentFields)
+      else if SS.RpId > 0 then
+        AResponse.Contents.Text := HS.PrintReport;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'rp' then
+    begin
+      AResponse.Contents.Text := HS.ShowReport;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'rpfetch' then
+    begin
+      AResponse.Contents.Text := HS.ReportFetch(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'exec' then
+    begin
+      AResponse.Contents.Text := HS.ApplyReportFilter(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'sort' then
+    begin
+      if SS.RecId > 0 then
+        AResponse.Contents.Text := HS.ApplyQrySort(ARequest.ContentFields)
+      else if SS.RpId > 0 then
+        AResponse.Contents.Text := HS.ApplyRpSort(ARequest.ContentFields)
+      else if SS.FormId > 0 then
+        AResponse.Contents.Text := HS.ApplySort(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'logout' then
+    begin
+      //Sessions.Lock;
+      DebugStr('Logout begin', SS);
+      try
+        if SS.OnDatabaseClose <> nil then SS.OnDatabaseClose(SS);
+        SS.RunScript.TryRunProc('DATABASE_CLOSE', []);
+      except
+        ;
       end;
-    except
-      on E: Exception do
-      begin
-        AResponse.Contents.Text := HS.ShowErrorPage(rsError, ExceptionToHtml(E));
-        AResponse.Code := HS.ResultCode;
+
+      DebugStr('Logout Sessions.Lock', SS);
+      Sessions.Lock;
+      try
+        MD := SS.MetaData;
+        Sessions.DeleteSession(SS);
+        MetaMan.DeleteMetaData(MD);
+      finally
+        DebugStr('Logout Sessions.UnLock');
+        Sessions.Unlock;
+      end;
+      AResponse.Contents.Text := '<html><head><meta http-equiv=refresh content="1;url=/' + ConnectName + '/"></head><body></body></html>';
+      DebugStr('Logout complete. Session count: ' + IntToStr(Sessions.Count));
+    end
+    else if LPm = 'fieldchange' then
+    begin
+      AResponse.Contents.Text := HS.FieldChange(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'queryscroll' then
+    begin
+      AResponse.Contents.Text := HS.QueryScroll(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'getlist' then
+    begin
+      if SS.RecId > 0 then
+        AResponse.Contents.Text := HS.GetList(ARequest.ContentFields)
+      else if SS.FilterId > 0 then
+        AResponse.Contents.Text := HS.GetFilterList(ARequest.ContentFields)
+      else if SS.RpId > 0 then
+        AResponse.Contents.Text := HS.GetRpFilterList(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'cancel' then
+    begin
+      AResponse.Contents.Text := HS.CancelChanges;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'setpage' then
+    begin
+      AResponse.Contents.Text := HS.SetActivePage(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'queryadd' then
+    begin
+      AResponse.Contents.Text := HS.AppendQueryRecord(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'queryedit' then
+    begin
+      AResponse.Contents.Text := HS.QueryEdit(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'querydel' then
+    begin
+      AResponse.Contents.Text := HS.QueryDelRow(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'queryfetch' then
+    begin
+      AResponse.Contents.Text := HS.QueryFetch(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'objadd' then
+    begin
+      AResponse.Contents.Text := HS.ObjectAppend(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'objedit' then
+    begin
+      AResponse.Contents.Text := HS.ObjectEdit(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'dup' then
+    begin
+      AResponse.Contents.Text := HS.DuplicateRecord(ARequest.ContentFields, dpOne);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'dupall' then
+    begin
+      AResponse.Contents.Text := HS.DuplicateRecord(ARequest.ContentFields, dpAll);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'ctrlclick' then
+    begin
+      AResponse.Contents.Text := HS.CtrlClick(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'msgbnclick' then
+    begin
+      AResponse.Contents.Text := HS.MsgBnClick(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'usermon' then
+    begin
+      AResponse.Contents.Text := HS.ShowUserMonitor;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'showdbg' then
+    begin
+      AResponse.Contents.Text := HS.ShowDebugAjax;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'closedbg' then
+    begin
+      AResponse.Contents.Text := HS.CloseDebug;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'cleardbg' then
+    begin
+      AResponse.Contents.Text := HS.ClearDebug;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'compileerror' then
+    begin
+      AResponse.Contents.Text := HS.ShowCompileError;
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'runtimeerror' then
+    begin
+      AResponse.Contents.Text := HS.ShowErrorPage(rsRuntimeError, SS.MainErrorMsg);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'resize' then
+    begin
+      AResponse.Contents.Text := HS.SetSize(ARequest.ContentFields, True);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'timer' then
+    begin
+      AResponse.Contents.Text := HS.TimerTimer(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else if LPm = 'submenuclick' then
+    begin
+      AResponse.Contents.Text := HS.SubMenuClick(ARequest.ContentFields);
+      AResponse.Code := HS.ResultCode;
+    end
+    else
+    begin
+      try
+        HandleOk := False;
+        if SS.OnHandleRequest <> nil then
+          HandleOk := SS.OnHandleRequest(SS, ARequest, AResponse);
+        if not HandleOk then
+        begin
+          AResponse.Content := HS.ShowErrorPage(rsUnknownRequest, rsUnknownRequestMsg);
+          AResponse.Code := rcBadRequest;
+        end;
+      except
+        on E: Exception do
+        begin
+          AResponse.Contents.Text := HS.ShowErrorPage(rsError, ExceptionToHtml(E));
+          AResponse.Code := HS.ResultCode;
+        end;
       end;
     end;
+
+    if AResponse.Code = rcAjaxError then
+      DebugStr(AResponse.Content, SS);
+
   end;
 
-  if AResponse.Code = rcAjaxError then
-    DebugStr(AResponse.Content, SS);
+  if SS.OnAfterHandleRequest <> nil then
+    SS.OnAfterHandleRequest(SS, ARequest, AResponse);
 
   except
     on E: Exception do

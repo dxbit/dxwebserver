@@ -296,6 +296,8 @@ type
     FIP: String;
     FConnectTime, FLastTime: TDateTime;
     FMsg: String;
+    FOnAfterHandleRequest: TWebServerRequestHandler;
+    FOnBeforeHandleRequest: TWebServerRequestHandler;
     FOnCreateForm: TCreateFormEvent;
     FOnDatabaseClose: TNotifyEvent;
     FOnDestroyForm: TCreateFormEvent;
@@ -403,6 +405,8 @@ type
     property OnDestroyForm: TCreateFormEvent read FOnDestroyForm write FOnDestroyForm;
     property OnDatabaseClose: TNotifyEvent read FOnDatabaseClose write FOnDatabaseClose;
     property OnHandleRequest: TWebServerRequestHandler read FOnHandleRequest write FOnHandleRequest;
+    property OnBeforeHandleRequest: TWebServerRequestHandler read FOnBeforeHandleRequest write FOnBeforeHandleRequest;
+    property OnAfterHandleRequest: TWebServerRequestHandler read FOnAfterHandleRequest write FOnAfterHandleRequest;
   end;
 
   { TSessionList }
